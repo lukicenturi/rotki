@@ -61,13 +61,11 @@ import LabeledAddressDisplay from '@/components/display/LabeledAddressDisplay.vu
 import DataTable from '@/components/helper/DataTable.vue';
 import TagFilter from '@/components/inputs/TagFilter.vue';
 import TagDisplay from '@/components/tags/TagDisplay.vue';
-import {
-  setupBlockchainAccounts,
-  setupGeneralBalances
-} from '@/composables/balances';
 import { CURRENCY_USD } from '@/data/currencies';
 import i18n from '@/i18n';
 import { useAssetInfoRetrieval } from '@/store/assets';
+import { useBalancesStore } from '@/store/balances';
+import { useBlockchainAccountsStore } from '@/store/balances/blockchain-accounts';
 import { AssetBreakdown } from '@/store/balances/types';
 import { useMainStore } from '@/store/main';
 import { useGeneralSettingsStore } from '@/store/settings/general';
@@ -93,10 +91,10 @@ export default defineComponent({
     const { identifier } = toRefs(props);
 
     const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
-    const { account, eth2Account } = setupBlockchainAccounts();
-    const { detailsLoading } = toRefs(useMainStore());
+    const { account, eth2Account } = storeToRefs(useBlockchainAccountsStore());
+    const { detailsLoading } = storeToRefs(useMainStore());
     const { assetPriceInfo } = useAssetInfoRetrieval();
-    const { assetBreakdown } = setupGeneralBalances();
+    const { assetBreakdown } = storeToRefs(useBalancesStore());
 
     const onlyTags = ref<string[]>([]);
 

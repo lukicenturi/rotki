@@ -684,10 +684,9 @@ export class RotkehlchenApi {
   }
 
   async editBtcAccount(
-    payload: BlockchainAccountPayload,
-    blockchain: Blockchain.BTC | Blockchain.BCH = Blockchain.BTC
+    payload: BlockchainAccountPayload
   ): Promise<BtcAccountData> {
-    let url = `/blockchains/${blockchain}`;
+    let url = `/blockchains/${payload.blockchain}`;
     const { address, label, tags } = payload;
 
     let data: {};
