@@ -1,5 +1,5 @@
 <template>
-  <component :is="full ? 'full-size-content' : 'div'">
+  <component :is="full ? FullSizeContent : 'div'">
     <v-row align="center" justify="center" :class="{ 'mb-10': !full }">
       <v-col cols="auto" :class="$style.logo">
         <slot name="logo">
@@ -22,16 +22,11 @@
   </component>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import FullSizeContent from '@/components/common/FullSizeContent.vue';
 
-export default defineComponent({
-  name: 'NoDataScreen',
-  components: { FullSizeContent },
-  props: {
-    full: { required: false, type: Boolean, default: true }
-  }
+defineProps({
+  full: { required: false, type: Boolean, default: true }
 });
 </script>
 
