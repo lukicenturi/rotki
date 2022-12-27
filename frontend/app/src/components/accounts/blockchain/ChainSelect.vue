@@ -47,20 +47,29 @@ const chains: SupportedChain[] = [
 ];
 
 defineProps({
-  blockchain: {
-    required: true,
-    type: String as PropType<Blockchain>
+  value: {
+    required: false,
+    type: String as PropType<Blockchain | null>,
+    default: ''
   },
   disabled: {
-    required: true,
-    type: Boolean
+    required: false,
+    type: Boolean,
+    default: false
+  },
+  dense: {
+    required: false,
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:blockchain']);
+const rootAttrs = useAttrs();
+
+const emit = defineEmits(['input']);
 
 const updateBlockchain = (blockchain: Blockchain) => {
-  emit('update:blockchain', blockchain);
+  emit('input', blockchain);
 };
 
 const { isModuleEnabled } = useModules();
@@ -79,18 +88,20 @@ const { t } = useI18n();
 
 <template>
   <v-select
-    :value="blockchain"
+    :value="value"
     data-cy="account-blockchain-field"
     outlined
-    class="account-form__chain pt-2"
+    class="account-form__chain"
     :items="items"
     :label="t('account_form.labels.blockchain')"
     :disabled="disabled"
     item-value="symbol"
+    :dense="dense"
+    v-bind="rootAttrs"
     @change="updateBlockchain"
   >
     <template #selection="{ item }">
-      <chain-display :item="item" />
+      <chain-display :item="item" :dense="dense" />
     </template>
     <template #item="{ item }">
       <chain-display :item="item" />

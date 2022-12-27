@@ -3,7 +3,7 @@ import { type Ref } from 'vue';
 import { useHistoryApi } from '@/services/history';
 import { useTransactionsApi } from '@/services/history/transactions';
 import { type PendingTask } from '@/services/types-api';
-import { useEthNamesStore } from '@/store/balances/ethereum-names';
+import { useAddressesNamesStore } from '@/store/blockchain/accounts/addresses-names';
 import { useEthAccountsStore } from '@/store/blockchain/accounts/eth';
 import { useTxQueryStatus } from '@/store/history/query-status';
 import { type EthTransactionEntry } from '@/store/history/types';
@@ -85,7 +85,7 @@ export const useTransactions = defineStore('history/transactions', () => {
         parameters ?? get(transactionsPayload)
       );
 
-      const { fetchEnsNames } = useEthNamesStore();
+      const { fetchEnsNames } = useAddressesNamesStore();
       if (onlyCache) {
         const result = await fetchEthTransactions(payload);
 
@@ -94,7 +94,7 @@ export const useTransactions = defineStore('history/transactions', () => {
         ) as Collection<EthTransactionEntry>;
 
         const addresses = getNotesAddresses(mapped.data);
-        await fetchEnsNames(addresses, false);
+        await fetchEnsNames(addresses);
 
         return mapped;
       }

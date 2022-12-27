@@ -3,7 +3,7 @@ import { Blockchain } from '@rotki/common/lib/blockchain';
 import makeBlockie from 'ethereum-blockies-base64';
 import { type PropType } from 'vue';
 import { truncateAddress } from '@/filters';
-import { useEthNamesStore } from '@/store/balances/ethereum-names';
+import { useAddressesNamesStore } from '@/store/blockchain/accounts/addresses-names';
 import { useFrontendSettingsStore } from '@/store/settings/frontend';
 import { useSessionSettingsStore } from '@/store/settings/session';
 import {
@@ -39,11 +39,11 @@ const { scrambleData, shouldShowAmount } = storeToRefs(
 const { explorers } = storeToRefs(useFrontendSettingsStore());
 const { dark } = useTheme();
 
-const { ethNameSelector } = useEthNamesStore();
+const { addressNameSelector } = useAddressesNamesStore();
 
 const ethName = computed<string | null>(() => {
   if (!get(scrambleData) || get(tx)) {
-    return get(ethNameSelector(get(text)));
+    return get(addressNameSelector(get(text)));
   }
 
   return null;

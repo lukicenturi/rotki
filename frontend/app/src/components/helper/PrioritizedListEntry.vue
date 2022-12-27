@@ -31,22 +31,22 @@ const labels: { [keys in PrioritizedListId]: string } = {
   [PriceOracle.UNISWAP3]: t('oracles.uniswap_v3').toString(),
   [PriceOracle.MANUALCURRENT]: t('oracles.manual_latest').toString(),
   [AddressNamePriority.BLOCKCHAIN_ACCOUNT]: t(
-    'eth_address_book.hint.priority.list.blockchain_account_labels'
+    'address_book.hint.priority.list.blockchain_account_labels'
   ).toString(),
   [AddressNamePriority.ENS_NAMES]: t(
-    'eth_address_book.hint.priority.list.ens_names'
+    'address_book.hint.priority.list.ens_names'
   ).toString(),
   [AddressNamePriority.ETHEREUM_TOKENS]: t(
-    'eth_address_book.hint.priority.list.ethereum_tokens'
+    'address_book.hint.priority.list.ethereum_tokens'
   ).toString(),
   [AddressNamePriority.GLOBAL_ADDRESSBOOK]: t(
-    'eth_address_book.hint.priority.list.global_address_book'
+    'address_book.hint.priority.list.global_address_book'
   ).toString(),
   [AddressNamePriority.HARDCODED_MAPPINGS]: t(
-    'eth_address_book.hint.priority.list.hardcoded_mappings'
+    'address_book.hint.priority.list.hardcoded_mappings'
   ).toString(),
   [AddressNamePriority.PRIVATE_ADDRESSBOOK]: t(
-    'eth_address_book.hint.priority.list.private_address_book'
+    'address_book.hint.priority.list.private_address_book'
   ).toString(),
   blockchain: '',
   coingecko: '',

@@ -7,11 +7,16 @@ defineProps({
   item: {
     required: true,
     type: Object as PropType<{ symbol: Blockchain; name: string }>
+  },
+  dense: {
+    required: false,
+    type: Boolean,
+    default: false
   }
 });
 </script>
 <template>
-  <list-item :title="item.symbol" :subtitle="item.name">
+  <list-item :dense="dense" :title="item.symbol" :subtitle="dense ? '' : item.name">
     <template #icon>
       <asset-icon size="26px" :identifier="item.symbol" />
     </template>

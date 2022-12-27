@@ -26,7 +26,7 @@ export const useTransactionsApi = () => {
     payload: TransactionRequestPayload,
     asyncQuery: boolean
   ): Promise<T> => {
-    let url = `/blockchains/ETH/transactions`;
+    let url = `/blockchains/evm/transactions`;
     const { address, ...data } = payload;
     if (address) {
       url += `/${address}`;
@@ -64,7 +64,7 @@ export const useTransactionsApi = () => {
 
   const deleteEthTransactions = async (): Promise<boolean> => {
     const response = await api.instance.delete<ActionResult<boolean>>(
-      `/blockchains/ETH/transactions`,
+      `/blockchains/evm/transactions`,
       {
         validateStatus: validStatus
       }
@@ -77,7 +77,7 @@ export const useTransactionsApi = () => {
     payload: TransactionEventRequestPayload
   ): Promise<PendingTask> => {
     const response = await api.instance.post<ActionResult<PendingTask>>(
-      'blockchains/ETH/transactions',
+      'blockchains/evm/transactions',
       axiosSnakeCaseTransformer({
         asyncQuery: true,
         ...payload

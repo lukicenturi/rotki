@@ -3,7 +3,7 @@ import { type GeneralAccount } from '@rotki/common/lib/account';
 import makeBlockie from 'ethereum-blockies-base64';
 import { type PropType } from 'vue';
 import { truncateAddress, truncationPoints } from '@/filters';
-import { useEthNamesStore } from '@/store/balances/ethereum-names';
+import { useAddressesNamesStore } from '@/store/blockchain/accounts/addresses-names';
 import { useSessionSettingsStore } from '@/store/settings/session';
 import { randomHex } from '@/utils/data';
 
@@ -19,10 +19,11 @@ const { scrambleData, shouldShowAmount } = storeToRefs(
   useSessionSettingsStore()
 );
 
-const { ethNameSelector } = useEthNamesStore();
-const ethName = computed<string | null>(() =>
-  get(ethNameSelector(get(account).address))
-);
+const { addressNameSelector } = useAddressesNamesStore();
+const aliasName = computed<string | null>(() => {
+  const { address, chain } = get(account);
+  return get(addressNameSelector(address, chain));
+});
 
 const xsOnly = computed(() => get(currentBreakpoint).xsOnly);
 const smAndDown = computed(() => get(currentBreakpoint).smAndDown);
@@ -50,7 +51,7 @@ const truncatedAddress = computed(() => {
 });
 
 const displayAddress = computed<string>(() => {
-  if (get(ethName)) return get(ethName) as string;
+  if (get(aliasName)) return get(aliasName) as string;
   if (get(truncatedAddress).length >= get(address).length) {
     return get(address);
   }
@@ -89,7 +90,7 @@ const label = computed<string>(() => {
 
 <template>
   <div class="d-flex flex-row labeled-address-display align-center">
-    <v-tooltip top open-delay="400" :disabled="!truncated && !ethName">
+    <v-tooltip top open-delay="400" :disabled="!truncated && !aliasName">
       <template #activator="{ on }">
         <span
           data-cy="labeled-address-display"
@@ -101,11 +102,11 @@ const label = computed<string>(() => {
             <v-avatar size="24" class="mr-2">
               <v-img :src="makeBlockie(address)" />
             </v-avatar>
-            <template v-if="!!label && !ethName">
+            <template v-if="!!label && !aliasName">
               <span class="text-truncate">
                 {{
                   t('labeled_address_display.label', {
-                    label: label
+                    label
                   })
                 }}
               </span>
@@ -124,7 +125,7 @@ const label = computed<string>(() => {
       </template>
       <div>
         <span v-if="!!label"> {{ account.label }}</span>
-        <span v-if="smAndDown && ethName"> ({{ ethName }})</span>
+        <span v-if="smAndDown && aliasName"> ({{ aliasName }})</span>
       </div>
       <div>{{ address }}</div>
     </v-tooltip>

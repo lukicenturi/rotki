@@ -2,7 +2,7 @@
 import { type GeneralAccount } from '@rotki/common/lib/account';
 import { type PropType } from 'vue';
 import { truncateAddress } from '@/filters';
-import { useEthNamesStore } from '@/store/balances/ethereum-names';
+import { useAddressesNamesStore } from '@/store/blockchain/accounts/addresses-names';
 import { useSessionSettingsStore } from '@/store/settings/session';
 import { randomHex } from '@/utils/data';
 
@@ -11,15 +11,17 @@ const AssetIcon = defineAsyncComponent(
 );
 
 const props = defineProps({
-  account: { required: true, type: Object as PropType<GeneralAccount> }
+  account: { required: true, type: Object as PropType<GeneralAccount> },
+  useAliasName: { required: false, type: Boolean, default: true },
+  truncate: { required: false, type: Boolean, default: true }
 });
 
-const { account } = toRefs(props);
+const { account, useAliasName } = toRefs(props);
 const { scrambleData, shouldShowAmount } = storeToRefs(
   useSessionSettingsStore()
 );
 
-const { ethNameSelector } = useEthNamesStore();
+const { addressNameSelector } = useAddressesNamesStore();
 
 const address = computed<string>(() => {
   if (!get(scrambleData)) {
@@ -28,22 +30,34 @@ const address = computed<string>(() => {
   return randomHex();
 });
 
-const ensName = computed<string | null>(() => {
-  if (!get(scrambleData)) {
-    return get(ethNameSelector(get(account).address));
+const aliasName = computed<string | null>(() => {
+  if (!get(scrambleData) && get(useAliasName)) {
+    return get(addressNameSelector(get(account).address, get(account).chain));
   }
 
   return null;
 });
+
+const { tc } = useI18n();
 </script>
 
 <template>
-  <v-tooltip top open-delay="400">
+  <v-tooltip top open-delay="400" :disabled="!truncate">
     <template #activator="{ on }">
       <v-row align="center" no-gutters class="flex-nowrap" v-on="on">
-        <v-col cols="auto">
-          <v-avatar left size="28px">
-            <asset-icon size="24px" :identifier="account.chain" />
+        <v-col cols="auto" class="pr-2">
+          <v-avatar left size="28px" class="mr-0">
+            <asset-icon
+              v-if="account.chain"
+              size="24px"
+              :identifier="account.chain"
+            />
+            <v-tooltip v-else top>
+              <template #activator="{ on }">
+                <v-icon v-on="on"> mdi-link-variant </v-icon>
+              </template>
+              <span>{{ tc('common.multi_chain') }}</span>
+            </v-tooltip>
           </v-avatar>
         </v-col>
 
@@ -52,8 +66,10 @@ const ensName = computed<string | null>(() => {
           :class="{ 'blur-content': !shouldShowAmount }"
           class="text-no-wrap"
         >
-          <div v-if="ensName">{{ ensName }}</div>
-          <div v-else>({{ truncateAddress(address, 6) }})</div>
+          <div v-if="aliasName">{{ aliasName }}</div>
+          <div v-else>
+            {{ truncate ? truncateAddress(address, 6) : address }}
+          </div>
         </v-col>
       </v-row>
     </template>

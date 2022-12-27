@@ -1,5 +1,6 @@
 import { Balance, NumericString } from '@rotki/common';
 import { z } from 'zod';
+import { EvmChainEnum } from '@rotki/common/lib/data';
 import { type PaginationRequestPayload } from '@/types/common';
 import { EntryMeta } from '@/types/history/meta';
 
@@ -39,7 +40,7 @@ export const EthTransaction = z.object({
   txHash: z.string(),
   timestamp: z.number(),
   blockNumber: z.number(),
-  chainId: z.number(),
+  evmChain: EvmChainEnum,
   fromAddress: z.string(),
   toAddress: z.string().nullish(),
   value: NumericString,

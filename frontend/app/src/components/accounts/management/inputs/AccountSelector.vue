@@ -23,8 +23,8 @@ const { accountToEdit } = useAccountDialog();
   <fragment>
     <chain-select
       :disabled="loading || !!accountToEdit"
-      :blockchain="blockchain"
-      @update:blockchain="emit('update:blockchain', $event)"
+      :value="blockchain"
+      @input="emit('update:blockchain', $event)"
     />
 
     <input-mode-select

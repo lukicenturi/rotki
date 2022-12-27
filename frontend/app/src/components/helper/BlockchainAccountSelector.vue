@@ -4,7 +4,7 @@ import { type Blockchain } from '@rotki/common/lib/blockchain';
 import { type PropType } from 'vue';
 import AccountDisplay from '@/components/display/AccountDisplay.vue';
 import TagDisplay from '@/components/tags/TagDisplay.vue';
-import { useEthNamesStore } from '@/store/balances/ethereum-names';
+import { useAddressesNamesStore } from '@/store/blockchain/accounts/addresses-names';
 import { useAccountBalancesStore } from '@/store/blockchain/accountbalances';
 
 const props = defineProps({
@@ -69,10 +69,10 @@ const displayedAccounts = computed(() => {
   return get(hideOnEmptyUsable) ? [] : accounts;
 });
 
-const { ethNameSelector } = useEthNamesStore();
+const { addressNameSelector } = useAddressesNamesStore();
 
 const filter = (item: GeneralAccount, queryText: string) => {
-  const text = (get(ethNameSelector(item.address)) ?? '').toLowerCase();
+  const text = (get(addressNameSelector(item.address)) ?? '').toLowerCase();
   const address = item.address.toLocaleLowerCase();
   const query = queryText.toLocaleLowerCase();
 
@@ -150,7 +150,6 @@ const { dark } = useTheme();
           >
             <div class="blockchain-account-selector__list__item__address-label">
               <v-chip
-                small
                 :color="dark ? null : 'grey lighten-3'"
                 filter
                 class="text-truncate"

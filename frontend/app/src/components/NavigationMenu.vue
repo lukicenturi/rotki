@@ -133,8 +133,8 @@ const navItems: MenuItem[] = [
   },
   {
     type: 'item',
-    class: 'eth-address-book-manager',
-    ...Routes.ETH_ADDRESS_BOOK_MANAGER
+    class: 'address-book-manager',
+    ...Routes.ADDRESS_BOOK_MANAGER
   },
   {
     type: 'divider'
