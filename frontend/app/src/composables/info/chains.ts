@@ -1,7 +1,11 @@
 import { type Blockchain } from '@rotki/common/lib/blockchain';
 import { type MaybeRef } from '@vueuse/core';
-import { type ComputedRef } from 'vue';
-import { type ChainInfo, type EvmChainInfo } from '@/types/api/chains';
+import { type ComputedRef, type Ref } from 'vue';
+import {
+  type ChainInfo,
+  type EvmChainInfo,
+  type SupportedChains
+} from '@/types/api/chains';
 
 const isEvmChain = (info: ChainInfo): info is EvmChainInfo => {
   return info.type === 'evm';
@@ -10,9 +14,13 @@ const isEvmChain = (info: ChainInfo): info is EvmChainInfo => {
 export const useSupportedChains = createSharedComposable(() => {
   const { fetchSupportedChains } = useSupportedChainsApi();
 
-  const supportedChains = asyncComputed(() => fetchSupportedChains(), [], {
-    lazy: true
-  });
+  const supportedChains: Ref<SupportedChains> = asyncComputed<SupportedChains>(
+    () => fetchSupportedChains(),
+    [],
+    {
+      lazy: true
+    }
+  );
 
   const evmChainsData: ComputedRef<EvmChainInfo[]> = computed(() => {
     // isEvmChain guard does not work the same with useArrayFilter
@@ -35,7 +43,9 @@ export const useSupportedChains = createSharedComposable(() => {
   );
 
   const isEvm = (chain: MaybeRef<Blockchain>) =>
-    useArrayInclude(evmChains, chain);
+    computed(() => {
+      return get(evmChains).includes(get(chain));
+    });
 
   const supportsTransactions = (chain: MaybeRef<Blockchain>): boolean => {
     const chains = get(txEvmChains);
@@ -53,14 +63,13 @@ export const useSupportedChains = createSharedComposable(() => {
       return get(supportedChains).find(x => x.id === get(chain)) || null;
     });
 
-  const getNativeAsset = (chain: MaybeRef<Blockchain>): ComputedRef<string> =>
-    computed(() => {
-      const blockchain = get(chain);
-      return (
-        get(evmChainsData).find(({ id }) => id === blockchain)?.nativeAsset ||
-        blockchain
-      );
-    });
+  const getNativeAsset = (chain: MaybeRef<Blockchain>) => {
+    const blockchain = get(chain);
+    return (
+      get(evmChainsData).find(({ id }) => id === blockchain)?.nativeAsset ||
+      blockchain
+    );
+  };
 
   return {
     supportedChains,
