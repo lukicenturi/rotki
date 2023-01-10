@@ -28,8 +28,7 @@ const chains: SupportedChain[] = [
   },
   {
     symbol: Blockchain.OPTIMISM,
-    name: 'Optimism',
-    icon: './assets/images/chains/optimism.svg'
+    name: 'Optimism'
   },
   {
     symbol: Blockchain.KSM,

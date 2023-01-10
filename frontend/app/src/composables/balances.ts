@@ -1,10 +1,10 @@
 import { type MaybeRef } from '@vueuse/core';
+import { getIdentifierFromSymbolMap } from '@rotki/common/lib/data';
 import { Routes } from '@/router/routes';
 import { useAssetIconApi } from '@/services/assets/icon-api';
 import { useAssetInfoRetrieval } from '@/store/assets/retrieval';
 import { type TradeLocationData, useTradeLocations } from '@/types/trades';
 import { assert } from '@/utils/assertions';
-import { getNativeAsset } from '@/utils/assets';
 import { isBlockchain } from '@/types/blockchain/chains';
 
 export const useLocationInfo = () => {
@@ -15,7 +15,8 @@ export const useLocationInfo = () => {
   const getLocation = (identifier: MaybeRef<string>): TradeLocationData => {
     const id = get(identifier);
     if (isBlockchain(id)) {
-      const assetId = getNativeAsset(id);
+      const assetId = getIdentifierFromSymbolMap(id);
+
       return {
         name: get(assetName(assetId)),
         identifier: assetId,
