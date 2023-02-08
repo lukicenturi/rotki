@@ -52,7 +52,7 @@ const { addWatchers, editWatchers, deleteWatchers } = store;
 
 const loadedWatchers = computed(() => {
   const id = get(watcherContentId)?.toString();
-  return get(watchers).filter(watcher => watcher.args.vault_id === id);
+  return get(watchers).filter(watcher => watcher.args.vaultId === id);
 });
 
 const watcherTypes = computed(() => [
@@ -141,7 +141,7 @@ const addWatcher = async () => {
     args: {
       ratio: value,
       op: operation,
-      vault_id: contentId.toString()
+      vaultId: contentId.toString()
     }
   };
 

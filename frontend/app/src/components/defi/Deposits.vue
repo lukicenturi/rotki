@@ -2,21 +2,14 @@
 import { type BigNumber } from '@rotki/common';
 import { type GeneralAccount } from '@rotki/common/lib/account';
 import { Blockchain, DefiProtocol } from '@rotki/common/lib/blockchain';
-import ActiveModules from '@/components/defi/ActiveModules.vue';
-import DepositProtocolReset from '@/components/defi/DepositProtocolReset.vue';
-import DepositTotals from '@/components/defi/DepositTotals.vue';
-import LendingAssetTable from '@/components/defi/display/LendingAssetTable.vue';
-import YearnAssetsTable from '@/components/defi/yearn/YearnAssetsTable.vue';
-import PremiumCard from '@/components/display/PremiumCard.vue';
-import StatCard from '@/components/display/StatCard.vue';
-import BlockchainAccountSelector from '@/components/helper/BlockchainAccountSelector.vue';
-import DefiProtocolSelector from '@/components/helper/DefiProtocolSelector.vue';
-import ProgressScreen from '@/components/helper/ProgressScreen.vue';
-import RefreshHeader from '@/components/helper/RefreshHeader.vue';
+import {
+  HistoryEventType,
+  TransactionEventProtocol
+} from '@rotki/common/lib/history/tx-events';
+import { type ComputedRef } from 'vue';
 import {
   AaveEarnedDetails,
   CompoundLendingDetails,
-  LendingHistory,
   YearnVaultsProfitDetails
 } from '@/premium/premium';
 import { type YearnVaultProfitLoss } from '@/types/defi/yearn';
@@ -26,6 +19,7 @@ import { ProtocolVersion } from '@/types/defi';
 
 const section = Section.DEFI_LENDING;
 const historySection = Section.DEFI_LENDING_HISTORY;
+
 const modules: Module[] = [
   Module.AAVE,
   Module.COMPOUND,
@@ -40,9 +34,7 @@ const selectedAccounts = ref<GeneralAccount[]>([]);
 const protocol = ref<DefiProtocol | null>(null);
 const premium = usePremium();
 const route = useRoute();
-const { openUrl } = useInterop();
 const { shouldShowLoadingScreen, isSectionRefreshing } = useSectionLoading();
-const { floatingPrecision } = storeToRefs(useGeneralSettingsStore());
 
 const defiStore = useDefiStore();
 const store = useDefiSupportedProtocolsStore();
@@ -73,12 +65,6 @@ const lendingBalances = computed(() => {
   const protocols = get(selectedProtocols);
   const addresses = get(selectedAddresses);
   return get(store.aggregatedLendingBalances(protocols, addresses));
-});
-
-const history = computed(() => {
-  const protocols = get(selectedProtocols);
-  const addresses = get(selectedAddresses);
-  return get(store.lendingHistory(protocols, addresses));
 });
 
 const totalEarnedInAave = computed(() => {
@@ -158,6 +144,28 @@ onMounted(async () => {
   }
   await store.fetchLending();
 });
+
+const transactionEventProtocols: ComputedRef<TransactionEventProtocol[]> =
+  computed(() => {
+    const selectedProtocol = get(protocol);
+
+    const mapping = {
+      [DefiProtocol.AAVE]: [
+        TransactionEventProtocol.AAVE_V1,
+        TransactionEventProtocol.AAVE_V2
+      ],
+      [DefiProtocol.COMPOUND]: [TransactionEventProtocol.COMPOUND],
+      [DefiProtocol.MAKERDAO_DSR]: [TransactionEventProtocol.MAKERDAO_DSR],
+      [DefiProtocol.YEARN_VAULTS]: [TransactionEventProtocol.YEARN_V1],
+      [DefiProtocol.YEARN_VAULTS_V2]: [TransactionEventProtocol.YEARN_V2]
+    } as Record<DefiProtocol, TransactionEventProtocol[]>;
+
+    if (selectedProtocol === null) {
+      return Object.values(mapping).flat();
+    }
+
+    return mapping[selectedProtocol] as TransactionEventProtocol[];
+  });
 </script>
 
 <template>
@@ -240,17 +248,17 @@ onMounted(async () => {
         :profit="totalEarnedInAave"
       />
     </template>
-    <v-row class="loans__history mt-8" no-gutters>
-      <v-col cols="12">
-        <premium-card v-if="!premium" :title="tc('lending.history')" />
-        <lending-history
-          v-else
-          :loading="historyRefreshing"
-          :history="history"
-          :floating-precision="floatingPrecision"
-          @open-link="openUrl($event)"
-        />
-      </v-col>
-    </v-row>
+    <div v-if="!premium" class="mt-8">
+      <premium-card :title="tc('lending.history')" />
+    </div>
+    <div v-else>
+      <transaction-content
+        use-external-account-filter
+        :section-title="tc('common.events')"
+        :protocols="transactionEventProtocols"
+        :event-types="[HistoryEventType.DEPOSIT]"
+        :external-account-filter="selectedAccounts"
+      />
+    </div>
   </div>
 </template>

@@ -2,15 +2,15 @@
 import { type AssetBalance, type BigNumber } from '@rotki/common';
 import { type ComputedRef, type PropType } from 'vue';
 import { Blockchain } from '@rotki/common/lib/blockchain';
+import {
+  HistoryEventType,
+  TransactionEventProtocol
+} from '@rotki/common/lib/history/tx-events';
 import LoanDebt from '@/components/defi/loan/LoanDebt.vue';
 import LoanHeader from '@/components/defi/loan/LoanHeader.vue';
 import LiquityCollateral from '@/components/defi/loan/loans/liquity/LiquityCollateral.vue';
 import LiquityLiquidation from '@/components/defi/loan/loans/liquity/LiquityLiquidation.vue';
 import PremiumCard from '@/components/display/PremiumCard.vue';
-import {
-  HistoryEventType,
-  TransactionEventProtocol
-} from '@/types/history/tx/tx-events';
 import { type LiquityLoan } from '@/types/defi/liquity';
 
 const props = defineProps({
@@ -68,29 +68,25 @@ const { tc } = useI18n();
           <loan-debt :debt="debt" :asset="debt.asset" />
         </v-col>
       </v-row>
-      <v-row no-gutters class="mt-8">
-        <v-col cols="12">
-          <premium-card
-            v-if="!premium"
-            :title="tc('liquity_lending.trove_events')"
-          />
-
-          <transaction-content
-            use-external-account-filter
-            :section-title="tc('liquity_lending.trove_events')"
-            :protocols="[TransactionEventProtocol.LIQUITY]"
-            :event-types="[
-              HistoryEventType.WITHDRAWAL,
-              HistoryEventType.SPEND,
-              HistoryEventType.DEPOSIT
-            ]"
-            :external-account-filter="{
-              address: loan.owner,
-              chain: Blockchain.ETH
-            }"
-          />
-        </v-col>
-      </v-row>
+      <div v-if="!premium">
+        <premium-card :title="tc('liquity_lending.trove_events')" />
+      </div>
+      <div v-else>
+        <transaction-content
+          use-external-account-filter
+          :section-title="tc('liquity_lending.trove_events')"
+          :protocols="[TransactionEventProtocol.LIQUITY]"
+          :event-types="[
+            HistoryEventType.WITHDRAWAL,
+            HistoryEventType.SPEND,
+            HistoryEventType.DEPOSIT
+          ]"
+          :external-account-filter="{
+            address: loan.owner,
+            chain: Blockchain.ETH
+          }"
+        />
+      </div>
     </v-col>
   </v-row>
 </template>

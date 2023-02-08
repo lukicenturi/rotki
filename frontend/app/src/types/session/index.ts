@@ -62,7 +62,7 @@ export interface Watcher<T extends WatcherTypes> {
 interface MakerVaultCollateralizationRatio {
   ratio: string;
   op: WatcherOpTypes;
-  vault_id: string;
+  vaultId: string;
 }
 
 interface WatcherArgs {
