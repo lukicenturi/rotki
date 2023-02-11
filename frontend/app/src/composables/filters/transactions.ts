@@ -1,6 +1,10 @@
 import { type ComputedRef, type Ref } from 'vue';
 import { type MatchedKeyword, type SearchMatcher } from '@/types/filtering';
-import { convertToTimestamp, getDateInputISOFormat } from '@/utils/date';
+import {
+  convertFromTimestamp,
+  convertToTimestamp,
+  getDateInputISOFormat
+} from '@/utils/date';
 
 enum TransactionFilterKeys {
   START = 'start',
@@ -20,7 +24,7 @@ enum TransactionFilterValueKeys {
   EVM_CHAIN = 'evmChain'
 }
 
-type Filters = MatchedKeyword<TransactionFilterValueKeys>;
+export type Filters = MatchedKeyword<TransactionFilterValueKeys>;
 type Matcher = SearchMatcher<TransactionFilterKeys, TransactionFilterValueKeys>;
 
 export const useTransactionFilter = (disableProtocols: boolean) => {
@@ -50,7 +54,9 @@ export const useTransactionFilter = (disableProtocols: boolean) => {
           );
         },
         transformer: (date: string) =>
-          convertToTimestamp(date, get(dateInputFormat)).toString()
+          convertToTimestamp(date, get(dateInputFormat)).toString(),
+        deTransformer: (timestamp: string) =>
+          convertFromTimestamp(parseInt(timestamp), true, get(dateInputFormat))
       },
       {
         key: TransactionFilterKeys.END,
@@ -68,14 +74,16 @@ export const useTransactionFilter = (disableProtocols: boolean) => {
           );
         },
         transformer: (date: string) =>
-          convertToTimestamp(date, get(dateInputFormat)).toString()
+          convertToTimestamp(date, get(dateInputFormat)).toString(),
+        deTransformer: (timestamp: string) =>
+          convertFromTimestamp(parseInt(timestamp), true, get(dateInputFormat))
       },
       {
         key: TransactionFilterKeys.ASSET,
         keyValue: TransactionFilterValueKeys.ASSET,
         description: tc('transactions.filter.asset'),
         asset: true,
-        suggestions: async (value: string) => await assetSearch(value, 5)
+        suggestions: async (value: string) => await assetSearch(value, 5),
       }
     ];
 

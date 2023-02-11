@@ -54,6 +54,10 @@ const matcherForKey = (searchKey: string | undefined) => {
   return get(matchers).find(({ key }) => key === searchKey);
 };
 
+const matcherForKeyValue = (searchKey: string | undefined) => {
+  return get(matchers).find(({ keyValue }) => keyValue === searchKey);
+};
+
 const appendToSearch = (key: string) => {
   const filter = `${key}:`;
   if (get(search)) {
@@ -222,7 +226,39 @@ const selectItem = (suggestion: Suggestion) => {
   });
 };
 
+onMounted(() => {
+  // console.log(get(matches), get(selection));
+  // set(
+  //   selection,
+  //   get(selection).filter(s => {
+  //     const key = s.key;
+  //     const matcher = get(matchers).find(x => x.key === key);
+  //     return matcher && get(matches)[matcher.keyValue];
+  //   })
+  // );
+
+  const newSelection: Suggestion[] = [];
+  Object.entries(get(matches)).forEach(([key, value]) => {
+    const foundMatchers = matcherForKeyValue(key);
+    console.log(key, value, foundMatchers);
+    if (foundMatchers && 'validate' in foundMatchers) {
+      let deTransformedValue = value;
+      if (typeof value === 'string') {
+        deTransformedValue = foundMatchers.deTransformer?.(value) || value;
+      }
+      newSelection.push({
+        key: foundMatchers.key,
+        value: deTransformedValue,
+        total: 1,
+        index: 0
+      });
+    }
+  });
+  set(selection, newSelection);
+});
+
 watch(matches, matches => {
+  console.log('matches berubah');
   set(
     selection,
     get(selection).filter(s => {
@@ -235,53 +271,57 @@ watch(matches, matches => {
 </script>
 
 <template>
-  <v-combobox
-    ref="input"
-    :value="selection"
-    outlined
-    dense
-    chips
-    small-chips
-    deletable-chips
-    multiple
-    clearable
-    hide-details
-    prepend-inner-icon="mdi-filter-variant"
-    :search-input.sync="search"
-    @input="updateMatches($event)"
-    @keydown.enter="applySuggestion"
-    @keydown.up.prevent
-    @keydown.up="moveSuggestion(true)"
-    @keydown.down.prevent
-    @keydown.down="moveSuggestion(false)"
-  >
-    <template #selection="{ item, selected }">
-      <v-chip
-        label
-        small
-        class="font-weight-medium"
-        :input-value="selected"
-        close
-        @click:close="removeSelection(item)"
-        @click="
-          removeSelection(item);
-          selectItem(item);
-        "
-      >
-        <suggested-item :suggestion="item" />
-      </v-chip>
-    </template>
-    <template #no-data>
-      <no-filter-available
-        :matchers="matchers"
-        :used="usedKeys"
-        :keyword="search"
-        :suggestion="searchSuggestion"
-        :selected-suggestion="selectedSuggestion"
-        @apply:filter="applyFilter($event)"
-        @suggest="suggestedFilter = $event"
-        @click="appendToSearch($event)"
-      />
-    </template>
-  </v-combobox>
+  <div>
+    {{ selection }}
+    <v-combobox
+      ref="input"
+      :value="selection"
+      outlined
+      dense
+      chips
+      small-chips
+      deletable-chips
+      multiple
+      clearable
+      hide-details
+      prepend-inner-icon="mdi-filter-variant"
+      :search-input.sync="search"
+      @input="updateMatches($event)"
+      @keydown.enter="applySuggestion"
+      @keydown.up.prevent
+      @keydown.up="moveSuggestion(true)"
+      @keydown.down.prevent
+      @keydown.down="moveSuggestion(false)"
+    >
+      <template #selection="{ item, selected }">
+        <v-chip
+          label
+          small
+          class="font-weight-medium"
+          :input-value="selected"
+          close
+          @click:close="removeSelection(item)"
+          @click="
+            removeSelection(item);
+            selectItem(item);
+          "
+        >
+          <suggested-item :suggestion="item" />
+        </v-chip>
+      </template>
+      <template #no-data>
+        {{ matches }}
+        <no-filter-available
+          :matchers="matchers"
+          :used="usedKeys"
+          :keyword="search"
+          :suggestion="searchSuggestion"
+          :selected-suggestion="selectedSuggestion"
+          @apply:filter="applyFilter($event)"
+          @suggest="suggestedFilter = $event"
+          @click="appendToSearch($event)"
+        />
+      </template>
+    </v-combobox>
+  </div>
 </template>

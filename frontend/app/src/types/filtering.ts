@@ -16,11 +16,14 @@ interface StringSuggestionMatcher<K, KV = void> extends BaseMatcher<K, KV> {
   readonly suggestions: StringSuggestion;
   readonly validate: (value: string) => boolean;
   readonly transformer?: (value: string) => string;
+  readonly deTransformer?: (value: string) => string;
 }
 
 interface AssetSuggestionMatcher<K, KV = void> extends BaseMatcher<K, KV> {
   readonly asset?: true;
   readonly suggestions: AssetSuggestion;
+
+  readonly deTransformer?: (value: string) => AssetInfoWithId;
 }
 
 export type SearchMatcher<K, KV = void> =

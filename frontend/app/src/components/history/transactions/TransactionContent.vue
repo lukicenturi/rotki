@@ -88,7 +88,11 @@ const tableHeaders = computed<DataTableHeader[]>(() => [
 ]);
 
 const transactionStore = useTransactionStore();
-const { transactions } = storeToRefs(transactionStore);
+const {
+  transactions,
+  transactionSavedPaginationOptions,
+  transactionSavedFilters
+} = storeToRefs(transactionStore);
 
 const { isTaskRunning } = useTaskStore();
 
@@ -250,11 +254,17 @@ const usedAccounts: ComputedRef<Account<BlockchainSelection>[]> = computed(
   }
 );
 
+onBeforeMount(() => {
+  set(options, get(transactionSavedPaginationOptions));
+  updateFilter(get(transactionSavedFilters));
+});
+
 const updatePayloadHandler = async () => {
   let paginationOptions = {};
   const optionsVal = get(options);
   if (optionsVal) {
-    const { itemsPerPage, page, sortBy, sortDesc } = optionsVal!;
+    const { itemsPerPage, page, sortBy, sortDesc } = optionsVal;
+    set(transactionSavedPaginationOptions, optionsVal);
     const offset = (page - 1) * itemsPerPage;
 
     paginationOptions = {
@@ -311,15 +321,17 @@ const updatePaginationHandler = async (
 const getItemClass = (item: EthTransactionEntry) =>
   item.ignoredInAccounting ? 'darken-row' : '';
 
-watch(filters, async (filter, oldValue) => {
-  if (filter === oldValue) {
+watch(filters, async (filters, oldValue) => {
+  if (filters === oldValue) {
     return;
   }
+
+  set(transactionSavedFilters, filters);
 
   // Because the evmChain filter and the account filter can't be active
   // at the same time we clear the account filter when the evmChain filter
   // is set.
-  if (filter.evmChain) {
+  if (filters.evmChain) {
     set(accounts, []);
   }
 

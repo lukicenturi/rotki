@@ -32,6 +32,8 @@ import {
 } from '@/utils/history';
 import { startPromise } from '@/utils';
 import { type ActionStatus } from '@/types/action';
+import { type TablePagination } from '@/types/pagination';
+import { type Filters } from '@/composables/filters/transactions';
 
 export const useTransactionStore = defineStore('history/transactions', () => {
   const transactions: Ref<Collection<EthTransactionEntry>> = ref(
@@ -40,6 +42,11 @@ export const useTransactionStore = defineStore('history/transactions', () => {
   const transactionsPayload: Ref<Partial<TransactionRequestPayload>> = ref(
     defaultHistoricPayloadState()
   );
+
+  const transactionSavedPaginationOptions: Ref<TablePagination<EthTransaction> | null> =
+    ref(null);
+  const transactionSavedFilters: Ref<Filters> = ref({});
+
   const fetchedTxAccounts: Ref<EvmChainAddress[]> = ref([]);
   const counterparties: Ref<string[]> = ref([]);
   const pageChanged: Ref<boolean> = ref(true);
@@ -349,6 +356,8 @@ export const useTransactionStore = defineStore('history/transactions', () => {
   };
 
   return {
+    transactionSavedPaginationOptions,
+    transactionSavedFilters,
     transactions,
     transactionsPayload,
     counterparties,
