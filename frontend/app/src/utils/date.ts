@@ -5,6 +5,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import { DateFormat } from '@/types/date-format';
+import { MaybeRef } from '@vueuse/core';
 
 export function getDateInputISOFormat(format: DateFormat): string {
   return {
@@ -31,30 +32,31 @@ export function changeDateFormat(
 }
 
 export function convertToTimestamp(
-  date: string,
-  dateFormat: DateFormat = DateFormat.DateMonthYearHourMinuteSecond
+  date: MaybeRef<string>,
+  dateFormat: MaybeRef<DateFormat> = DateFormat.DateMonthYearHourMinuteSecond
 ): number {
-  let format: string = getDateInputISOFormat(dateFormat);
-  if (date.includes(' ')) {
+  let format: string = getDateInputISOFormat(get(dateFormat));
+  const dateVal = get(date);
+  if (dateVal.includes(' ')) {
     format += ' HH:mm';
-    if (date.charAt(date.length - 6) === ':') {
+    if (dateVal.charAt(dateVal.length - 6) === ':') {
       format += ':ss';
     }
   }
 
-  return dayjs(date, format).unix();
+  return dayjs(dateVal, format).unix();
 }
 
 export function convertFromTimestamp(
-  timestamp: number,
-  seconds = false,
-  dateFormat: DateFormat = DateFormat.DateMonthYearHourMinuteSecond
+  timestamp: MaybeRef<number>,
+  seconds: MaybeRef<boolean> = false,
+  dateFormat: MaybeRef<DateFormat> = DateFormat.DateMonthYearHourMinuteSecond
 ): string {
-  const time = dayjs(timestamp * 1000);
-  let format: string = getDateInputISOFormat(dateFormat);
+  const time = dayjs(get(timestamp) * 1000);
+  let format: string = getDateInputISOFormat(get(dateFormat));
   if (time.hour() !== 0 || time.minute() !== 0) {
     format += ' HH:mm';
-    if (seconds) {
+    if (get(seconds)) {
       format += ':ss';
     }
   }

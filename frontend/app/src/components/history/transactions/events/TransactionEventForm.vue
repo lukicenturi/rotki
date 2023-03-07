@@ -3,7 +3,7 @@ import { type BigNumber } from '@rotki/common';
 import useVuelidate from '@vuelidate/core';
 import { helpers, required } from '@vuelidate/validators';
 import dayjs from 'dayjs';
-import { type ComputedRef } from 'vue';
+import { type ComputedRef, Ref } from 'vue';
 import {
   HistoryEventSubType,
   type HistoryEventType
@@ -48,7 +48,7 @@ const { edit, transaction } = toRefs(props);
 
 const { isTaskRunning } = useTaskStore();
 const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
-const { exchangeRate, getHistoricPrice } = useBalancePricesStore();
+const {  getHistoricPrice } = useBalancePricesStore();
 const { getEventTypeData } = useEventTypeData();
 const { historyEventTypeData, historyEventSubTypeData } =
   useHistoryEventTypeData();
@@ -160,16 +160,30 @@ const reset = () => {
   set(asset, '');
   set(amount, '0');
   set(fiatValue, '0');
-  set(location, get(lastLocation));
+  set(location, get(transaction)?.evmChain || get(lastLocation));
   set(notes, '');
   set(counterparty, '');
   set(rate, '');
   set(errorMessages, {});
 };
 
-const fiatExchangeRate = computed<BigNumber>(() => {
-  return get(exchangeRate(get(currencySymbol))) ?? One;
-});
+const fiatHistoricalRate: Ref<BigNumber> = ref(One);
+
+const findFiatHistoricalRate = async () => {
+  const timestamp = get(transaction)?.timestamp || get(edit)?.timestamp;
+  if (get(currencySymbol) === CURRENCY_USD || !timestamp){
+    set(fiatHistoricalRate, One);
+    return;
+  }
+
+  const rate = await getHistoricPrice({
+    fromAsset: CURRENCY_USD,
+    toAsset: get(currencySymbol),
+    timestamp,
+  });
+
+  set(fiatHistoricalRate, rate);
+}
 
 const setEditMode = async () => {
   const editVal = get(edit);
@@ -180,10 +194,7 @@ const setEditMode = async () => {
 
   const event: EthTransactionEvent = editVal;
 
-  const convertedFiatValue =
-    get(currencySymbol) === CURRENCY_USD
-      ? event.balance.usdValue.toFixed()
-      : event.balance.usdValue.multipliedBy(get(fiatExchangeRate)).toFixed();
+  const convertedFiatValue = event.balance.usdValue.multipliedBy(get(fiatHistoricalRate)).toFixed()
 
   set(identifier, event.identifier ?? null);
   set(eventIdentifier, event.eventIdentifier);
@@ -199,7 +210,7 @@ const setEditMode = async () => {
   set(notes, event.notes ?? '');
   set(counterparty, event.counterparty ?? '');
 
-  await fetchPrice();
+  await fetchAssetHistoricalPrice();
 };
 
 const { setMessage } = useMessageStore();
@@ -210,15 +221,12 @@ const save = async (): Promise<boolean> => {
   const numericAmount = get(bigNumberifyFromRef(amount));
   const numericFiatValue = get(bigNumberifyFromRef(fiatValue));
 
-  const convertedUsdValue =
-    get(currencySymbol) === CURRENCY_USD
-      ? numericFiatValue
-      : numericFiatValue.dividedBy(get(fiatExchangeRate));
+  const convertedUsdValue = numericFiatValue.dividedBy(get(fiatHistoricalRate));
 
   const transactionEventPayload: Writeable<NewEthTransactionEvent> = {
     eventIdentifier: get(eventIdentifier),
     sequenceIndex: get(sequenceIndex) || '0',
-    timestamp: convertToTimestamp(get(datetime)),
+    timestamp: convertToTimestamp(datetime),
     location: get(location),
     eventType: get(eventType) as HistoryEventType,
     eventSubtype: get(eventSubtype) as HistoryEventSubType,
@@ -270,12 +278,12 @@ const updateUsdValue = () => {
   }
 };
 
-const fetchPrice = async () => {
+const fetchAssetHistoricalPrice = async () => {
   if ((get(fiatValue) && get(edit)) || !get(datetime) || !get(asset)) {
     return;
   }
 
-  const timestamp = convertToTimestamp(get(datetime));
+  const timestamp = convertToTimestamp(datetime);
   const fromAsset = get(asset);
   const toAsset = get(currencySymbol);
 
@@ -296,8 +304,12 @@ watch(edit, async () => {
 });
 
 watch([datetime, asset], async () => {
-  await fetchPrice();
+  await fetchAssetHistoricalPrice();
 });
+
+watch([datetime, currencySymbol], async () => {
+  await findFiatHistoricalRate();
+})
 
 watch(amount, () => {
   updateUsdValue();
@@ -305,6 +317,7 @@ watch(amount, () => {
 
 watch(transaction, transaction => {
   set(eventIdentifier, transaction?.txHash || '');
+  set(location, transaction?.evmChain || get(lastLocation));
 });
 
 watch(location, (location: string) => {
@@ -336,6 +349,7 @@ watch(v$, ({ $invalid }) => {
 });
 
 onMounted(async () => {
+  await findFiatHistoricalRate();
   await setEditMode();
 });
 
@@ -384,6 +398,7 @@ const historyEventSubTypeFilteredData: ComputedRef<ActionDataEntry[]> =
       required
       seconds
       limit-now
+      disabled
       data-cy="datetime"
       :hint="t('transactions.events.form.datetime.hint')"
       :error-messages="errorMessages['datetime']"
