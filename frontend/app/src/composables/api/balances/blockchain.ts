@@ -66,7 +66,7 @@ export const useBlockchainBalancesApi = () => {
 
   const fetchDetectedTokensTask = async (
     chain: TokenChains,
-    addresses: string[]
+    addresses: string[] | null
   ): Promise<PendingTask> => {
     return internalDetectedTokens<PendingTask>(chain, addresses, true);
   };

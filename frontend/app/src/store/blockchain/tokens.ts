@@ -42,14 +42,18 @@ export const useBlockchainTokensStore = defineStore('blockchain/tokens', () => {
 
   const fetchDetectedTokens = async (
     chain: TokenChains,
-    address: string | null = null
+    address: string | null = null,
+    onlyCache = true
   ) => {
     try {
-      if (address) {
+      if (!onlyCache) {
         const { awaitTask } = useTaskStore();
         const taskType = TaskType.FETCH_DETECTED_TOKENS;
 
-        const { taskId } = await fetchDetectedTokensTask(chain, [address]);
+        const { taskId } = await fetchDetectedTokensTask(
+          chain,
+          address !== null ? [address] : address
+        );
 
         const taskMeta = {
           title: tc('actions.balances.detect_tokens.task.title'),

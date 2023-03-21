@@ -30,10 +30,10 @@ export const useTokenDetection = (
 
   const detectedTokens = getEthDetectedTokensInfo(chain, accountAddress);
 
-  const fetchDetectedTokens = async (address: string) => {
+  const fetchDetectedTokens = async (address: string | null) => {
     const blockchain = get(chain);
     assert(isTokenChain(blockchain));
-    await fetchDetectedTokensCaller(blockchain, address);
+    await fetchDetectedTokensCaller(blockchain, address, false);
   };
 
   const detectTokens = async (addresses: string[] = []) => {
@@ -42,7 +42,8 @@ export const useTokenDetection = (
     if (address) {
       await fetchDetectedTokens(address);
     } else {
-      await Promise.allSettled(addresses.map(fetchDetectedTokens));
+      await fetchDetectedTokens(null);
+      // await Promise.allSettled(addresses.map(fetchDetectedTokens));
     }
   };
 
