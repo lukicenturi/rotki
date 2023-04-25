@@ -1,16 +1,35 @@
-const CACHE_SIZE = 100;
+import { type ComputedRef } from 'vue';
+import { useItemCache } from '@/composables/item-cache';
+import { createBlockie } from '@/utils/blockie';
+
+const CACHE_SIZE = 200;
 
 export const useBlockie = createSharedComposable(() => {
-  const cache: Map<string, string> = new Map();
+  const { itemsPerPage } = storeToRefs(useFrontendSettingsStore());
 
-  const put = (address: string, image: string) => {
-    if (cache.size === CACHE_SIZE) {
-      logger.debug(`Hit cache size of ${CACHE_SIZE} going to evict items`);
-      const removeKey = cache.keys().next().value;
-      cache.delete(removeKey);
+  const getBlockies = async (addresses: string[]) =>
+    function* () {
+      for (const address of addresses) {
+        const formatted = address.toLowerCase();
+        const blockie = createBlockie({
+          seed: formatted
+        });
+
+        yield { key: address, item: blockie };
+      }
+    };
+
+  const size: ComputedRef<number> = computed(() =>
+    Math.max(CACHE_SIZE, 3 * get(itemsPerPage))
+  );
+
+  const { cache, retrieve, isPending } = useItemCache<string>(
+    keys => getBlockies(keys),
+    {
+      size,
+      expiry: -1
     }
-    cache.set(address, image);
-  };
+  );
 
   const getBlockie = (address: string | null = '') => {
     if (!address) {
@@ -18,20 +37,12 @@ export const useBlockie = createSharedComposable(() => {
     }
 
     const formatted = address.toLowerCase();
-
-    if (!cache.has(formatted)) {
-      const blockie = createBlockie({
-        seed: formatted
-      });
-
-      put(formatted, blockie);
-    }
-
-    return cache.get(formatted) || '';
+    return get(retrieve(formatted)) || '';
   };
 
   return {
     cache,
+    isPending,
     getBlockie
   };
 });

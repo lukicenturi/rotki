@@ -14,8 +14,8 @@ type CacheFetch<T> = (
 ) => Promise<() => IterableIterator<CacheEntry<T>>>;
 
 interface CacheOptions {
-  expiry: number;
-  size: number;
+  expiry: MaybeRef<number>;
+  size: MaybeRef<number>;
 }
 
 export const useItemCache = <T>(
@@ -56,16 +56,31 @@ export const useItemCache = <T>(
     set(pending, copy);
   };
 
+  const keepCacheSize = () => {
+    const optionsSize = get(options.size);
+    if (recent.size >= optionsSize) {
+      const removeKey = recent.keys().next().value;
+      const removeValue = recent.get(removeKey);
+
+      // Prevents the item to be removed, when the key is still used on the same page. (called within 3 seconds)
+      if (
+        !removeValue ||
+        Date.now() + get(options.expiry) - removeValue > 3000
+      ) {
+        logger.debug(`Hit cache size of ${optionsSize} going to evict items`);
+        recent.delete(removeKey);
+        deleteCacheKey(removeKey);
+        keepCacheSize();
+      }
+    }
+  };
+
   const put = (key: string, item: T): void => {
     recent.delete(key);
 
-    if (recent.size === options.size) {
-      logger.debug(`Hit cache size of ${options.size} going to evict items`);
-      const removeKey = recent.keys().next().value;
-      recent.delete(removeKey);
-      deleteCacheKey(removeKey);
-    }
-    recent.set(key, Date.now() + options.expiry);
+    keepCacheSize();
+
+    recent.set(key, Date.now() + get(options.expiry));
     updateCacheKey(key, item);
   };
 
@@ -83,7 +98,7 @@ export const useItemCache = <T>(
           put(key, item);
         } else {
           logger.debug(`unknown key: ${key}`);
-          unknown.set(key, Date.now() + options.expiry);
+          unknown.set(key, Date.now() + get(options.expiry));
         }
       }
     } catch (e) {
@@ -111,16 +126,17 @@ export const useItemCache = <T>(
   };
 
   const retrieve = (key: string): ComputedRef<T | null> => {
+    const expiry = get(options.expiry);
     const cached = get(cache)[key];
     const now = Date.now();
     let expired = false;
-    if (recent.has(key) && cached) {
+    if (expiry > 0 && recent.has(key) && cached) {
       const expiry = recent.get(key);
       recent.delete(key);
 
       if (expiry && expiry > now) {
         expired = true;
-        recent.set(key, now + options.expiry);
+        recent.set(key, now + expiry);
       }
     }
 
@@ -144,6 +160,7 @@ export const useItemCache = <T>(
 
   return {
     cache,
+    recent,
     isPending,
     retrieve,
     reset
