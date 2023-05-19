@@ -42,6 +42,7 @@ declare global {
   const calculatePercentage: typeof import('./utils/calculation')['calculatePercentage']
   const calculateTotalProfitLoss: typeof import('./utils/report')['calculateTotalProfitLoss']
   const changeDateFormat: typeof import('./utils/date')['changeDateFormat']
+  const checkBeforeSubmission: typeof import('./utils/validation')['checkBeforeSubmission']
   const checkIfDevelopment: typeof import('./utils/env-utils')['checkIfDevelopment']
   const chunkArray: typeof import('./utils/data')['chunkArray']
   const compareSymbols: typeof import('./utils/assets')['compareSymbols']
@@ -246,7 +247,7 @@ declare global {
   const throttledWatch: typeof import('@vueuse/core')['throttledWatch']
   const toCapitalCase: typeof import('./utils/text')['toCapitalCase']
   const toEvmChainAndTxHash: typeof import('./utils/history/index')['toEvmChainAndTxHash']
-  const toMessages: typeof import('./utils/validation-errors')['toMessages']
+  const toMessages: typeof import('./utils/validation')['toMessages']
   const toProfitLossModel: typeof import('./utils/defi/index')['toProfitLossModel']
   const toRaw: typeof import('vue')['toRaw']
   const toReactive: typeof import('@vueuse/core')['toReactive']
@@ -718,6 +719,7 @@ declare module 'vue' {
     readonly calculatePercentage: UnwrapRef<typeof import('./utils/calculation')['calculatePercentage']>
     readonly calculateTotalProfitLoss: UnwrapRef<typeof import('./utils/report')['calculateTotalProfitLoss']>
     readonly changeDateFormat: UnwrapRef<typeof import('./utils/date')['changeDateFormat']>
+    readonly checkBeforeSubmission: UnwrapRef<typeof import('./utils/validation')['checkBeforeSubmission']>
     readonly checkIfDevelopment: UnwrapRef<typeof import('./utils/env-utils')['checkIfDevelopment']>
     readonly chunkArray: UnwrapRef<typeof import('./utils/data')['chunkArray']>
     readonly compareSymbols: UnwrapRef<typeof import('./utils/assets')['compareSymbols']>
@@ -922,7 +924,7 @@ declare module 'vue' {
     readonly throttledWatch: UnwrapRef<typeof import('@vueuse/core')['throttledWatch']>
     readonly toCapitalCase: UnwrapRef<typeof import('./utils/text')['toCapitalCase']>
     readonly toEvmChainAndTxHash: UnwrapRef<typeof import('./utils/history/index')['toEvmChainAndTxHash']>
-    readonly toMessages: UnwrapRef<typeof import('./utils/validation-errors')['toMessages']>
+    readonly toMessages: UnwrapRef<typeof import('./utils/validation')['toMessages']>
     readonly toProfitLossModel: UnwrapRef<typeof import('./utils/defi/index')['toProfitLossModel']>
     readonly toRaw: UnwrapRef<typeof import('vue')['toRaw']>
     readonly toReactive: UnwrapRef<typeof import('@vueuse/core')['toReactive']>

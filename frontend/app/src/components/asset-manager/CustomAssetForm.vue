@@ -8,11 +8,17 @@ import AssetIconForm from '@/components/asset-manager/AssetIconForm.vue';
 
 const props = withDefaults(
   defineProps<{
-    edit: boolean;
+    edit?: CustomAsset | null;
     types?: string[];
   }>(),
-  { types: () => [] }
+  { edit: null, types: () => [] }
 );
+
+const emit = defineEmits<{
+  (e: 'valid', valid: boolean): void;
+}>();
+
+const { edit } = toRefs(props);
 
 const emptyCustomAsset: () => CustomAsset = () => ({
   identifier: '',
@@ -23,7 +29,8 @@ const emptyCustomAsset: () => CustomAsset = () => ({
 
 const formData = ref<CustomAsset>(emptyCustomAsset());
 
-const setForm = (form?: CustomAsset) => {
+const checkEditableItem = () => {
+  const form = get(edit);
   if (form) {
     set(search, form.customAssetType);
     set(formData, form);
@@ -33,11 +40,8 @@ const setForm = (form?: CustomAsset) => {
   }
 };
 
-const emit = defineEmits<{
-  (e: 'valid', valid: boolean): void;
-}>();
-
-const { edit } = toRefs(props);
+watch(edit, checkEditableItem);
+onMounted(checkEditableItem);
 
 const input = (asset: Partial<CustomAsset>) => {
   set(formData, { ...get(formData), ...asset });
@@ -81,8 +85,10 @@ const v$ = useVuelidate(
   { $autoDirty: true }
 );
 
-watch(v$, ({ $invalid }) => {
-  emit('valid', !$invalid);
+watch(v$, ({ $invalid, $dirty }) => {
+  if ($dirty) {
+    emit('valid', !$invalid);
+  }
 });
 
 const saveIcon = (identifier: string) => {
@@ -92,7 +98,7 @@ const saveIcon = (identifier: string) => {
 const { setMessage } = useMessageStore();
 const { editCustomAsset, addCustomAsset } = useAssetManagementApi();
 
-const save = async () => {
+const save = async (): Promise<string> => {
   const data = get(formData);
   let success = false;
   let identifier = data.identifier;
@@ -122,8 +128,8 @@ const save = async () => {
 };
 
 defineExpose({
+  v$,
   saveIcon,
-  setForm,
   save
 });
 </script>

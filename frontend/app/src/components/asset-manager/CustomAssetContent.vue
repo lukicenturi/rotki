@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CustomAssetForm from '@/components/asset-manager/CustomAssetForm.vue';
 import { type Nullable } from '@/types';
 import { type Collection } from '@/types/collection';
 import {
@@ -22,16 +21,13 @@ const props = withDefaults(
 const { identifier, mainPage } = toRefs(props);
 
 const types = ref<string[]>([]);
-const valid = ref<boolean>(false);
 const showForm = ref<boolean>(false);
-const saving = ref<boolean>(false);
-const editMode = ref<boolean>(false);
-const assetForm = ref<InstanceType<typeof CustomAssetForm> | null>(null);
+const editableItem = ref<CustomAsset | null>(null);
 
 const dialogTitle = computed<string>(() =>
-  get(editMode)
-    ? t('asset_management.edit_title')
-    : t('asset_management.add_title')
+  get(editableItem)
+    ? tc('asset_management.edit_title')
+    : tc('asset_management.add_title')
 );
 
 const router = useRouter();
@@ -45,32 +41,18 @@ const { show } = useConfirmStore();
 
 const add = () => {
   set(showForm, true);
-  set(editMode, false);
-
-  nextTick(() => {
-    get(assetForm)?.setForm?.();
-  });
+  set(editableItem, null);
 };
 
 const edit = (editAsset: CustomAsset) => {
   set(showForm, true);
-  set(editMode, true);
-
-  nextTick(() => {
-    get(assetForm)?.setForm?.(editAsset);
-  });
+  set(editableItem, editAsset);
 };
 
-const save = async () => {
-  set(saving, true);
-  const assetId = await get(assetForm)?.save();
-
+const saved = async (assetId: string) => {
   if (assetId) {
-    set(showForm, false);
     await refresh();
   }
-
-  set(saving, false);
 };
 
 const deleteAsset = async (assetId: string) => {
@@ -96,10 +78,6 @@ const editAsset = (assetId: Nullable<string>) => {
       edit(asset);
     }
   }
-};
-
-const closeDialog = async () => {
-  set(showForm, false);
 };
 
 const {
@@ -184,22 +162,12 @@ watch(identifier, assetId => {
       @update:filters="setFilter($event)"
       @update:expanded="expanded = $event"
     />
-    <big-dialog
-      :display="showForm"
+    <custom-asset-form-dialog
+      v-model="showForm"
       :title="dialogTitle"
-      subtitle=""
-      :action-disabled="!valid || saving"
-      :primary-action="t('common.actions.save')"
-      :loading="saving"
-      @confirm="save()"
-      @cancel="closeDialog()"
-    >
-      <custom-asset-form
-        ref="assetForm"
-        :types="types"
-        :edit="editMode"
-        @valid="valid = $event"
-      />
-    </big-dialog>
+      :types="types"
+      :editable-item="editableItem"
+      @saved="saved($event)"
+    />
   </v-container>
 </template>

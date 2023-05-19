@@ -45,6 +45,7 @@
     "calculatePercentage": true,
     "calculateTotalProfitLoss": true,
     "changeDateFormat": true,
+    "checkBeforeSubmission": true,
     "checkIfDevelopment": true,
     "chunkArray": true,
     "compareSymbols": true,

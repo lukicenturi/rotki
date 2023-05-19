@@ -2,6 +2,7 @@
 import { type ComputedRef, type Ref } from 'vue';
 import { type Trade } from '@/types/history/trade';
 import ExternalTradeForm from '@/components/history/trades/ExternalTradeForm.vue';
+import { checkBeforeSubmission } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
@@ -22,8 +23,8 @@ const emit = defineEmits<{
   (e: 'saved'): void;
 }>();
 
-const valid: Ref<boolean> = ref(false);
-const form = ref<InstanceType<typeof ExternalTradeForm> | null>(null);
+const valid: Ref<boolean> = ref(true);
+const form: Ref<InstanceType<typeof ExternalTradeForm> | null> = ref(null);
 
 const clearDialog = () => {
   get(form)?.reset();
@@ -31,7 +32,11 @@ const clearDialog = () => {
   emit('reset-edit');
 };
 
-const confirmSave = async () => {
+const confirmSave = () => {
+  checkBeforeSubmission(save, get(form)?.v$, valid);
+};
+
+const save = async () => {
   if (!isDefined(form)) {
     return;
   }

@@ -9,7 +9,7 @@ import {
   type TradeType
 } from '@/types/history/trade';
 import { TaskType } from '@/types/task-type';
-import { toMessages } from '@/utils/validation-errors';
+import { toMessages } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
@@ -117,8 +117,10 @@ const v$ = useVuelidate(
   }
 );
 
-watch(v$, ({ $invalid }) => {
-  input(!$invalid);
+watch(v$, ({ $invalid, $dirty }) => {
+  if ($dirty) {
+    input(!$invalid);
+  }
 });
 
 const triggerFeeValidator = () => {
@@ -229,7 +231,7 @@ const save = async (): Promise<boolean> => {
   return false;
 };
 
-defineExpose({ save, reset, focus });
+defineExpose({ v$, save, reset, focus });
 
 const updateRate = (forceUpdate = false) => {
   if (
@@ -279,10 +281,6 @@ const onQuoteAmountChange = () => {
   }
 };
 
-watch(edit, () => {
-  setEditMode();
-});
-
 watch([datetime, quote, base], async () => {
   await fetchPrice();
 });
@@ -300,9 +298,8 @@ watch(quoteAmount, () => {
   onQuoteAmountChange();
 });
 
-onMounted(() => {
-  setEditMode();
-});
+watch(edit, setEditMode);
+onMounted(setEditMode);
 </script>
 
 <template>

@@ -5,10 +5,9 @@ import { type Ref } from 'vue';
 import { TRADE_LOCATION_EXTERNAL } from '@/data/defaults';
 import { type TradeLocation } from '@/types/history/trade/location';
 import { type ManualBalance } from '@/types/manual-balances';
-import { toMessages } from '@/utils/validation-errors';
+import { toMessages } from '@/utils/validation';
 import { BalanceType } from '@/types/balances';
 import ManualBalancesPriceForm from '@/components/accounts/manual-balances/ManualBalancesPriceForm.vue';
-import CustomAssetForm from '@/components/asset-manager/CustomAssetForm.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -159,12 +158,7 @@ watch(label, label => {
   get(v$).label.$validate();
 });
 
-const customAssetFormRef: Ref<InstanceType<typeof CustomAssetForm> | null> =
-  ref(null);
 const showCustomAssetForm: Ref<boolean> = ref(false);
-const customAssetFormValid: Ref<boolean> = ref(false);
-const customAssetFormSaving: Ref<boolean> = ref(false);
-
 const customAssetTypes = ref<string[]>([]);
 
 const { getCustomAssetTypes } = useAssetManagementApi();
@@ -175,20 +169,6 @@ const openCustomAssetForm = async () => {
   }
 
   set(showCustomAssetForm, true);
-};
-
-const saveCustomAsset = async () => {
-  set(customAssetFormSaving, true);
-
-  set(customAssetFormSaving, true);
-  const identifier = await get(customAssetFormRef)?.save();
-
-  if (identifier) {
-    set(showCustomAssetForm, false);
-    set(asset, identifier);
-  }
-
-  set(customAssetFormSaving, false);
 };
 
 const rules = {
@@ -336,23 +316,12 @@ defineExpose({
       attach=".manual-balances-form__location"
       @blur="v$.location.$touch()"
     />
-
-    <big-dialog
-      :display="showCustomAssetForm"
-      :title="t('asset_management.add_title')"
-      :action-disabled="!customAssetFormValid || customAssetFormSaving"
-      :primary-action="t('common.actions.save')"
-      :loading="customAssetFormSaving"
-      @confirm="saveCustomAsset()"
-      @cancel="showCustomAssetForm = false"
-    >
-      <custom-asset-form
-        ref="customAssetFormRef"
-        :types="customAssetTypes"
-        :edit="false"
-        @valid="customAssetFormValid = $event"
-      />
-    </big-dialog>
+    <custom-asset-form-dialog
+      v-model="showCustomAssetForm"
+      :title="tc('asset_management.add_title')"
+      :types="customAssetTypes"
+      @saved="asset = $event"
+    />
   </v-form>
 </template>
 
