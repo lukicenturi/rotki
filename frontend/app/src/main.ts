@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 import { PiniaVuePlugin, createPinia } from 'pinia';
 import Vue, { provide } from 'vue';
+import { Ri4kFill, Ri4kLine, RuiPlugin } from '@rotki/ui-library';
 import App from '@/App.vue';
 import '@/main.scss';
 import 'roboto-fontface/css/roboto/roboto-fontface.css';
@@ -10,12 +11,16 @@ import { usePremiumApi } from '@/premium/setup-interface';
 import i18n from './i18n';
 import router from './router';
 
+import '@rotki/ui-library/style.css';
+
 const isDevelopment = checkIfDevelopment() && !import.meta.env.VITE_TEST;
 Vue.config.productionTip = false;
 Vue.config.devtools = isDevelopment;
 
 Vue.use(PiniaVuePlugin);
-Vue.use(i18n);
+Vue.use(RuiPlugin, {
+  icons: [Ri4kFill, Ri4kLine]
+});
 
 // This should disable vite page reloads on CI.
 // Monitor e2e tests for this and if this doesn't work remove it.
