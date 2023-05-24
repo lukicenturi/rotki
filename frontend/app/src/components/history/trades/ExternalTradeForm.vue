@@ -1,5 +1,4 @@
 ﻿<script setup lang="ts">
-import useVuelidate from '@vuelidate/core';
 import { helpers, required, requiredIf } from '@vuelidate/validators';
 import dayjs from 'dayjs';
 import { type Writeable } from '@/types';
@@ -13,21 +12,15 @@ import { toMessages } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
-    value?: boolean;
     edit?: Trade | null;
   }>(),
   {
-    value: false,
     edit: null
   }
 );
 
-const emit = defineEmits<{ (e: 'input', valid: boolean): void }>();
-
 const { t } = useI18n();
 const { edit } = toRefs(props);
-
-const input = (valid: boolean) => emit('input', valid);
 
 const { isTaskRunning } = useTaskStore();
 const { getHistoricPrice } = useBalancePricesStore();
@@ -100,7 +93,9 @@ const rules = {
   }
 };
 
-const v$ = useVuelidate(
+const { valid, setValidation, setSubmitFunc } = getInjectedForm();
+
+const v$ = setValidation(
   rules,
   {
     baseAsset: base,
@@ -116,12 +111,6 @@ const v$ = useVuelidate(
     $externalResults: errorMessages
   }
 );
-
-watch(v$, ({ $invalid, $dirty }) => {
-  if ($dirty) {
-    input(!$invalid);
-  }
-});
 
 const triggerFeeValidator = () => {
   get(feeInput)?.textInput?.validate(true);
@@ -231,7 +220,7 @@ const save = async (): Promise<boolean> => {
   return false;
 };
 
-defineExpose({ v$, save, reset, focus });
+setSubmitFunc(save);
 
 const updateRate = (forceUpdate = false) => {
   if (
@@ -303,7 +292,7 @@ onMounted(setEditMode);
 </script>
 
 <template>
-  <v-form :value="value" data-cy="trade-form" class="external-trade-form">
+  <v-form :value="valid" data-cy="trade-form" class="external-trade-form">
     <v-row>
       <v-col>
         <v-row class="pt-1">

@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import { type Ref } from 'vue';
 import { type CustomAsset } from '@/types/asset';
 import CustomAssetForm from '@/components/asset-manager/CustomAssetForm.vue';
-import { checkBeforeSubmission } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
-    value: boolean;
     title: string;
     subtitle?: string;
     types?: string[];
@@ -20,62 +17,39 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  (e: 'input', open: boolean): void;
   (e: 'saved', assetId: string): void;
 }>();
 
-const { value, editableItem } = toRefs(props);
+const { editableItem } = toRefs(props);
+const { t } = useI18n();
 
-const valid: Ref<boolean> = ref(true);
-const saving: Ref<boolean> = ref(false);
-const form: Ref<InstanceType<typeof CustomAssetForm> | null> = ref(null);
+const {
+  valid,
+  openDialog,
+  submitting,
+  closeDialog,
+  trySubmit,
+  setPostSubmitFunc
+} = getInjectedForm<string>();
 
-const clearDialog = () => {
-  emit('input', false);
+const postSubmit = (assetId: string) => {
+  emit('saved', assetId);
 };
 
-const confirmSave = () => {
-  checkBeforeSubmission(save, get(form)?.v$, valid);
-};
-
-const save = async () => {
-  if (!isDefined(form)) {
-    return;
-  }
-  set(saving, true);
-  const assetId = await get(form).save();
-  if (assetId) {
-    clearDialog();
-    emit('saved', assetId);
-  }
-  set(saving, false);
-};
-
-const { tc } = useI18n();
-
-watch(value, value => {
-  if (value) {
-    set(valid, true);
-  }
-});
+setPostSubmitFunc(postSubmit);
 </script>
 
 <template>
   <big-dialog
-    :display="value"
+    :display="openDialog"
     :title="title"
     :subtitle="subtitle"
-    :action-disabled="saving || !valid"
-    :primary-action="tc('common.actions.save')"
-    :loading="saving"
-    @confirm="confirmSave()"
-    @cancel="clearDialog()"
+    :action-disabled="submitting || !valid"
+    :primary-action="t('common.actions.save')"
+    :loading="submitting"
+    @confirm="trySubmit()"
+    @cancel="closeDialog()"
   >
-    <custom-asset-form
-      ref="form"
-      :types="types"
-      :edit="editableItem"
-      @valid="valid = $event"
-    />
+    <custom-asset-form :types="types" :edit="editableItem" />
   </big-dialog>
 </template>

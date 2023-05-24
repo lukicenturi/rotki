@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import useVuelidate from '@vuelidate/core';
 import { helpers, required } from '@vuelidate/validators';
 import omit from 'lodash/omit';
-import { type Ref } from 'vue';
 import { type CustomAsset } from '@/types/asset';
 import AssetIconForm from '@/components/asset-manager/AssetIconForm.vue';
+import { toMessages } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
@@ -13,10 +12,6 @@ const props = withDefaults(
   }>(),
   { edit: null, types: () => [] }
 );
-
-const emit = defineEmits<{
-  (e: 'valid', valid: boolean): void;
-}>();
 
 const { edit } = toRefs(props);
 
@@ -76,7 +71,9 @@ const rules = {
   }
 };
 
-const v$ = useVuelidate(
+const { valid, setValidation, setSubmitFunc } = getInjectedForm();
+
+const v$ = setValidation(
   rules,
   {
     name: computed(() => get(formData).name),
@@ -84,12 +81,6 @@ const v$ = useVuelidate(
   },
   { $autoDirty: true }
 );
-
-watch(v$, ({ $invalid, $dirty }) => {
-  if ($dirty) {
-    emit('valid', !$invalid);
-  }
-});
 
 const saveIcon = (identifier: string) => {
   get(assetIconFormRef)?.saveIcon(identifier);
@@ -127,15 +118,11 @@ const save = async (): Promise<string> => {
   return success ? identifier : '';
 };
 
-defineExpose({
-  v$,
-  saveIcon,
-  save
-});
+setSubmitFunc(save);
 </script>
 
 <template>
-  <v-form :value="!v$.$invalid">
+  <v-form :value="valid">
     <v-row class="mt-2">
       <v-col cols="12" md="6">
         <v-text-field
@@ -145,7 +132,7 @@ defineExpose({
           persistent-hint
           clearable
           :label="t('common.name')"
-          :error-messages="v$.name.$errors.map(e => e.$message)"
+          :error-messages="toMessages(v$.name)"
           @input="input({ name: $event })"
         />
       </v-col>
@@ -158,7 +145,7 @@ defineExpose({
           persistent-hint
           clearable
           :label="t('common.type')"
-          :error-messages="v$.type.$errors.map(e => e.$message)"
+          :error-messages="toMessages(v$.type)"
           :search-input.sync="search"
           @input="input({ customAssetType: $event })"
         />

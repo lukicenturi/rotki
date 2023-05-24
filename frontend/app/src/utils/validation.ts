@@ -1,4 +1,5 @@
 import { type BaseValidation, type Validation } from '@vuelidate/core';
+import { type MaybeRef } from '@vueuse/core';
 
 /**
  * Converts an object of vuelidate's BaseValidation to an array of
@@ -10,17 +11,21 @@ import { type BaseValidation, type Validation } from '@vuelidate/core';
 export const toMessages = (validation: BaseValidation): string[] =>
   validation.$errors.map(e => get(e.$message));
 
-export const checkBeforeSubmission = async (
-  submit: () => void,
-  v$?: Validation,
+export const checkBeforeSubmission = async <T>(
+  submit: () => T,
+  v$?: MaybeRef<Validation>,
   validState?: Ref<boolean>
-) => {
-  assert(v$);
-  await v$.$validate();
-  const invalid = v$.$invalid;
+): Promise<T | void> => {
+  const validator = get(v$);
+  let invalid = false;
+
+  if (validator) {
+    await validator.$validate();
+    invalid = validator.$invalid;
+  }
 
   if (!invalid) {
-    submit();
+    return submit();
   }
 
   if (validState) {

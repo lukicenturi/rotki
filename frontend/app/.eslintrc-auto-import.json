@@ -110,6 +110,7 @@
     "getEtherScanRegisterUrl": true,
     "getEventDetails": true,
     "getFilepath": true,
+    "getInjectedForm": true,
     "getKeyType": true,
     "getMetamaskAddresses": true,
     "getPoolProfit": true,
@@ -432,6 +433,7 @@
     "useFocus": true,
     "useFocusWithin": true,
     "useFooterProps": true,
+    "useForm": true,
     "useFps": true,
     "useFrontendSettingsStore": true,
     "useFullscreen": true,
@@ -542,6 +544,7 @@
     "usePriceApi": true,
     "usePrivacyMode": true,
     "useProjection": true,
+    "useProvidedForm": true,
     "useProxy": true,
     "useQueriedAddressApi": true,
     "useQueriedAddressesStore": true,
@@ -672,7 +675,6 @@
     "watchWithFilter": true,
     "whenever": true,
     "xpubToPayload": true,
-    "zeroBalance": true,
-    "toValue": true
+    "zeroBalance": true
   }
 }

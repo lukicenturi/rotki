@@ -1,12 +1,8 @@
 <script lang="ts" setup>
-import { type ComputedRef, type Ref } from 'vue';
 import { type Trade } from '@/types/history/trade';
-import ExternalTradeForm from '@/components/history/trades/ExternalTradeForm.vue';
-import { checkBeforeSubmission } from '@/utils/validation';
 
 const props = withDefaults(
   defineProps<{
-    value: boolean;
     editableItem?: Trade | null;
     loading?: boolean;
   }>(),
@@ -18,34 +14,24 @@ const props = withDefaults(
 const { editableItem } = toRefs(props);
 
 const emit = defineEmits<{
-  (e: 'input', open: boolean): void;
   (e: 'reset-edit'): void;
   (e: 'saved'): void;
 }>();
 
-const valid: Ref<boolean> = ref(true);
-const form: Ref<InstanceType<typeof ExternalTradeForm> | null> = ref(null);
+const {
+  valid,
+  openDialog,
+  submitting,
+  closeDialog,
+  trySubmit,
+  setPostSubmitFunc
+} = getInjectedForm();
 
-const clearDialog = () => {
-  get(form)?.reset();
-  emit('input', false);
-  emit('reset-edit');
+const postSubmit = () => {
+  emit('saved');
 };
 
-const confirmSave = () => {
-  checkBeforeSubmission(save, get(form)?.v$, valid);
-};
-
-const save = async () => {
-  if (!isDefined(form)) {
-    return;
-  }
-  const success = await get(form)?.save();
-  if (success) {
-    clearDialog();
-    emit('saved');
-  }
-};
+setPostSubmitFunc(postSubmit);
 
 const { t } = useI18n();
 
@@ -62,15 +48,15 @@ const subtitle: ComputedRef<string> = computed(() =>
 
 <template>
   <big-dialog
-    :display="value"
+    :display="openDialog"
     :title="title"
     :subtitle="subtitle"
     :primary-action="t('common.actions.save')"
-    :action-disabled="loading || !valid"
-    :loading="loading"
-    @confirm="confirmSave()"
-    @cancel="clearDialog()"
+    :action-disabled="loading || submitting || !valid"
+    :loading="loading || submitting"
+    @confirm="trySubmit()"
+    @cancel="closeDialog()"
   >
-    <external-trade-form ref="form" v-model="valid" :edit="editableItem" />
+    <external-trade-form :edit="editableItem" />
   </big-dialog>
 </template>

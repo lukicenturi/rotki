@@ -21,13 +21,12 @@ const props = withDefaults(
 const { identifier, mainPage } = toRefs(props);
 
 const types = ref<string[]>([]);
-const showForm = ref<boolean>(false);
 const editableItem = ref<CustomAsset | null>(null);
 
 const dialogTitle = computed<string>(() =>
   get(editableItem)
-    ? tc('asset_management.edit_title')
-    : tc('asset_management.add_title')
+    ? t('asset_management.edit_title')
+    : t('asset_management.add_title')
 );
 
 const router = useRouter();
@@ -39,20 +38,16 @@ const { setMessage } = useMessageStore();
 
 const { show } = useConfirmStore();
 
+const { setOpenDialog } = useProvidedForm();
+
 const add = () => {
-  set(showForm, true);
+  setOpenDialog(true);
   set(editableItem, null);
 };
 
 const edit = (editAsset: CustomAsset) => {
-  set(showForm, true);
+  setOpenDialog(true);
   set(editableItem, editAsset);
-};
-
-const saved = async (assetId: string) => {
-  if (assetId) {
-    await refresh();
-  }
 };
 
 const deleteAsset = async (assetId: string) => {
@@ -111,6 +106,7 @@ const refreshTypes = async () => {
 const refresh = async () => {
   await Promise.all([fetchData(), refreshTypes()]);
 };
+
 const showDeleteConfirmation = (item: CustomAsset) => {
   show(
     {
@@ -163,11 +159,10 @@ watch(identifier, assetId => {
       @update:expanded="expanded = $event"
     />
     <custom-asset-form-dialog
-      v-model="showForm"
       :title="dialogTitle"
       :types="types"
       :editable-item="editableItem"
-      @saved="saved($event)"
+      @saved="refresh()"
     />
   </v-container>
 </template>
