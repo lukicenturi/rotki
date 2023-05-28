@@ -6,6 +6,8 @@ import { type ManualBalance } from '@/types/manual-balances';
 import { toMessages } from '@/utils/validation';
 import { BalanceType } from '@/types/balances';
 import ManualBalancesPriceForm from '@/components/accounts/manual-balances/ManualBalancesPriceForm.vue';
+import { useCustomAssetForm } from '@/composables/assets/forms/custom-asset-form';
+import { useManualBalancesForm } from '@/composables/balances/manual/form';
 
 const props = withDefaults(
   defineProps<{
@@ -76,7 +78,8 @@ const { editManualBalance, addManualBalance, manualLabels } =
 const { refreshPrices } = useBalances();
 const { setMessage } = useMessageStore();
 
-const { valid, submitting, setValidation, setSubmitFunc } = getInjectedForm();
+const { valid, submitting, setValidation, setSubmitFunc } =
+  useManualBalancesForm();
 
 const rules = {
   amount: {
@@ -185,7 +188,7 @@ watch(label, label => {
   get(v$).label.$validate();
 });
 
-const { setOpenDialog } = useProvidedForm();
+const { setOpenDialog } = useCustomAssetForm();
 const customAssetTypes = ref<string[]>([]);
 
 const { getCustomAssetTypes } = useAssetManagementApi();

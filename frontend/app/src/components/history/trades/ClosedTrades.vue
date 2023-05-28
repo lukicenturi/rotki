@@ -148,7 +148,9 @@ const {
 
 useHistoryAutoRefresh(fetchData);
 
-const { setOpenDialog } = useProvidedForm();
+const { setOpenDialog, setPostSubmitFunc } = useTradesForm();
+
+setPostSubmitFunc(fetchData);
 
 const newExternalTrade = () => {
   set(editableItem, null);
@@ -477,7 +479,6 @@ watch(loading, async (isLoading, wasLoading) => {
     <external-trade-form-dialog
       :loading="loading"
       :editable-item="editableItem"
-      @saved="fetchData()"
     />
   </fragment>
 </template>

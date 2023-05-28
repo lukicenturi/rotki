@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { type Trade } from '@/types/history/trade';
+import { useTradesForm } from '@/composables/history/trades/form';
 
 const props = withDefaults(
   defineProps<{
@@ -13,25 +14,8 @@ const props = withDefaults(
 
 const { editableItem } = toRefs(props);
 
-const emit = defineEmits<{
-  (e: 'reset-edit'): void;
-  (e: 'saved'): void;
-}>();
-
-const {
-  valid,
-  openDialog,
-  submitting,
-  closeDialog,
-  trySubmit,
-  setPostSubmitFunc
-} = getInjectedForm();
-
-const postSubmit = () => {
-  emit('saved');
-};
-
-setPostSubmitFunc(postSubmit);
+const { valid, openDialog, submitting, closeDialog, trySubmit } =
+  useTradesForm();
 
 const { t } = useI18n();
 

@@ -9,6 +9,7 @@ import {
   type CustomAsset,
   type CustomAssetRequestPayload
 } from '@/types/asset';
+import { useCustomAssetForm } from '@/composables/assets/forms/custom-asset-form';
 
 const props = withDefaults(
   defineProps<{
@@ -38,7 +39,7 @@ const { setMessage } = useMessageStore();
 
 const { show } = useConfirmStore();
 
-const { setOpenDialog } = useProvidedForm();
+const { setOpenDialog, setPostSubmitFunc } = useCustomAssetForm();
 
 const add = () => {
   setOpenDialog(true);
@@ -107,6 +108,8 @@ const refresh = async () => {
   await Promise.all([fetchData(), refreshTypes()]);
 };
 
+setPostSubmitFunc(refresh);
+
 const showDeleteConfirmation = (item: CustomAsset) => {
   show(
     {
@@ -162,7 +165,6 @@ watch(identifier, assetId => {
       :title="dialogTitle"
       :types="types"
       :editable-item="editableItem"
-      @saved="refresh()"
     />
   </v-container>
 </template>

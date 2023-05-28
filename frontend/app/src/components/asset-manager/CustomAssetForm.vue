@@ -4,6 +4,7 @@ import omit from 'lodash/omit';
 import { type CustomAsset } from '@/types/asset';
 import AssetIconForm from '@/components/asset-manager/AssetIconForm.vue';
 import { toMessages } from '@/utils/validation';
+import { useCustomAssetForm } from '@/composables/assets/forms/custom-asset-form';
 
 const props = withDefaults(
   defineProps<{
@@ -71,7 +72,7 @@ const rules = {
   }
 };
 
-const { valid, setValidation, setSubmitFunc } = getInjectedForm();
+const { valid, setValidation, setSubmitFunc } = useCustomAssetForm();
 
 const v$ = setValidation(
   rules,

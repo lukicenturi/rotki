@@ -77,18 +77,3 @@ export const useForm = <T = void>() => {
     trySubmit
   };
 };
-
-type InjectedForm<T = void> = ReturnType<typeof useForm<T>>;
-const CONTEXT = 'FORM_CONTEXT';
-
-export const useProvidedForm = <T>(): InjectedForm<T> => {
-  const formComposable = useForm<T>();
-  provide(CONTEXT, formComposable);
-  return formComposable;
-};
-
-export const getInjectedForm = <T>(): InjectedForm<T> => {
-  const form = inject<InjectedForm<T>>(CONTEXT);
-  assert(form, "form isn't provided by parent component");
-  return form;
-};

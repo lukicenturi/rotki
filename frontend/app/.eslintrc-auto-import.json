@@ -54,7 +54,6 @@
     "computedEager": true,
     "computedInject": true,
     "computedWithControl": true,
-    "consistOfNumbers": true,
     "controlledComputed": true,
     "controlledRef": true,
     "convertDateByTimezone": true,
@@ -91,7 +90,6 @@
     "fetchDataAsync": true,
     "filterAddresses": true,
     "filterAddressesFromWords": true,
-    "generateRandomScrambleMultiplier": true,
     "get": true,
     "getActivePinia": true,
     "getAddressFromEvmIdentifier": true,
@@ -110,7 +108,6 @@
     "getEtherScanRegisterUrl": true,
     "getEventDetails": true,
     "getFilepath": true,
-    "getInjectedForm": true,
     "getKeyType": true,
     "getMetamaskAddresses": true,
     "getPoolProfit": true,
@@ -544,7 +541,6 @@
     "usePriceApi": true,
     "usePrivacyMode": true,
     "useProjection": true,
-    "useProvidedForm": true,
     "useProxy": true,
     "useQueriedAddressApi": true,
     "useQueriedAddressesStore": true,
@@ -675,6 +671,12 @@
     "watchWithFilter": true,
     "whenever": true,
     "xpubToPayload": true,
-    "zeroBalance": true
+    "zeroBalance": true,
+    "toValue": true,
+    "useTradesForm": true,
+    "useCustomAssetForm": true,
+    "useManualBalancesForm": true,
+    "consistOfNumbers": true,
+    "generateRandomScrambleMultiplier": true
   }
 }

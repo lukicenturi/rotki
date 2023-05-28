@@ -9,6 +9,7 @@ import {
 } from '@/types/history/trade';
 import { TaskType } from '@/types/task-type';
 import { toMessages } from '@/utils/validation';
+import { useTradesForm } from '@/composables/history/trades/form';
 
 const props = withDefaults(
   defineProps<{
@@ -93,7 +94,7 @@ const rules = {
   }
 };
 
-const { valid, setValidation, setSubmitFunc } = getInjectedForm();
+const { valid, setValidation, setSubmitFunc } = useTradesForm();
 
 const v$ = setValidation(
   rules,
