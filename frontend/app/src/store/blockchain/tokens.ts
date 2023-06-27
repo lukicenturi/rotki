@@ -125,9 +125,6 @@ export const useBlockchainTokensStore = defineStore('blockchain/tokens', () => {
       }
 
       const info = detected?.[addr];
-      if (!info) {
-        return noTokens();
-      }
 
       let tokens: string[];
       if (blockchain === Blockchain.ETH) {
@@ -135,13 +132,16 @@ export const useBlockchainTokensStore = defineStore('blockchain/tokens', () => {
       } else if (isRestChain(blockchain)) {
         tokens = getTokens(get(chainBalances)[blockchain], addr);
       } else {
+        if (!info) {
+          return noTokens();
+        }
         tokens = info.tokens?.filter(id => !get(isAssetIgnored(id))) ?? [];
       }
 
       return {
         tokens,
         total: tokens.length,
-        timestamp: info.lastUpdateTimestamp || null
+        timestamp: info?.lastUpdateTimestamp || null
       };
     });
 
