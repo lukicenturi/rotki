@@ -15,7 +15,7 @@ const setPage = (page: number) => {
 
 const { collection } = toRefs(props);
 
-const { data, limit, found, total, totalUsdValue } =
+const { data, limit, found, total, entriesFoundTotal, totalUsdValue } =
   getCollectionData(collection);
 
 const { itemsPerPage } = storeToRefs(useFrontendSettingsStore());
@@ -36,6 +36,7 @@ const { showUpgradeRow, itemLength } = setupEntryLimit(limit, found, total);
       :limit="limit"
       :found="found"
       :total="total"
+      :entries-found-total="entriesFoundTotal"
       :total-usd-value="totalUsdValue"
       :item-length="itemLength"
       :show-upgrade-row="showUpgradeRow"

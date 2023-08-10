@@ -35,12 +35,16 @@ export const getCollectionData = <T>(
   limit: ComputedRef<number>;
   found: ComputedRef<number>;
   total: ComputedRef<number>;
+  entriesFoundTotal: ComputedRef<number | undefined>;
   totalUsdValue: ComputedRef<TotalValue>;
 } => {
   const data: ComputedRef<T[]> = computed(() => get(collection).data);
   const limit: ComputedRef<number> = computed(() => get(collection).limit);
   const found: ComputedRef<number> = computed(() => get(collection).found);
   const total: ComputedRef<number> = computed(() => get(collection).total);
+  const entriesFoundTotal: ComputedRef<number | undefined> = computed(
+    () => get(collection).entriesFoundTotal
+  );
   const totalUsdValue: ComputedRef<TotalValue> = computed(
     () => get(collection).totalUsdValue
   );
@@ -50,6 +54,7 @@ export const getCollectionData = <T>(
     limit,
     found,
     total,
+    entriesFoundTotal,
     totalUsdValue
   };
 };
