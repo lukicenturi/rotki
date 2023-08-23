@@ -15,9 +15,9 @@ export default defineConfig({
     videosFolder: 'tests/e2e/videos',
     supportFile: 'tests/e2e/support/index.ts',
     testIsolation: false,
-    experimentalMemoryManagement: true,
     scrollBehavior: 'nearest',
-    numTestsKeptInMemory: 5,
+    experimentalMemoryManagement: true,
+    numTestsKeptInMemory: 0,
     setupNodeEvents(on, config) {
       on(
         'after:spec',
