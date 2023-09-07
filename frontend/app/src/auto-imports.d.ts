@@ -1010,7 +1010,6 @@ declare module 'vue' {
     readonly useAggregatedBalances: UnwrapRef<typeof import('./composables/balances/aggregated')['useAggregatedBalances']>
     readonly useAirdropStore: UnwrapRef<typeof import('./store/defi/airdrop')['useAirdropStore']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
-    readonly useAnimation: UnwrapRef<typeof import('./composables/user/animations')['useAnimation']>
     readonly useAppNavigation: UnwrapRef<typeof import('./composables/navigation')['useAppNavigation']>
     readonly useAreaVisibilityStore: UnwrapRef<typeof import('./store/session/visibility')['useAreaVisibilityStore']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
@@ -1708,7 +1707,6 @@ declare module '@vue/runtime-core' {
     readonly useAggregatedBalances: UnwrapRef<typeof import('./composables/balances/aggregated')['useAggregatedBalances']>
     readonly useAirdropStore: UnwrapRef<typeof import('./store/defi/airdrop')['useAirdropStore']>
     readonly useAnimate: UnwrapRef<typeof import('@vueuse/core')['useAnimate']>
-    readonly useAnimation: UnwrapRef<typeof import('./composables/user/animations')['useAnimation']>
     readonly useAppNavigation: UnwrapRef<typeof import('./composables/navigation')['useAppNavigation']>
     readonly useAreaVisibilityStore: UnwrapRef<typeof import('./store/session/visibility')['useAreaVisibilityStore']>
     readonly useArrayDifference: UnwrapRef<typeof import('@vueuse/core')['useArrayDifference']>
