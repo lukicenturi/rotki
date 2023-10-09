@@ -3,23 +3,13 @@
 import { type DefiAccount } from '@rotki/common/lib/account';
 import { Blockchain, DefiProtocol } from '@rotki/common/lib/blockchain';
 import { sortBy } from 'lodash-es';
+import { type ComputedRef } from 'vue';
 import { type Writeable } from '@/types';
 import {
   AllDefiProtocols,
   type DefiProtocolSummary,
   type TokenInfo
 } from '@/types/defi/overview';
-import {
-  AAVE,
-  COMPOUND,
-  LIQUITY,
-  MAKERDAO_DSR,
-  MAKERDAO_VAULTS,
-  type OverviewDefiProtocol,
-  YEARN_FINANCE_VAULTS,
-  YEARN_FINANCE_VAULTS_V2,
-  getProtocolIcon
-} from '@/types/defi/protocols';
 import { Module } from '@/types/modules';
 import { Section, Status } from '@/types/status';
 import { type TaskMeta } from '@/types/task';
@@ -29,6 +19,7 @@ import {
   ALL_DECENTRALIZED_EXCHANGES,
   ALL_MODULES
 } from '@/types/session/purge';
+import { useDefiMetadata } from '@/composables/defi/metadata';
 
 type ResetStateParams =
   | Module
@@ -66,6 +57,8 @@ export const useDefiStore = defineStore('defi', () => {
     DefiProtocol.MAKERDAO_VAULTS | DefiProtocol.UNISWAP | DefiProtocol.LIQUITY
   >;
 
+  const { getDefiIdentifierByName } = useDefiMetadata();
+
   const defiAccounts = (
     protocols: DefiProtocol[]
   ): ComputedRef<DefiAccount[]> =>
@@ -80,30 +73,32 @@ export const useDefiStore = defineStore('defi', () => {
         [DefiProtocol.YEARN_VAULTS_V2]: []
       };
 
+      const noProtocolsSelected = protocols.length === 0;
+
       if (
-        protocols.length === 0 ||
+        noProtocolsSelected ||
         protocols.includes(DefiProtocol.MAKERDAO_DSR)
       ) {
         addresses[DefiProtocol.MAKERDAO_DSR] = get(makerDaoAddresses);
       }
 
-      if (protocols.length === 0 || protocols.includes(DefiProtocol.AAVE)) {
+      if (noProtocolsSelected || protocols.includes(DefiProtocol.AAVE)) {
         addresses[DefiProtocol.AAVE] = get(aaveAddresses);
       }
 
-      if (protocols.length === 0 || protocols.includes(DefiProtocol.COMPOUND)) {
+      if (noProtocolsSelected || protocols.includes(DefiProtocol.COMPOUND)) {
         addresses[DefiProtocol.COMPOUND] = get(compoundAddresses);
       }
 
       if (
-        protocols.length === 0 ||
+        noProtocolsSelected ||
         protocols.includes(DefiProtocol.YEARN_VAULTS)
       ) {
         addresses[DefiProtocol.YEARN_VAULTS] = get(yearnV1Addresses);
       }
 
       if (
-        protocols.length === 0 ||
+        noProtocolsSelected ||
         protocols.includes(DefiProtocol.YEARN_VAULTS_V2)
       ) {
         addresses[DefiProtocol.YEARN_VAULTS_V2] = get(yearnV2Addresses);
@@ -133,22 +128,22 @@ export const useDefiStore = defineStore('defi', () => {
     Section.DEFI_OVERVIEW
   );
 
-  const overview: ComputedRef<DefiProtocolSummary[]> = computed(() => {
-    const shouldDisplay = (summary: DefiProtocolSummary) => {
-      const lending = summary.totalLendingDepositUsd.gt(0);
-      const debt = summary.totalDebtUsd.gt(0);
-      const balance = summary.balanceUsd && summary.balanceUsd.gt(0);
-      const collateral = summary.totalCollateralUsd.gt(0);
-      return lending || debt || balance || collateral;
-    };
+  const shouldShowOverview = (summary: DefiProtocolSummary) => {
+    const lending = summary.totalLendingDepositUsd.gt(0);
+    const debt = summary.totalDebtUsd.gt(0);
+    const balance = summary.balanceUsd && summary.balanceUsd.gt(0);
+    const collateral = summary.totalCollateralUsd.gt(0);
+    return lending || debt || balance || collateral;
+  };
 
-    const protocolSummary = (
-      protocol: DefiProtocol,
-      section: Section,
-      name: OverviewDefiProtocol,
-      noLiabilities?: boolean,
-      noDeposits?: boolean
-    ): DefiProtocolSummary | undefined => {
+  const protocolSummary = (
+    protocol: DefiProtocol,
+    section: Section,
+    defiId: string,
+    noLiabilities?: boolean,
+    noDeposits?: boolean
+  ): ComputedRef<DefiProtocolSummary | undefined> =>
+    computed(() => {
       const currentStatus = getStatus(section);
       if (
         currentStatus !== Status.LOADED &&
@@ -160,11 +155,9 @@ export const useDefiStore = defineStore('defi', () => {
       const { totalCollateralUsd, totalDebt } = noLiabilities
         ? { totalCollateralUsd: Zero, totalDebt: Zero }
         : get(loanSummary(filter));
+
       return {
-        protocol: {
-          name,
-          icon: getProtocolIcon(name)
-        },
+        protocol: defiId,
         liabilities: !noLiabilities,
         deposits: !noDeposits,
         tokenInfo: null,
@@ -181,8 +174,29 @@ export const useDefiStore = defineStore('defi', () => {
           ? Zero
           : get(totalLendingDeposit(filter, []))
       };
-    };
+    });
 
+  const listedProtocols: Record<
+    string,
+    [DefiProtocol, Section, boolean, boolean]
+  > = {
+    aave: [DefiProtocol.AAVE, Section.DEFI_AAVE_BALANCES, false, false],
+    compound: [
+      DefiProtocol.COMPOUND,
+      Section.DEFI_COMPOUND_BALANCES,
+      false,
+      false
+    ],
+    yearn_finance_vaults: [
+      DefiProtocol.YEARN_VAULTS,
+      Section.DEFI_YEARN_VAULTS_BALANCES,
+      true,
+      false
+    ],
+    liquity: [DefiProtocol.LIQUITY, Section.DEFI_LIQUITY_BALANCES, false, true]
+  };
+
+  const overview: ComputedRef<DefiProtocolSummary[]> = computed(() => {
     const summary: Record<string, DefiProtocolSummary> = {};
 
     const defiProtocols = get(allProtocols);
@@ -190,69 +204,23 @@ export const useDefiStore = defineStore('defi', () => {
       const protocols = defiProtocols[address];
       for (const entry of protocols) {
         const protocol = entry.protocol.name;
+        const protocolId = get(getDefiIdentifierByName(protocol));
 
-        if (protocol === AAVE) {
-          const aaveSummary = protocolSummary(
-            DefiProtocol.AAVE,
-            Section.DEFI_AAVE_BALANCES,
-            protocol
+        const data = listedProtocols[protocolId];
+        if (data) {
+          const dataSummary = get(
+            protocolSummary(data[0], data[1], protocol, data[2], data[3])
           );
 
-          if (aaveSummary && shouldDisplay(aaveSummary)) {
-            summary[protocol] = aaveSummary;
+          if (dataSummary && shouldShowOverview(dataSummary)) {
+            summary[protocol] = dataSummary;
           }
-          continue;
-        }
-
-        if (protocol === COMPOUND) {
-          const compoundSummary = protocolSummary(
-            DefiProtocol.COMPOUND,
-            Section.DEFI_COMPOUND_BALANCES,
-            protocol
-          );
-
-          if (compoundSummary && shouldDisplay(compoundSummary)) {
-            summary[protocol] = compoundSummary;
-          }
-          continue;
-        }
-
-        if (protocol === YEARN_FINANCE_VAULTS) {
-          const yearnVaultsSummary = protocolSummary(
-            DefiProtocol.YEARN_VAULTS,
-            Section.DEFI_YEARN_VAULTS_BALANCES,
-            protocol,
-            true
-          );
-
-          if (yearnVaultsSummary && shouldDisplay(yearnVaultsSummary)) {
-            summary[protocol] = yearnVaultsSummary;
-          }
-          continue;
-        }
-
-        if (protocol === LIQUITY) {
-          const liquity = protocolSummary(
-            DefiProtocol.LIQUITY,
-            Section.DEFI_LIQUITY_BALANCES,
-            protocol,
-            false,
-            true
-          );
-
-          if (liquity && shouldDisplay(liquity)) {
-            summary[protocol] = liquity;
-          }
-
           continue;
         }
 
         if (!summary[protocol]) {
           summary[protocol] = {
-            protocol: {
-              ...entry.protocol,
-              icon: getProtocolIcon(protocol)
-            },
+            protocol: protocolId,
             tokenInfo: {
               tokenName: entry.baseBalance.tokenName,
               tokenSymbol: entry.baseBalance.tokenSymbol
@@ -306,10 +274,7 @@ export const useDefiStore = defineStore('defi', () => {
     ) {
       const filter: DefiProtocol[] = [DefiProtocol.MAKERDAO_DSR];
       const makerDAODSRSummary: DefiProtocolSummary = {
-        protocol: {
-          name: MAKERDAO_DSR,
-          icon: getProtocolIcon(MAKERDAO_DSR)
-        },
+        protocol: DefiProtocol.MAKERDAO_DSR,
         tokenInfo: null,
         assets: [],
         depositsUrl: '/defi/deposits?protocol=makerdao',
@@ -324,10 +289,7 @@ export const useDefiStore = defineStore('defi', () => {
         loanSummary([DefiProtocol.MAKERDAO_VAULTS])
       );
       const makerDAOVaultSummary: DefiProtocolSummary = {
-        protocol: {
-          name: MAKERDAO_VAULTS,
-          icon: getProtocolIcon(MAKERDAO_VAULTS)
-        },
+        protocol: DefiProtocol.MAKERDAO_VAULTS,
         tokenInfo: null,
         assets: [],
         deposits: false,
@@ -338,29 +300,31 @@ export const useDefiStore = defineStore('defi', () => {
         totalLendingDepositUsd: Zero
       };
 
-      if (shouldDisplay(makerDAODSRSummary)) {
+      if (shouldShowOverview(makerDAODSRSummary)) {
         summary[DefiProtocol.MAKERDAO_DSR] = makerDAODSRSummary;
       }
 
-      if (shouldDisplay(makerDAOVaultSummary)) {
+      if (shouldShowOverview(makerDAOVaultSummary)) {
         summary[DefiProtocol.MAKERDAO_VAULTS] = makerDAOVaultSummary;
       }
 
-      const yearnV2Summary = protocolSummary(
-        DefiProtocol.YEARN_VAULTS_V2,
-        Section.DEFI_YEARN_VAULTS_V2_BALANCES,
-        YEARN_FINANCE_VAULTS_V2,
-        true
+      const yearnV2Summary = get(
+        protocolSummary(
+          DefiProtocol.YEARN_VAULTS_V2,
+          Section.DEFI_YEARN_VAULTS_V2_BALANCES,
+          get(getDefiIdentifierByName('yearn_finance_vaults_v2')),
+          true
+        )
       );
-      if (yearnV2Summary && shouldDisplay(yearnV2Summary)) {
+
+      if (yearnV2Summary && shouldShowOverview(yearnV2Summary)) {
         summary[DefiProtocol.YEARN_VAULTS_V2] = yearnV2Summary;
       }
     }
 
-    return sortBy(
-      Object.values(summary),
-      summary => summary.protocol.name
-    ).filter(value => value.balanceUsd || value.deposits || value.liabilities);
+    return sortBy(Object.values(summary), summary => summary.protocol).filter(
+      value => value.balanceUsd || value.deposits || value.liabilities
+    );
   });
 
   const fetchDefiBalances = async (refresh: boolean) => {
