@@ -73,10 +73,12 @@ const events: Ref<HistoryEventEntry[]> = asyncComputed(() => {
     return [eventHeader];
   }
   const eventIdentifierHeader = eventHeader.eventIdentifier;
-  const filtered = all.filter(
-    ({ eventIdentifier, hidden }) =>
-      eventIdentifier === eventIdentifierHeader && !hidden
-  );
+  const filtered = all
+    .filter(
+      ({ eventIdentifier, hidden }) =>
+        eventIdentifier === eventIdentifierHeader && !hidden
+    )
+    .sort((a, b) => a.sequenceIndex - b.sequenceIndex);
 
   if (filtered.length > 0) {
     return filtered;
