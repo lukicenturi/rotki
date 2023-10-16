@@ -6,7 +6,10 @@ import {
   type EvmHistoryEvent,
   type NewEvmHistoryEventPayload
 } from '@/types/history/events';
-import { TRADE_LOCATION_EXTERNAL } from '@/data/defaults';
+import {
+  TRADE_LOCATION_ETHEREUM,
+  TRADE_LOCATION_EXTERNAL
+} from '@/data/defaults';
 import { type Writeable } from '@/types';
 import { type ActionDataEntry } from '@/types/action';
 import { toMessages } from '@/utils/validation';
@@ -378,6 +381,13 @@ watch(historyEventLimitedProducts, products => {
     set(product, '');
   }
 });
+
+const { txEvmChains } = useSupportedChains();
+
+const locationsFromTxEvmChains = computed(() => {
+  const txEvmChainIds = get(txEvmChains).map(item => toHumanReadable(item.id));
+  return [TRADE_LOCATION_ETHEREUM, ...txEvmChainIds];
+});
 </script>
 
 <template>
@@ -399,6 +409,7 @@ watch(historyEventLimitedProducts, products => {
         v-model="location"
         required
         outlined
+        :items="locationsFromTxEvmChains"
         :disabled="!!(editableItem || groupHeader)"
         data-cy="location"
         :label="t('common.location')"
@@ -417,7 +428,7 @@ watch(historyEventLimitedProducts, products => {
       @blur="v$.txHash.$touch()"
     />
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <HistoryEventAssetPriceForm
       ref="assetPriceForm"
@@ -428,7 +439,7 @@ watch(historyEventLimitedProducts, products => {
       :usd-value.sync="usdValue"
     />
 
-    <div class="border-t my-10" />
+    <div class="border-t dark:border-rui-grey-800 my-10" />
 
     <div class="grid md:grid-cols-3 gap-4">
       <VAutocomplete
@@ -464,7 +475,7 @@ watch(historyEventLimitedProducts, products => {
       />
     </div>
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <div class="grid md:grid-cols-2 gap-4">
       <VTextField
@@ -513,7 +524,7 @@ watch(historyEventLimitedProducts, products => {
       />
     </div>
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <VTextarea
       v-model.trim="notes"

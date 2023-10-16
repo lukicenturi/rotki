@@ -367,7 +367,7 @@ const historyEventSubTypeFilteredData: ComputedRef<ActionDataEntry[]> =
       @blur="v$.eventIdentifier.$touch()"
     />
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <HistoryEventAssetPriceForm
       ref="assetPriceForm"
@@ -378,7 +378,7 @@ const historyEventSubTypeFilteredData: ComputedRef<ActionDataEntry[]> =
       :usd-value.sync="usdValue"
     />
 
-    <div class="border-t my-10" />
+    <div class="border-t dark:border-rui-grey-800 my-10" />
 
     <div class="grid md:grid-cols-3 gap-4">
       <VAutocomplete
@@ -414,7 +414,7 @@ const historyEventSubTypeFilteredData: ComputedRef<ActionDataEntry[]> =
       />
     </div>
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <div class="grid md:grid-cols-2 gap-4">
       <VTextField
@@ -438,7 +438,7 @@ const historyEventSubTypeFilteredData: ComputedRef<ActionDataEntry[]> =
       />
     </div>
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <VTextarea
       v-model.trim="notes"

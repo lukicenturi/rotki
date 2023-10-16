@@ -41,7 +41,9 @@ watchImmediate(groupHeader, groupHeader => {
         hide-details
       />
     </div>
-    <div class="border-t my-8" />
+
+    <div class="border-t dark:border-rui-grey-800 my-8" />
+
     <EvmEventForm
       v-if="entryType === HistoryEventEntryType.EVM_EVENT"
       :next-sequence="nextSequence"

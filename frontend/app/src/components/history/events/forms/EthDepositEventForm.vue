@@ -296,7 +296,7 @@ const depositorSuggestions = computed(() =>
       @blur="v$.txHash.$touch()"
     />
 
-    <div class="border-t mb-6 mt-2" />
+    <div class="border-t dark:border-rui-grey-800 mb-6 mt-2" />
 
     <HistoryEventAssetPriceForm
       ref="assetPriceForm"
@@ -308,7 +308,7 @@ const depositorSuggestions = computed(() =>
       disable-asset
     />
 
-    <div class="border-t my-10" />
+    <div class="border-t dark:border-rui-grey-800 my-10" />
 
     <div class="grid md:grid-cols-2 gap-4">
       <ComboboxWithCustomInput

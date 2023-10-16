@@ -22,6 +22,7 @@ import {
   RiCloseLine,
   RiCloudLine,
   RiCodeBoxLine,
+  RiCoinLine,
   RiCoinsLine,
   RiCornerLeftUpLine,
   RiDashboardLine,
@@ -205,6 +206,7 @@ Vue.use(RuiPlugin, {
     RiSubtractLine,
     RiSendPlane2Line,
     RiEqualLine,
-    RiNotificationLine
+    RiNotificationLine,
+    RiCoinLine
   ]
 });

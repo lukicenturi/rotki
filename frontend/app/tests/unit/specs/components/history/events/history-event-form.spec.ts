@@ -2,13 +2,14 @@ import { type Wrapper, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import Vuetify from 'vuetify';
 import flushPromises from 'flush-promises';
+import { HistoryEventEntryType } from '@rotki/common/lib/history/events';
 import HistoryEventForm from '@/components/history/events/HistoryEventForm.vue';
 
 describe('HistoryEventForm.vue', () => {
   setupDayjs();
   let wrapper: Wrapper<HistoryEventForm>;
 
-  const transaction = {
+  const groupHeader = {
     identifier: 14344,
     eventIdentifier:
       '10x4ba949779d936631dc9eb68fa9308c18de51db253aeea919384c728942f95ba9',
@@ -25,7 +26,7 @@ describe('HistoryEventForm.vue', () => {
     locationLabel: '0xfDb7EEc5eBF4c4aC7734748474123aC25C6eDCc8',
     notes:
       'Receive 610 Visit https://rafts.cc to claim rewards. from 0x30a2EBF10f34c6C4874b0bDD5740690fD2f3B70C to 0xfDb7EEc5eBF4c4aC7734748474123aC25C6eDCc8',
-    entryType: 'evm event',
+    entryType: HistoryEventEntryType.EVM_EVENT,
     address: '0x30a2EBF10f34c6C4874b0bDD5740690fD2f3B70C',
     counterparty: null,
     product: null,
@@ -81,7 +82,8 @@ describe('HistoryEventForm.vue', () => {
         }
       },
       propsData: {
-        transaction
+        groupHeader,
+        editableItem: null
       }
     });
   };
