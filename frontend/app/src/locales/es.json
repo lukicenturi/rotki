@@ -1472,7 +1472,7 @@
       "label_password": "Contraseña",
       "label_password_backup_reminder": "rotki guarda todos los datos del usuario localmente. Entiendo que si pierdo mi contraseña, perderé acceso a mis datos. He creado una copia de seguridad de la contraseña.",
       "label_password_repeat": "Repetir contraseña",
-      "label_username": "Nombre de usuario",
+      "label_profile_name": "Nombre de perfil",
       "password_sync_requirement": "Asegúrate de que la cuenta utilice la misma contraseña que la base de datos respaldada originalmente. No podrás acceder a la base de datos si ingresas una contraseña diferente.",
       "validation": {
         "check_prompt": "Confirma que has leído y creado una copia de seguridad",
@@ -2736,8 +2736,9 @@
       }
     },
     "label_password": "Contraseña",
-    "label_username": "Usuario",
+    "label_profile_name": "Nombre de perfil",
     "logout": "Cerrar sesión",
+    "no_profiles_found": "No se encontraron perfiles en esta máquina. Regístrese {aquí}",
     "remember_password": "Recordar contraseña",
     "remember_password_tooltip": "The password will be saved on password management tool on your local machine (e.g. Keychain in MacOS)",
     "remember_username": "Recordar usuario",

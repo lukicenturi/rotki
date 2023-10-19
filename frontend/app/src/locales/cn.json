@@ -1505,7 +1505,7 @@
       "label_password": "密码",
       "label_password_backup_reminder": "rotki 会将所有用户数据保存在本地。我明白如果我丢失密码，我将无法访问我的数据。我已经创建了密码的备份。",
       "label_password_repeat": "重复密码",
-      "label_username": "用户名",
+      "label_profile_name": "个人资料名称",
       "password_sync_requirement": "请确保该帐户使用与最初备份的数据库相同的密码。如果输入不同的密码，您将无法访问数据库。",
       "validation": {
         "check_prompt": "确认您已阅读并创建了备份",
@@ -2784,13 +2784,14 @@
       "welcome": "欢迎！ 请输入您的详细信息。"
     },
     "label_password": "密码",
-    "label_username": "用户名",
+    "label_profile_name": "个人资料名称",
     "logout": "注销",
     "migrating_data": {
       "current": "已应用数据迁移 {currentVersion} 的 {totalSteps} 步 {currentStep}。.",
       "title": "数据迁移",
       "warning": "数据迁移 {currentVersion} 正在运行。在完成之前请不要关闭应用程序。"
     },
+    "no_profiles_found": "在此计算机上未找到配置文件。{此处}注册",
     "remember_password": "记住密码d",
     "remember_password_tooltip": "密码将保存在本地计算机上的密码管理工具中（例如 MacOS 中的钥匙串）",
     "remember_username": "记住用户名",

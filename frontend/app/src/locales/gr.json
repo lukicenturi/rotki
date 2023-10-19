@@ -1478,7 +1478,7 @@
       "label_password": "Κωδικός πρόσβασης",
       "label_password_backup_reminder": "Το rotki αποθηκεύει όλα τα δεδομένα χρήστη τοπικά. Κατανοώ ότι εάν χάσω τον κωδικό πρόσβασής μου, χάνω την πρόσβαση στα δεδομένα μου. Έχω δημιουργήσει ένα αντίγραφο ασφαλείας του κωδικού πρόσβασης.",
       "label_password_repeat": "Επανάληψη κωδικού πρόσβασης",
-      "label_username": "Όνομα χρήστη",
+      "label_profile_name": "Ονομα προφίλ",
       "password_sync_requirement": "Βεβαιωθείτε ότι ο λογαριασμός χρησιμοποιεί τον ίδιο κωδικό πρόσβασης με την αρχική βάση δεδομένων. Δεν μπορείτε να αποκτήσετε πρόσβαση στη βάση δεδομένων αν εισαγάγετε διαφορετικό κωδικό πρόσβασης.",
       "validation": {
         "check_prompt": "Επιβεβαιώστε ότι έχετε διαβάσει και δημιουργήσει αντίγραφο ασφαλείας",
@@ -2749,8 +2749,9 @@
       "welcome": "Καλως ΗΡΘΑΤΕ! Παρακαλώ εισάγετε τα στοιχεία σας."
     },
     "label_password": "Password",
-    "label_username": "Username",
+    "label_profile_name": "Ονομα προφίλ",
     "logout": "Logout",
+    "no_profiles_found": "Δεν βρέθηκαν προφίλ σε αυτό το μηχάνημα. Εγγραφείτε {εδώ}",
     "remember_password": "Remember Password",
     "remember_password_tooltip": "The password will be saved on password management tool on your local machine (e.g. Keychain in MacOS)",
     "remember_username": "Remember Username",

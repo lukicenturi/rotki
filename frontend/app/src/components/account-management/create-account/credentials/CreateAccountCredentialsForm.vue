@@ -134,7 +134,7 @@ const userPromptedModel = computed({
         variant="outlined"
         autofocus
         data-cy="create-account__fields__username"
-        :label="t('create_account.credentials.label_username')"
+        :label="t('create_account.credentials.label_profile_name')"
         :error-messages="toMessages(v$.username)"
         :disabled="loading"
       />

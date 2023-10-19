@@ -282,6 +282,13 @@ const abortLogin = () => {
   resetSyncConflict();
   resetIncompleteUpgradeConflict();
 };
+
+const { getUserProfiles } = useUsersApi();
+
+const userProfiles: Ref<string[]> = asyncComputed(
+  async () => await getUserProfiles(),
+  []
+);
 </script>
 
 <template>
@@ -315,19 +322,42 @@ const abortLogin = () => {
 
         <div>
           <form novalidate @submit.stop.prevent="login()">
-            <RuiTextField
+            <VAutocomplete
               ref="usernameRef"
               v-model="username"
-              variant="outlined"
+              :items="userProfiles"
+              outlined
               color="primary"
               autocomplete="username"
-              :label="t('login.label_username')"
+              :label="t('login.label_profile_name')"
               :error-messages="usernameErrors"
               :disabled="loading || conflictExist || customBackendDisplay"
               class="mb-2"
               data-cy="username-input"
               dense
-            />
+            >
+              <template #no-data>
+                <div
+                  class="text-rui-text-secondary p-2 flex items-center justify-center"
+                >
+                  <i18n path="login.no_profiles_found">
+                    <template #here>
+                      <RuiButton
+                        color="primary"
+                        variant="text"
+                        class="text-[1em] py-0 inline px-0"
+                        :disabled="loading"
+                        type="button"
+                        data-cy="new-account"
+                        @click="newAccount()"
+                      >
+                        {{ t('common.here') }}
+                      </RuiButton>
+                    </template>
+                  </i18n>
+                </div>
+              </template>
+            </VAutocomplete>
 
             <RuiRevealableTextField
               ref="passwordRef"
@@ -372,7 +402,10 @@ const abortLogin = () => {
                     </RuiCheckbox>
                   </div>
                   <RuiTooltip
+                    open-delay="400"
+                    close-delay="0"
                     class="ml-2"
+                    tooltip-class="max-w-[16rem]"
                     :text="t('login.remember_password_tooltip')"
                   >
                     <template #activator>
@@ -383,7 +416,8 @@ const abortLogin = () => {
               </div>
               <div>
                 <RuiTooltip
-                  :close-delay="0"
+                  open-delay="400"
+                  close-delay="0"
                   :text="t('login.custom_backend.tooltip')"
                 >
                   <template #activator>
