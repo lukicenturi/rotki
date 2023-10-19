@@ -165,11 +165,12 @@ const reProcessSkippedEvents = async () => {
       </div>
     </div>
 
-    <div class="max-w-[40rem]">
+    <div>
       <RuiDataTable
         :cols="headers"
         :rows="locationsData"
         dense
+        striped
         outlined
         :empty="{
           description: t('transactions.events.skipped.no_skipped_events')
