@@ -1,8 +1,10 @@
 import { type MaybeRef } from '@vueuse/core';
+import { cloneDeep } from 'lodash-es';
 import {
+  type HistoryEventCategoryDetailWithId,
+  type HistoryEventCategoryMapping,
   type HistoryEventProductData,
-  type HistoryEventTypeData,
-  type HistoryEventTypeDetailWithId
+  type HistoryEventTypeData
 } from '@/types/history/events/event-type';
 import { type ActionDataEntry } from '@/types/action';
 
@@ -70,21 +72,23 @@ export const useHistoryEventMappings = createSharedComposable(() => {
     }
   );
 
-  const transactionEventTypesData: ComputedRef<HistoryEventTypeDetailWithId[]> =
-    useRefMap(historyEventTypeData, ({ eventCategoryDetails }) =>
-      Object.entries(eventCategoryDetails).map(([identifier, data]) => {
-        const translationId = toSnakeCase(data.label);
-        const translationKey = `backend_mappings.events.type.${translationId}`;
-
-        return {
-          ...data,
-          identifier,
-          label: te(translationKey)
+  const transactionEventTypesData: ComputedRef<HistoryEventCategoryMapping> =
+    useRefMap(historyEventTypeData, ({ eventCategoryDetails }) => {
+      const newEventCategoryDetails = cloneDeep(eventCategoryDetails);
+      for (const eventCategory in newEventCategoryDetails) {
+        const counterpartyMappings =
+          newEventCategoryDetails[eventCategory].counterpartyMappings;
+        for (const counterparty in counterpartyMappings) {
+          const label = counterpartyMappings[counterparty].label;
+          const translationId = toSnakeCase(label);
+          const translationKey = `backend_mappings.events.type.${translationId}`;
+          counterpartyMappings[counterparty].label = te(translationKey)
             ? t(translationKey)
-            : toSentenceCase(data.label)
-        };
-      })
-    );
+            : toSentenceCase(label);
+        }
+      }
+      return newEventCategoryDetails;
+    });
 
   const historyEventTypeGlobalMapping = useRefMap(
     historyEventTypeData,
@@ -114,17 +118,35 @@ export const useHistoryEventMappings = createSharedComposable(() => {
     event: MaybeRef<{
       eventType?: string | null;
       eventSubtype?: string | null;
+      counterparty?: string | null;
     }>,
     showFallbackLabel = true
-  ): ComputedRef<HistoryEventTypeDetailWithId> =>
+  ): ComputedRef<HistoryEventCategoryDetailWithId> =>
     computed(() => {
       const type = get(getEventType(event));
 
+      const { counterparty } = get(event);
+
       if (type) {
-        return get(transactionEventTypesData).find(
-          ({ identifier }: ActionDataEntry) =>
-            identifier.toLowerCase() === type.toLowerCase()
-        )!;
+        const data = get(transactionEventTypesData)[type];
+
+        if (data) {
+          const counterpartyVal = counterparty || 'null';
+
+          if (counterpartyVal) {
+            const categoryDetail =
+              data.counterpartyMappings[counterpartyVal] ||
+              data.counterpartyMappings.null;
+
+            if (categoryDetail) {
+              return {
+                ...categoryDetail,
+                identifier: counterpartyVal !== 'null' ? counterpartyVal : type,
+                direction: data.direction
+              };
+            }
+          }
+        }
       }
 
       const unknownLabel = t('backend_mappings.events.type.unknown');

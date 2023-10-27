@@ -3,18 +3,24 @@ import { type Validation } from '@vuelidate/core';
 import { toMessages } from '@/utils/validation';
 import { type ActionDataEntry } from '@/types/action';
 
-const props = defineProps<{
-  eventType: string;
-  eventSubtype: string;
-  v$: Validation;
-}>();
+const props = withDefaults(
+  defineProps<{
+    eventType: string;
+    eventSubtype: string;
+    counterparty?: string | null;
+    v$: Validation;
+  }>(),
+  {
+    counterparty: null
+  }
+);
 
 const emit = defineEmits<{
   (e: 'update:event-type', eventType: string): void;
   (e: 'update:event-subtype', eventSubtype: string): void;
 }>();
 
-const { eventType, eventSubtype, v$ } = toRefs(props);
+const { eventType, eventSubtype, counterparty, v$ } = toRefs(props);
 
 const eventTypeModel = computed({
   get() {
@@ -45,7 +51,8 @@ const historyTypeCombination = computed(() =>
     getEventTypeData(
       {
         eventType: get(eventType),
-        eventSubtype: get(eventSubtype)
+        eventSubtype: get(eventSubtype),
+        counterparty: get(counterparty)
       },
       false
     )
