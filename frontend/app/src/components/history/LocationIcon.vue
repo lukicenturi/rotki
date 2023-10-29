@@ -50,9 +50,12 @@ const location: ComputedRef<TradeLocationData | null> = computed(() => {
         :max-height="size"
         :src="location.image"
       />
-      <VIcon v-else color="accent" :style="iconStyle">
-        {{ location.icon }}
-      </VIcon>
+      <RuiIcon
+        v-else
+        color="secondary"
+        :name="location.icon"
+        :style="iconStyle"
+      />
     </AdaptiveWrapper>
     <span
       v-if="!icon"

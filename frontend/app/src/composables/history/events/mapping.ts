@@ -159,8 +159,8 @@ export const useHistoryEventMappings = createSharedComposable(() => {
       return {
         identifier: '',
         label,
-        icon: 'mdi-help',
-        color: 'red',
+        icon: 'question-line',
+        color: 'error',
         direction: 'neutral'
       };
     });
@@ -198,8 +198,8 @@ export const useHistoryEventMappings = createSharedComposable(() => {
         return {
           identifier: '',
           label: counterparty,
-          icon: 'mdi-help',
-          color: 'red'
+          icon: 'question-line',
+          color: 'error'
         };
       }
 
@@ -243,19 +243,19 @@ export const useHistoryEventMappings = createSharedComposable(() => {
 
   const getAccountingEventTypeData = (
     type: MaybeRef<string>
-  ): ComputedRef<ActionDataEntry> => {
-    const typeVal = get(type);
-    return computed(
-      () =>
+  ): ComputedRef<ActionDataEntry> =>
+    computed(() => {
+      const typeVal = get(type);
+      return (
         get(accountingEventsTypeData).find(
           ({ identifier }) => identifier === typeVal
         ) || {
           identifier: typeVal,
-          icon: 'mdi-help',
+          icon: 'question-line',
           label: toCapitalCase(typeVal)
         }
-    );
-  };
+      );
+    });
 
   const defaultHistoryEventProductsData = () => ({
     mappings: {},

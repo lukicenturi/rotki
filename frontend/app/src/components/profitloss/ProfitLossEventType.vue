@@ -12,11 +12,9 @@ const label = useRefMap(data, ({ label }) => label);
 </script>
 
 <template>
-  <span class="flex items-center" :class="'flex-column'">
-    <span>
-      <VIcon color="accent"> {{ icon }} </VIcon>
-    </span>
-    <span class="mt-2 text-no-wrap">
+  <span class="flex items-center flex-column">
+    <RuiIcon :name="icon" color="secondary" />
+    <span class="mt-1 text-no-wrap">
       {{ label }}
     </span>
   </span>
