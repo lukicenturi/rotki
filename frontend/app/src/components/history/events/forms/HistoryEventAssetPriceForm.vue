@@ -18,9 +18,11 @@ const props = withDefaults(
     usdValue: string;
     disableAsset?: boolean;
     v$: Validation;
+    location?: string;
   }>(),
   {
-    disableAsset: false
+    disableAsset: false,
+    location: ''
   }
 );
 
@@ -279,6 +281,7 @@ defineExpose({
         required
         :disabled="disableAsset"
         data-cy="asset"
+        :evm-chain="location"
         :error-messages="disableAsset ? [''] : toMessages(v$.asset)"
         @blur="v$.asset.$touch()"
       />

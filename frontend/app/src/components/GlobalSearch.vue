@@ -300,7 +300,7 @@ const getAssets = async (
   keyword: string
 ): Promise<SearchItemWithoutValue[]> => {
   try {
-    const matches = await assetSearch(keyword, 5);
+    const matches = await assetSearch({ value: keyword, limit: 5 });
     const assetBalances = get(balances()) as AssetBalanceWithPrice[];
     const map: Record<string, string> = {};
     for (const match of matches) {

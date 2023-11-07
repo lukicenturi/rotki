@@ -3284,7 +3284,7 @@ Search for assets(Levenshtein)
 
    :reqjson int limit: This signifies the limit of records to return as per the `sql spec <https://www.sqlite.org/lang_select.html#limitoffset>`__.
    :reqjson string value: A string to be used to search the assets. Required.
-   :reqjson int[optional] chain_id: Chain id of a supported EVM chain used to filter the result
+   :reqjson list[optional] evm_chain: The name of the evm chain used to filter the result.
    :reqjson list[string][optional] owner_addresses: A list of evm addresses. If provided, only nfts owned by these addresses will be returned.
    :reqjson string[optional] name: Optional nfts name to filter by.
    :reqjson string[optional] collection_name: Optional nfts collection_name to filter by.

@@ -136,3 +136,10 @@ export const SupportedAssets = CollectionCommonFields.extend({
 });
 
 export type SupportedAssets = z.infer<typeof SupportedAssets>;
+
+export interface AssetSearchPayload {
+  value: string;
+  limit?: number;
+  searchNfts?: boolean;
+  evmChain?: string;
+}

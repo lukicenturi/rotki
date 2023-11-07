@@ -297,6 +297,10 @@ const numericUsdValue = bigNumberifyFromRef(usdValue);
 watch(location, (location: string) => {
   if (location) {
     set(lastLocation, location);
+
+    if (!get(editableItem)) {
+      set(asset, '');
+    }
   }
 });
 
@@ -392,6 +396,7 @@ const addressSuggestions = computed(() =>
       ref="assetPriceForm"
       :v$="v$"
       :datetime="datetime"
+      :location="location"
       :asset.sync="asset"
       :amount.sync="amount"
       :usd-value.sync="usdValue"

@@ -1,4 +1,8 @@
-import { type MatchedKeyword, type SearchMatcher } from '@/types/filtering';
+import {
+  type MatchedKeyword,
+  type SearchMatcher,
+  assetSuggestions
+} from '@/types/filtering';
 
 enum KrakenStakingKeys {
   TYPE = 'type',
@@ -41,7 +45,7 @@ export const useKrakenStakingFilter = () => {
         keyValue: KrakenStakingValueKeys.ASSET,
         description: t('kraken_staking_events.filter.asset'),
         asset: true,
-        suggestions: async (value: string) => await assetSearch(value, 5)
+        suggestions: assetSuggestions(assetSearch)
       },
       {
         key: KrakenStakingKeys.TYPE,

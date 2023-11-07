@@ -22,6 +22,7 @@ const props = withDefaults(
     showIgnored?: boolean;
     hideDetails?: boolean;
     includeNfts?: boolean;
+    evmChain?: string;
   }>(),
   {
     items: () => [],
@@ -38,14 +39,22 @@ const props = withDefaults(
     required: false,
     showIgnored: false,
     hideDetails: false,
-    includeNfts: false
+    includeNfts: false,
+    evmChain: ''
   }
 );
 
 const emit = defineEmits<{ (e: 'input', value: string): void }>();
 
-const { items, showIgnored, excludes, errorMessages, value, includeNfts } =
-  toRefs(props);
+const {
+  items,
+  showIgnored,
+  excludes,
+  errorMessages,
+  value,
+  includeNfts,
+  evmChain
+} = toRefs(props);
 const { isAssetIgnored } = useIgnoredAssetsStore();
 
 const input = (value: string) => {
@@ -107,7 +116,18 @@ const searchAssets = async (
   signal: AbortSignal
 ): Promise<void> => {
   try {
-    set(assets, await assetSearch(keyword, 50, get(includeNfts), signal));
+    set(
+      assets,
+      await assetSearch(
+        {
+          value: keyword,
+          searchNfts: get(includeNfts),
+          limit: 50,
+          evmChain: get(evmChain)
+        },
+        signal
+      )
+    );
   } catch (e: any) {
     set(error, e.message);
   }

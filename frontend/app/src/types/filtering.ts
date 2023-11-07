@@ -1,6 +1,10 @@
 import { type AssetInfo } from '@rotki/common/lib/data';
 import { z } from 'zod';
-import { AssetInfoWithId, type AssetsWithId } from '@/types/asset';
+import {
+  AssetInfoWithId,
+  type AssetSearchPayload,
+  type AssetsWithId
+} from '@/types/asset';
 import { type DateFormat } from '@/types/date-format';
 
 export enum FilterBehaviour {
@@ -86,9 +90,9 @@ export enum SavedFilterLocation {
 }
 
 export const assetSuggestions =
-  (assetSearch: (keyword: string, limit: number) => Promise<AssetsWithId>) =>
+  (assetSearch: (payload: AssetSearchPayload) => Promise<AssetsWithId>) =>
   async (value: string) =>
-    await assetSearch(value, 5);
+    await assetSearch({ value, limit: 5 });
 
 export const assetDeserializer =
   (assetInfo: (identifier: string) => ComputedRef<AssetInfo | null>) =>

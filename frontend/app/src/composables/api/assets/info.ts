@@ -6,7 +6,7 @@ import {
   validStatus,
   validWithoutSessionStatus
 } from '@/services/utils';
-import { AssetMap, AssetsWithId } from '@/types/asset';
+import { AssetMap, type AssetSearchPayload, AssetsWithId } from '@/types/asset';
 import { type PendingTask } from '@/types/task';
 import { type EvmChainAddress } from '@/types/history/events';
 
@@ -23,18 +23,18 @@ export const useAssetInfoApi = () => {
   };
 
   const assetSearch = async (
-    keyword: string,
-    limit = 25,
-    searchNfts = false,
+    payload: AssetSearchPayload,
     signal?: AbortSignal
   ): Promise<AssetsWithId> => {
+    const payloadWithDefaultValue = {
+      limit: 25,
+      searchNfts: false,
+      ...payload
+    };
+
     const response = await api.instance.post<ActionResult<AssetsWithId>>(
       '/assets/search/levenshtein',
-      snakeCaseTransformer({
-        value: keyword,
-        limit,
-        searchNfts
-      }),
+      snakeCaseTransformer(payloadWithDefaultValue),
       {
         validateStatus: validStatus,
         signal
