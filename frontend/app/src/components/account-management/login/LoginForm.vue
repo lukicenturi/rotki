@@ -41,6 +41,7 @@ const { usageGuideUrl } = useInterop();
 const css = useCssModule();
 
 const username: Ref<string> = ref('');
+const usernameSearch: Ref<string> = ref('');
 const password: Ref<string> = ref('');
 const rememberUsername: Ref<boolean> = ref(false);
 const rememberPassword: Ref<boolean> = ref(false);
@@ -127,6 +128,18 @@ const passwordError = useArrayFind(errors, error =>
 );
 
 const savedUsernames: Ref<string[]> = ref([]);
+
+const orderedUsernamesList = computed(() => {
+  const search = get(usernameSearch) || '';
+  const usernames = get(savedUsernames);
+
+  if (!search) {
+    return usernames;
+  }
+  return usernames
+    .sort((a, b) => compareTextByKeyword(a, b, search))
+    .slice(0, 5);
+});
 
 const hasServerError = computed(
   () => !!get(usernameError) || !!get(passwordError)
@@ -356,8 +369,9 @@ const abortLogin = () => {
               v-else
               ref="usernameRef"
               v-model="username"
+              :search-input.sync="usernameSearch"
               :label="t('login.label_username')"
-              :items="savedUsernames"
+              :items="orderedUsernamesList"
               :disabled="loading || conflictExist || customBackendDisplay"
               :error-messages="usernameErrors"
               data-cy="username-input"
@@ -367,6 +381,7 @@ const abortLogin = () => {
               :hide-no-data="savedUsernames.length > 0"
               clearable
               outlined
+              no-filter
               dense
             >
               <template #no-data>
