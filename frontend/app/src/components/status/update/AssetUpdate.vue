@@ -117,7 +117,7 @@ const updateComplete = async () => {
   }
 
   set(restarting, true);
-  await logout();
+  await logout(false);
   if (!get(headless)) {
     await navigateToUserLogin();
   } else {

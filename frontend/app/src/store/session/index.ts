@@ -160,8 +160,13 @@ export const useSessionStore = defineStore('session', () => {
     }
   };
 
-  const logout = async (): Promise<void> => {
+  const { navigateToUserLogin } = useAppNavigation();
+
+  const logout = async (navigateToLogin: boolean = true): Promise<void> => {
     set(logged, false);
+    if (navigateToLogin) {
+      await navigateToUserLogin();
+    }
     resetTray();
     try {
       await usersApi.logout(get(username));
