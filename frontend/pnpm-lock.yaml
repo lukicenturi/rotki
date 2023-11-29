@@ -56,8 +56,8 @@ importers:
         specifier: 1.1.2
         version: 1.1.2(eslint@8.51.0)
       '@rotki/ui-library-compat':
-        specifier: 0.8.1
-        version: 0.8.1(@vueuse/core@10.5.0)(@vueuse/shared@10.5.0)(vue@2.7.14)
+        specifier: file:/Users/lukicenturi/Sites/ui-library-compat
+        version: file:../../ui-library-compat(@vueuse/core@10.5.0)(@vueuse/shared@10.5.0)(vue@2.7.14)
       '@types/lodash-es':
         specifier: 4.17.10
         version: 4.17.10
@@ -2451,21 +2451,6 @@ packages:
       - supports-color
       - vue
     dev: true
-
-  /@rotki/ui-library-compat@0.8.1(@vueuse/core@10.5.0)(@vueuse/shared@10.5.0)(vue@2.7.14):
-    resolution: {integrity: sha512-EwjC0gq1TrKIve7DbHHd2Tq9T84a1AIFS2bbje+3DLwod+cgsP/w+oNVAsZ4VjpWJx+u1XV2jnWY6jm6bRoAqA==}
-    engines: {pnpm: '>=8 <9'}
-    peerDependencies:
-      '@vueuse/core': '>10.0.0'
-      '@vueuse/shared': '>10.0.0'
-      vue: '>=2.7.14 <3'
-    dependencies:
-      '@vueuse/core': 10.5.0(vue@2.7.14)
-      '@vueuse/shared': 10.5.0(vue@2.7.14)
-      vue: 2.7.14
-    optionalDependencies:
-      vue-router: 3.6.5(vue@2.7.14)
-    dev: false
 
   /@sideway/address@4.1.4:
     resolution: {integrity: sha512-7vwq+rOHVWjyXxVlR76Agnvhy8I9rpzjosTESvmhNeXOXdZZB15Fl+TI9x1SiHZH5Jv2wTGduSxFDIaq0m3DUw==}
@@ -11543,4 +11528,21 @@ packages:
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
+    dev: false
+
+  file:../../ui-library-compat(@vueuse/core@10.5.0)(@vueuse/shared@10.5.0)(vue@2.7.14):
+    resolution: {directory: ../../ui-library-compat, type: directory}
+    id: file:../../ui-library-compat
+    name: '@rotki/ui-library-compat'
+    engines: {pnpm: '>=8 <9'}
+    peerDependencies:
+      '@vueuse/core': '>10.0.0'
+      '@vueuse/shared': '>10.0.0'
+      vue: '>=2.7.14 <3'
+    dependencies:
+      '@vueuse/core': 10.5.0(vue@2.7.14)
+      '@vueuse/shared': 10.5.0(vue@2.7.14)
+      vue: 2.7.14
+    optionalDependencies:
+      vue-router: 3.6.5(vue@2.7.14)
     dev: false
