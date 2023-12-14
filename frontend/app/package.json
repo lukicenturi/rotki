@@ -28,7 +28,8 @@
     "test:integration-ci": "node scripts/e2e.js --ci",
     "test:unit": "cross-env TZ=UTC VITE_TEST=true vitest --dir tests/unit --coverage",
     "test:unit:run": "cross-env TZ=UTC VITE_TEST=true vitest run --dir tests/unit --coverage",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "verify:link": "tsc src/data/external-links.ts && node scripts/check-external-links.js"
   },
   "optionalDependencies": {
     "@babel/core": "7.23.6",

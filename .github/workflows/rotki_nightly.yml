@@ -64,3 +64,5 @@ jobs:
                 exit 1;
             fi
           done
+      - name: Verify External Links
+        run: node frontend/app/scripts/check-external-links.js
