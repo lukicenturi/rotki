@@ -17,13 +17,13 @@ import { XpubKeyType } from '@/types/blockchain/accounts';
 import type { ValidationErrors } from '@/types/api/errors';
 
 const props = defineProps<{
-  value: AccountManageState;
+  modelValue: AccountManageState;
   loading: boolean;
   errorMessages: ValidationErrors;
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: AccountManageState): void;
+  (e: 'update:model-value', value: AccountManageState): void;
   (e: 'update:error-messages', value: ValidationErrors): void;
 }>();
 
@@ -128,8 +128,8 @@ defineExpose({
 <template>
   <div data-cy="blockchain-balance-form">
     <AccountSelector
-      :input-mode.sync="inputMode"
-      :chain.sync="chain"
+      v-model:input-mode="inputMode"
+      v-model:chain="chain"
       :edit-mode="model.mode === 'edit'"
     />
 
@@ -139,11 +139,10 @@ defineExpose({
       :chain="chain"
       :loading="loading"
     >
-      <template #selector="{ disabled, attrs, on }">
+      <template #selector="{ disabled, attrs }">
         <AllEvmChainsSelector
           v-bind="attrs"
           :disabled="disabled"
-          v-on="on"
         />
       </template>
     </MetamaskAccountForm>
@@ -152,30 +151,29 @@ defineExpose({
       v-else-if="model.type === 'validator'"
       ref="form"
       v-model="model"
+      v-model:error-messages="errors"
       :loading="loading"
-      :error-messages.sync="errors"
     />
 
     <XpubAccountForm
       v-else-if="model.type === 'xpub'"
       ref="form"
       v-model="model"
+      v-model:error-messages="errors"
       :loading="loading"
-      :error-messages.sync="errors"
     />
 
     <AddressAccountForm
       v-else
       ref="form"
       v-model="model"
+      v-model:error-messages="errors"
       :loading="loading"
-      :error-messages.sync="errors"
     >
-      <template #selector="{ disabled, attrs, on }">
+      <template #selector="{ disabled, attrs }">
         <AllEvmChainsSelector
           v-bind="attrs"
           :disabled="disabled"
-          v-on="on"
         />
       </template>
     </AddressAccountForm>

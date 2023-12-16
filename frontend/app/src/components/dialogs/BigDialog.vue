@@ -1,4 +1,8 @@
 <script setup lang="ts">
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = withDefaults(
   defineProps<{
     title: string;
@@ -6,8 +10,8 @@ const props = withDefaults(
     display: boolean;
     loading?: boolean;
     actionDisabled?: boolean;
-    primaryAction?: string | null;
-    secondaryAction?: string | null;
+    primaryAction?: string;
+    secondaryAction?: string;
     maxWidth?: string;
     persistent?: boolean;
     divide?: boolean;
@@ -17,8 +21,8 @@ const props = withDefaults(
     subtitle: '',
     loading: false,
     actionDisabled: false,
-    primaryAction: () => null,
-    secondaryAction: () => null,
+    primaryAction: undefined,
+    secondaryAction: undefined,
     maxWidth: '900px',
     persistent: false,
     divide: false,

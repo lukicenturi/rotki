@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Routes } from '@/router/routes';
 import { calculateTotalProfitLoss } from '@/utils/report';
-import type { DataTableColumn, DataTableSortColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn, DataTableSortColumn } from '@rotki/ui-library';
 import type { Report } from '@/types/reports';
 
 const expanded: Ref<Report[]> = ref([]);
@@ -22,7 +22,7 @@ const limits = computed(() => ({
   limit: get(reports).entriesLimit,
 }));
 
-const tableHeaders: ComputedRef<DataTableColumn[]> = computed(() => [
+const tableHeaders: ComputedRef<DataTableColumn<Report>[]> = computed(() => [
   {
     label: t('profit_loss_reports.columns.start'),
     key: 'startTs',
@@ -69,7 +69,7 @@ function getReportUrl(identifier: number) {
 
 const latestReport = (reportId: number) => get(isLatestReport(reportId));
 
-const sort = ref<DataTableSortColumn>({
+const sort = ref<DataTableSortColumn<Report>>({
   column: 'timestamp',
   direction: 'desc',
 });
@@ -81,13 +81,13 @@ const sort = ref<DataTableSortColumn>({
       {{ t('profit_loss_reports.title') }}
     </template>
     <RuiDataTable
+      v-model:expanded="expanded"
       :cols="tableHeaders"
       :rows="items"
       single-expand
       :sort="sort"
-      :expanded.sync="expanded"
       outlined
-      row-attr="id"
+      row-attr="identifier"
     >
       <template
         v-if="showUpgradeMessage"

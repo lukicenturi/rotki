@@ -35,6 +35,7 @@ export function useAccountingSettings() {
     try {
       return await fetchAccountingRule(get(payload), counterparty);
     }
+
     catch (error: any) {
       logger.error(error);
       const message = error?.message ?? error ?? '';

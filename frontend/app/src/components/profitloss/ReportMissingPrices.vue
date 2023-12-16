@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ApiValidationError } from '@/types/api/errors';
 import type { BigNumber } from '@rotki/common';
-import type { DataTableColumn, DataTableSortData } from '@rotki/ui-library-compat';
+import type { DataTableColumn, DataTableSortData } from '@rotki/ui-library';
 import type { EditableMissingPrice, MissingPrice } from '@/types/reports';
 import type {
   HistoricalPrice,
@@ -38,7 +38,7 @@ onMounted(async () => {
 });
 
 const refreshedHistoricalPrices = ref<Record<string, BigNumber>>({});
-const sort = ref<DataTableSortData>([]);
+const sort = ref<DataTableSortData<EditableMissingPrice>>([]);
 
 const formattedItems = computed<EditableMissingPrice[]>(() =>
   get(items).map((item) => {
@@ -112,7 +112,7 @@ const tableRef = ref();
 
 const tableContainer = computed(() => get(tableRef)?.$el);
 
-const headers = computed<DataTableColumn[]>(() => [
+const headers = computed<DataTableColumn<EditableMissingPrice>[]>(() => [
   {
     label: t('profit_loss_report.actionable.missing_prices.headers.from_asset'),
     key: 'fromAsset',
@@ -172,6 +172,7 @@ const css = useCssModule();
   <div>
     <RuiDataTable
       ref="tableRef"
+      v-model:sort="sort"
       class="table-inside-dialog"
       :class="{
         [css['table--pinned']]: isPinned,
@@ -179,9 +180,8 @@ const css = useCssModule();
       :cols="headers"
       :rows="formattedItems"
       :scroller="tableContainer"
-      :sort.sync="sort"
       :dense="isPinned"
-      row-attr=""
+      row-attr="fromAsset"
     >
       <template #item.fromAsset="{ row }">
         <AssetDetails
@@ -209,7 +209,7 @@ const css = useCssModule();
           :success-messages="row.saved ? [t('profit_loss_report.actionable.missing_prices.price_is_saved')] : []"
           :error-messages="errorMessages[createKey(row)]"
           @focus="delete errorMessages[createKey(row)]"
-          @input="delete errorMessages[createKey(row)]"
+          @update:model-value="delete errorMessages[createKey(row)]"
           @blur="updatePrice(row)"
         >
           <template #append>

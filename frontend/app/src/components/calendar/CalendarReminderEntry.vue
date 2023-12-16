@@ -5,12 +5,12 @@ import { toMessages } from '@/utils/validation';
 import type { CalendarReminderTemporaryPayload } from '@/types/history/calendar/reminder';
 
 const props = defineProps<{
-  value: CalendarReminderTemporaryPayload;
+  modelValue: CalendarReminderTemporaryPayload;
   latest: boolean;
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: CalendarReminderTemporaryPayload): void;
+  (e: 'update:model-value', value: CalendarReminderTemporaryPayload): void;
   (e: 'delete'): void;
 }>();
 
@@ -201,7 +201,7 @@ onMounted(() => {
         text-attr="label"
         dense
         :error-messages="toMessages(v$.unit)"
-        @input="triggerUpdate()"
+        @update:model-value="triggerUpdate()"
       />
     </div>
 

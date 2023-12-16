@@ -6,21 +6,21 @@ import type {
   NonFungibleBalancesRequestPayload,
 } from '@/types/nfbalances';
 import type { LocationQuery } from '@/types/route';
-import type Vue from 'vue';
 
-vi.mock('vue-router/composables', () => ({
-  useRoute: vi.fn().mockReturnValue(
-    reactive({
-      query: {},
+vi.mock('vue-router', () => {
+  const route = ref({
+    query: {},
+  });
+  return ({
+    useRoute: vi.fn().mockReturnValue(route),
+    useRouter: vi.fn().mockReturnValue({
+      push: vi.fn(({ query }) => {
+        set(route, { query });
+        return true;
+      }),
     }),
-  ),
-  useRouter: vi.fn().mockReturnValue({
-    push: vi.fn(({ query }) => {
-      useRoute().query = query;
-      return true;
-    }),
-  }),
-}));
+  });
+});
 
 vi.mock('vue', async () => {
   const mod = await vi.importActual<Vue>('vue');
@@ -108,21 +108,25 @@ describe('composables::history/filter-paginate', () => {
     });
 
     it('check the return types', () => {
-      const { isLoading, state, filters, matchers }
-        = usePaginationFilters<NonFungibleBalance>(
-          locationOverview,
-          mainPage,
-          useEmptyFilter,
-          fetchNonFungibleBalances,
-          {
-            onUpdateFilters,
-            extraParams,
-            defaultSortBy: {
-              key: ['name'],
-              ascending: [true],
-            },
+      const {
+        isLoading,
+        state,
+        filters,
+        matchers,
+      } = usePaginationFilters<NonFungibleBalance>(
+        locationOverview,
+        mainPage,
+        useEmptyFilter,
+        fetchNonFungibleBalances,
+        {
+          onUpdateFilters,
+          extraParams,
+          defaultSortBy: {
+            key: ['name'],
+            ascending: [true],
           },
-        );
+        },
+      );
 
       expect(get(isLoading)).toBe(false);
 
@@ -158,7 +162,7 @@ describe('composables::history/filter-paginate', () => {
 
       expect(pushSpy).toHaveBeenCalledOnce();
       expect(pushSpy).toHaveBeenCalledWith({ query });
-      expect(route.query).toEqual(query);
+      expect(get(route).query).toEqual(query);
       expect(get(isLoading)).toBe(true);
       await flushPromises();
       expect(get(isLoading)).toBe(false);

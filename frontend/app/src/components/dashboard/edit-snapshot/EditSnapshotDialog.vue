@@ -161,7 +161,7 @@ const steps = computed(() => [
 <template>
   <RuiDialog
     persistent
-    value
+    :model-value="true"
     max-width="1400"
   >
     <RuiCard
@@ -182,11 +182,14 @@ const steps = computed(() => [
         </RuiButton>
 
         <h5 class="pl-2 text-h5 flex items-center">
-          <i18n path="dashboard.snapshot.edit.dialog.title">
+          <i18n-t
+            keypath="dashboard.snapshot.edit.dialog.title"
+            tag="span"
+          >
             <template #date>
               <DateDisplay :timestamp="timestamp" />
             </template>
-          </i18n>
+          </i18n-t>
         </h5>
       </div>
 
@@ -197,34 +200,32 @@ const steps = computed(() => [
           class="py-4 border-b-2 border-default"
         />
         <RuiTabItems v-model="step">
-          <template #default>
-            <RuiTabItem :value="1">
-              <EditBalancesSnapshotTable
-                v-model="snapshotData"
-                :timestamp="timestamp"
-                @update:step="step = $event"
-                @input="save()"
-              />
-            </RuiTabItem>
-            <RuiTabItem :value="2">
-              <EditLocationDataSnapshotTable
-                :value="locationDataSnapshot"
-                :timestamp="timestamp"
-                @update:step="step = $event"
-                @input="updateAndSave($event)"
-              />
-            </RuiTabItem>
-            <RuiTabItem :value="3">
-              <EditSnapshotTotal
-                v-if="step === 3"
-                :value="locationDataSnapshot"
-                :balances-snapshot="balancesSnapshot"
-                :timestamp="timestamp"
-                @update:step="step = $event"
-                @input="updateAndComplete($event)"
-              />
-            </RuiTabItem>
-          </template>
+          <RuiTabItem :model-value="1">
+            <EditBalancesSnapshotTable
+              v-model="snapshotData"
+              :timestamp="timestamp"
+              @update:step="step = $event"
+              @update:model-value="save()"
+            />
+          </RuiTabItem>
+          <RuiTabItem :model-value="2">
+            <EditLocationDataSnapshotTable
+              :model-value="locationDataSnapshot"
+              :timestamp="timestamp"
+              @update:step="step = $event"
+              @update:model-value="updateAndSave($event)"
+            />
+          </RuiTabItem>
+          <RuiTabItem :model-value="3">
+            <EditSnapshotTotal
+              v-if="step === 3"
+              :model-value="locationDataSnapshot"
+              :balances-snapshot="balancesSnapshot"
+              :timestamp="timestamp"
+              @update:step="step = $event"
+              @update:model-value="updateAndComplete($event)"
+            />
+          </RuiTabItem>
         </RuiTabItems>
       </div>
       <div

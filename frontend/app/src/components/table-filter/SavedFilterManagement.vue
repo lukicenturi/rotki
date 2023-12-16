@@ -121,7 +121,7 @@ async function addToSavedFilter() {
       :popper="{ placement: 'bottom-end' }"
       menu-class="max-w-[25rem] max-h-[32rem]"
     >
-      <template #activator="{ on }">
+      <template #activator="{ attrs }">
         <RuiTooltip
           :popper="{ placement: 'top' }"
           :open-delay="400"
@@ -133,7 +133,7 @@ async function addToSavedFilter() {
               color="primary"
               variant="text"
               icon
-              v-on="on"
+              v-bind="attrs"
             >
               <RuiIcon
                 size="20"
@@ -227,7 +227,7 @@ async function addToSavedFilter() {
         v-else
         class="p-4"
       >
-        <i18n path="table_filter.saved_filters.empty">
+        <i18n-t keypath="table_filter.saved_filters.empty">
           <template #button>
             <RuiButton
               color="secondary"
@@ -242,7 +242,7 @@ async function addToSavedFilter() {
               />
             </RuiButton>
           </template>
-        </i18n>
+        </i18n-t>
       </div>
     </RuiMenu>
   </div>

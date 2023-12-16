@@ -53,6 +53,9 @@ export default defineConfig({
       '@': `${join(PACKAGE_ROOT, 'src')}/`,
     },
   },
+  optimizeDeps: {
+    include: ['tasklist > csv'],
+  },
   plugins: [binaryDependencyPlugin()],
   build: {
     sourcemap: isDevelopment ? 'inline' : false,
@@ -61,13 +64,12 @@ export default defineConfig({
     minify: !isDevelopment,
     lib: {
       entry: 'src/background.ts',
-      formats: ['cjs'],
+      formats: ['es'],
     },
     rollupOptions: {
       external: [
         'csv',
         'electron',
-        'electron-devtools-installer',
         ...builtinModules.flatMap(p => [p, `node:${p}`]),
       ],
       output: {

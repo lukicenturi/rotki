@@ -26,7 +26,7 @@ const { t } = useI18n();
         t('accounting_settings.trade.labels.account_for_assets_movements')
       "
       color="primary"
-      @input="update($event)"
+      @update:model-value="update($event)"
     />
   </SettingsOption>
 </template>

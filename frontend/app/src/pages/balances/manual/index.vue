@@ -80,7 +80,7 @@ function add() {
 
 onMounted(async () => {
   const { currentRoute } = router;
-  if (currentRoute.query.add) {
+  if (get(currentRoute).query.add) {
     add();
     await router.replace({ query: {} });
   }
@@ -137,8 +137,8 @@ onMounted(async () => {
         v-if="balance"
         ref="form"
         v-model="balance"
+        v-model:error-messages="errorMessages"
         :submitting="loading"
-        :error-messages.sync="errorMessages"
       />
     </BigDialog>
   </TablePageLayout>

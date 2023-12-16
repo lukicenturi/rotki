@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { CURRENCY_USD } from '@/types/currencies';
 import type { BigNumber } from '@rotki/common';
-import type { DataTableColumn, DataTableSortData } from '@rotki/ui-library-compat';
+import type { DataTableColumn, DataTableSortData } from '@rotki/ui-library';
 import type {
   LocationDataSnapshot,
   LocationDataSnapshotPayload,
 } from '@/types/snapshots';
 
 const props = defineProps<{
-  value: LocationDataSnapshot[];
+  modelValue: LocationDataSnapshot[];
   timestamp: number;
 }>();
 
 const emit = defineEmits<{
   (e: 'update:step', step: number): void;
-  (e: 'input', value: LocationDataSnapshot[]): void;
+  (e: 'update:model-value', value: LocationDataSnapshot[]): void;
 }>();
 
 const { t } = useI18n();
@@ -30,18 +30,18 @@ const {
   trySubmit,
 } = useEditLocationsSnapshotForm();
 
-const { value, timestamp } = toRefs(props);
+const { timestamp } = toRefs(props);
 const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
 const editedIndex = ref<number | null>(null);
 const form = ref<LocationDataSnapshotPayload | null>(null);
 const excludedLocations = ref<string[]>([]);
 const tableRef = ref<any>();
-const sort: Ref<DataTableSortData> = ref({
+const sort = ref<DataTableSortData<LocationDataSnapshot>>({
   column: 'usdValue',
   direction: 'desc' as const,
 });
 
-const tableHeaders = computed<DataTableColumn[]>(() => [
+const tableHeaders = computed<DataTableColumn<IndexedLocationDataSnapshot>[]>(() => [
   {
     label: t('common.location'),
     key: 'location',
@@ -70,13 +70,13 @@ const fiatExchangeRate = computed<BigNumber>(
 );
 
 const data = computed<IndexedLocationDataSnapshot[]>(() =>
-  get(value)
+  props.modelValue
     .map((item, index) => ({ ...item, index }))
     .filter(item => item.location !== 'total'),
 );
 
 function input(value: LocationDataSnapshot[]) {
-  emit('input', value);
+  emit('update:model-value', value);
 }
 
 function updateStep(step: number) {
@@ -98,7 +98,7 @@ function editClick(item: IndexedLocationDataSnapshot) {
 
   set(
     excludedLocations,
-    get(value)
+    props.modelValue
       .map(item => item.location)
       .filter(identifier => identifier !== item.location),
   );
@@ -115,7 +115,7 @@ function add() {
   });
   set(
     excludedLocations,
-    get(value).map(item => item.location),
+    props.modelValue.map(item => item.location),
   );
   setOpenDialog(true);
 }
@@ -127,7 +127,7 @@ function save() {
     return;
 
   const index = get(editedIndex);
-  const val = get(value);
+  const val = props.modelValue;
   const timestampVal = get(timestamp);
 
   const convertedUsdValue
@@ -165,7 +165,7 @@ function updateForm(newForm: LocationDataSnapshotPayload) {
 }
 
 function confirmDelete(index: number) {
-  const val = get(value);
+  const val = props.modelValue;
 
   if (index === null)
     return;
@@ -177,7 +177,7 @@ function confirmDelete(index: number) {
 }
 
 const total = computed<BigNumber>(() => {
-  const totalEntry = get(value).find(item => item.location === 'total');
+  const totalEntry = props.modelValue.find(item => item.location === 'total');
 
   if (!totalEntry)
     return Zero;
@@ -204,10 +204,10 @@ function showDeleteConfirmation(item: IndexedLocationDataSnapshot) {
   <div>
     <RuiDataTable
       ref="tableRef"
+      v-model:sort="sort"
       class="table-inside-dialog !max-h-[calc(100vh-26.25rem)]"
       :cols="tableHeaders"
       :rows="data"
-      :sort.sync="sort"
       :scroller="tableRef?.$el"
       row-attr="location"
       dense

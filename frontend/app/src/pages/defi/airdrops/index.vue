@@ -6,12 +6,16 @@ import {
   type AirdropDetail,
   Airdrops,
   type PoapDelivery,
+  type PoapDeliveryDetails,
 } from '@/types/defi/airdrops';
 import { TaskType } from '@/types/task-type';
 import AirdropDisplay from '@/components/defi/airdrops/AirdropDisplay.vue';
+import type { BigNumber } from '@rotki/common';
 import type { AddressData, BlockchainAccount } from '@/types/blockchain/accounts';
-import type { DataTableColumn, TablePaginationData } from '@rotki/ui-library-compat';
+import type { DataTableColumn, TablePaginationData } from '@rotki/ui-library';
 import type { TaskMeta } from '@/types/task';
+
+type AirdropWithIndex = Omit<Airdrop, 'amount'> & { index: number; amount: BigNumber };
 
 type Statuses = '' | 'unknown' | 'unclaimed' | 'claimed' | 'missed';
 const ETH = Blockchain.ETH;
@@ -22,7 +26,7 @@ const { fetchAirdrops: fetchAirdropsCaller } = useDefiApi();
 const hideUnknownAlert = useLocalStorage('rotki.airdrops.hide_unknown_alert', false);
 
 const airdrops = ref<Airdrops>({});
-const expanded = ref<Airdrop[]>([]);
+const expanded = ref<AirdropWithIndex[]>([]);
 const loading = ref<boolean>(false);
 const status = ref<Statuses>('');
 const pagination = ref<TablePaginationData>();
@@ -41,7 +45,7 @@ const refreshTooltip = computed<string>(() => t('helpers.refresh_header.tooltip'
 
 const airdropAddresses = computed<string[]>(() => Object.keys(get(airdrops)));
 
-const rows = computed<(Airdrop & { index: number })[]>(() => {
+const rows = computed<AirdropWithIndex[]>(() => {
   const addresses = get(selectedAccounts).map(account => getAccountAddress(account));
   const data = filterByAddress(get(airdrops), addresses);
   return data.filter((airdrop) => {
@@ -61,11 +65,12 @@ const rows = computed<(Airdrop & { index: number })[]>(() => {
     }
   }).map((value, index) => ({
     ...value,
+    amount: value.amount ?? Zero,
     index,
   }));
 });
 
-const cols = computed<DataTableColumn[]>(() => [
+const cols = computed<DataTableColumn<AirdropWithIndex>[]>(() => [
   {
     label: t('airdrops.headers.source'),
     key: 'source',
@@ -157,9 +162,11 @@ async function fetchAirdrops() {
   }
 }
 
-const hasDetails = (source: string): boolean => [AIRDROP_POAP].includes(source);
+function hasDetails(details?: PoapDeliveryDetails[]): details is PoapDeliveryDetails[] {
+  return !!details && details.length > 0;
+}
 
-function expand(item: Airdrop) {
+function expand(item: AirdropWithIndex) {
   set(expanded, get(expanded).includes(item) ? [] : [item]);
 }
 
@@ -232,13 +239,13 @@ watch([status, selectedAccounts], () => {
       </RuiAlert>
 
       <RuiDataTable
+        v-model:pagination="pagination"
+        v-model:expanded="expanded"
         outlined
         :rows="rows"
         :cols="cols"
         :loading="loading"
-        :pagination.sync="pagination"
         single-expand
-        :expanded.sync="expanded"
         row-attr="index"
       >
         <template #item.address="{ row }">
@@ -246,7 +253,7 @@ watch([status, selectedAccounts], () => {
         </template>
         <template #item.amount="{ row }">
           <AmountDisplay
-            v-if="!hasDetails(row.source)"
+            v-if="!hasDetails(row.details)"
             :value="row.amount"
             :asset="row.asset"
           />
@@ -277,7 +284,7 @@ watch([status, selectedAccounts], () => {
           >
             {{ claimed
               ? t('common.claimed')
-              : cutoffTime !== 'undefined' && cutoffTime !== null && cutoffTime < Date.now() / 1000
+              : cutoffTime && cutoffTime < Date.now() / 1000
                 ? t('common.missed')
                 : t('common.unclaimed') }}
           </RuiChip>
@@ -290,7 +297,7 @@ watch([status, selectedAccounts], () => {
         </template>
         <template #item.expand="{ row }">
           <ExternalLink
-            v-if="!hasDetails(row.source)"
+            v-if="!hasDetails(row.details)"
             :url="row.link"
             custom
           >
@@ -313,7 +320,7 @@ watch([status, selectedAccounts], () => {
         </template>
         <template #expanded-item="{ row }">
           <PoapDeliveryAirdrops
-            v-if="hasDetails(row.source)"
+            v-if="hasDetails(row.details)"
             :items="row.details"
           />
         </template>

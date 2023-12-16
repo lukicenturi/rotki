@@ -11,7 +11,7 @@ import type {
 } from '@/types/history/trade';
 import type { Collection } from '@/types/collection';
 import type { Filters, Matcher } from '@/composables/filters/trades';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
 
 const props = withDefaults(
   defineProps<{
@@ -34,9 +34,9 @@ const route = useRoute();
 
 const mainPage = computed(() => get(locationOverview) === '');
 
-const tableHeaders = computed<DataTableColumn[]>(() => {
+const tableHeaders = computed<DataTableColumn<TradeEntry>[]>(() => {
   const overview = !get(mainPage);
-  const headers: DataTableColumn[] = [
+  const headers: DataTableColumn<TradeEntry>[] = [
     {
       label: '',
       key: 'ignoredInAccounting',
@@ -365,8 +365,8 @@ watch(loading, async (isLoading, wasLoading) => {
             </div>
           </TableStatusFilter>
           <TableFilter
+            v-model:matches="filters"
             class="min-w-full sm:min-w-[20rem]"
-            :matches.sync="filters"
             :matchers="matchers"
             :location="SavedFilterLocation.HISTORY_TRADES"
           />
@@ -406,15 +406,13 @@ watch(loading, async (isLoading, wasLoading) => {
         <template #default="{ data, limit, total, showUpgradeRow }">
           <RuiDataTable
             v-model="value"
-            :expanded.sync="expanded"
+            v-model:expanded="expanded"
+            v-model:sort.external="sort"
+            v-model:pagination.external="pagination"
             :cols="tableHeaders"
             :rows="data"
             :loading="isLoading || loading"
             :loading-text="t('trade_history.loading')"
-            :pagination.sync="pagination"
-            :pagination-modifiers="{ external: true }"
-            :sort.sync="sort"
-            :sort-modifiers="{ external: true }"
             data-cy="closed-trades"
             :item-class="getItemClass"
             row-attr="tradeId"

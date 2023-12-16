@@ -86,7 +86,7 @@ onMounted(() => {
           :error-messages="
             error || toMessages(v$.versionUpdateCheckFrequency)
           "
-          @input="update($event)"
+          @update:model-value="update($event)"
         />
       </SettingsOption>
     </div>
@@ -102,7 +102,7 @@ onMounted(() => {
         class="mt-4"
         :label="t('general_settings.labels.version_update_check_enabled')"
         color="primary"
-        @input="callIfValid($event, update)"
+        @update:model-value="callIfValid($event, update)"
       />
     </SettingsOption>
   </div>

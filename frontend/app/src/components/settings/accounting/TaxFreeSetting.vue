@@ -99,7 +99,7 @@ onMounted(() => {
         :error-messages="error"
         :label="t('accounting_settings.trade.labels.tax_free')"
         color="primary"
-        @input="update($event)"
+        @update:model-value="update($event)"
       />
     </SettingsOption>
 
@@ -120,7 +120,7 @@ onMounted(() => {
         :disabled="!taxFreePeriod"
         :label="t('accounting_settings.trade.labels.taxfree_after_period')"
         type="number"
-        @input="callIfValid($event, update)"
+        @update:model-value="callIfValid($event, update)"
       />
     </SettingsOption>
   </div>

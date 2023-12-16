@@ -31,9 +31,7 @@ const { editableItem, groupHeader, nextSequence } = toRefs(props);
 
 const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
 
-const assetPriceForm: Ref<InstanceType<
-  typeof HistoryEventAssetPriceForm
-> | null> = ref(null);
+const assetPriceForm = ref<InstanceType<typeof HistoryEventAssetPriceForm>>();
 
 const txHash: Ref<string> = ref('');
 const eventIdentifier: Ref<string | undefined> = ref();
@@ -293,11 +291,11 @@ const depositorSuggestions = computed(() => getAddresses(Blockchain.ETH));
 
     <HistoryEventAssetPriceForm
       ref="assetPriceForm"
+      v-model:amount="amount"
+      v-model:usd-value="usdValue"
       asset="ETH"
       :v$="v$"
       :datetime="datetime"
-      :amount.sync="amount"
-      :usd-value.sync="usdValue"
       disable-asset
     />
 

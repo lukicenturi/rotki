@@ -68,12 +68,14 @@ function update(value: TableColumn) {
 
 <template>
   <div class="py-2">
-    <template v-for="item in availableColumns">
+    <template
+      v-for="item in availableColumns"
+      :key="item.value"
+    >
       <RuiButton
-        :key="item.value"
         variant="list"
         size="sm"
-        :value="item.value"
+        :model-value="item.value"
         @click="update(item.value)"
       >
         <template #prepend>
@@ -81,8 +83,8 @@ function update(value: TableColumn) {
             class="-mr-2"
             color="primary"
             hide-details
-            :value="active(item.value)"
-            @input="update(item.value)"
+            :model-value="active(item.value)"
+            @update:model-value="update(item.value)"
           />
         </template>
         {{ item.text }}

@@ -128,12 +128,12 @@ const imageUrl = getDefiImage(protocol);
         v-model="details"
         max-width="450px"
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <RuiButton
             size="sm"
             variant="text"
             color="primary"
-            v-on="on"
+            v-bind="attrs"
           >
             {{ t('common.details') }}
             <template #append>

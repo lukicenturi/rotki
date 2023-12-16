@@ -2,15 +2,20 @@ import { z } from 'zod';
 import {
   Blockchain,
 } from '@rotki/common/lib/blockchain';
-import type { Dictionary } from 'vue-router/types/router';
+import type {
+  LocationQueryValue,
+  LocationQueryValueRaw,
+} from 'vue-router';
 import type { Account } from '@rotki/common/lib/account';
 
-export type LocationQuery = Dictionary<
-  string | (string | null)[] | null | undefined | boolean
+export type LocationQuery = Record<
+  string,
+  LocationQueryValue | LocationQueryValue[]
 >;
 
-export type RawLocationQuery = Dictionary<
-  string | (string | null)[] | null | undefined
+export type RawLocationQuery = Record<
+  string,
+  LocationQueryValueRaw | LocationQueryValueRaw[] | boolean
 >;
 
 export const RouterPaginationOptionsSchema = z.object({

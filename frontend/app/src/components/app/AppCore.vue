@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Chart, registerables } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { useBreakpoint } from '@rotki/ui-library-compat';
+import { useBreakpoint } from '@rotki/ui-library';
 
 const visibilityStore = useAreaVisibilityStore();
 const { showDrawer, isMini } = storeToRefs(visibilityStore);
@@ -72,34 +72,39 @@ const shouldShowScrollToTopButton: ComputedRef<boolean> = computed(
       }"
     >
       <main>
-        <Transition
-          v-if="!logged"
-          enter-class="opacity-0"
-          enter-to-class="opacity-1"
-          enter-active-class="transition duration-300"
-          leave-class="opacity-1"
-          leave-to-class="opacity-0"
-          leave-active-class="transition duration-100"
-        >
-          <div
-            class="fixed top-0 left-0 w-full h-full bg-white z-[999] flex items-center justify-center"
+        <RouterView #default="{ Component }">
+          <Transition
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-1"
+            enter-active-class="transition duration-300"
+            leave-from-class="opacity-1"
+            leave-to-class="opacity-0"
+            leave-active-class="transition duration-100"
           >
-            <RuiProgress
-              thickness="2"
-              color="primary"
-              variant="indeterminate"
-              circular
+            <div
+              v-if="!logged"
+              class="fixed top-0 left-0 w-full h-full bg-white z-[999] flex items-center justify-center"
+            >
+              <RuiProgress
+                thickness="2"
+                color="primary"
+                variant="indeterminate"
+                circular
+              />
+            </div>
+            <component
+              :is="Component"
+              v-else
             />
-          </div>
-        </Transition>
-        <RouterView v-else />
+          </Transition>
+        </RouterView>
       </main>
 
       <Transition
-        enter-class="opacity-0"
+        enter-from-class="opacity-0"
         enter-to-class="opacity-1"
         enter-active-class="transition duration-300"
-        leave-class="opacity-1"
+        leave-from-class="opacity-1"
         leave-to-class="opacity-0"
         leave-active-class="transition duration-100"
       >

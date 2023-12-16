@@ -16,7 +16,7 @@ import type {
   HistoryEventEntry,
   HistoryEventRequestPayload,
 } from '@/types/history/events';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
 import type { AddressData, BlockchainAccount } from '@/types/blockchain/accounts';
 import type { Writeable } from '@/types';
 import type { Collection } from '@/types/collection';
@@ -100,7 +100,7 @@ const usedAccounts = computed<Account[]>(() => {
   return accountData.length > 0 ? [accountData[0]] : accountData;
 });
 
-const tableHeaders = computed<DataTableColumn[]>(() => [
+const tableHeaders = computed<DataTableColumn<HistoryEventEntry>[]>(() => [
   {
     label: '',
     key: 'ignoredInAccounting',
@@ -714,9 +714,9 @@ watchImmediate(route, async (route) => {
         menu-class="max-w-[24rem]"
         close-on-content-click
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <RuiBadge
-            :value="eventTaskLoading || protocolCacheUpdatesLoading"
+            :model-value="eventTaskLoading || protocolCacheUpdatesLoading"
             color="primary"
             dot
             placement="top"
@@ -728,7 +728,7 @@ watchImmediate(route, async (route) => {
               icon
               size="sm"
               class="!p-2"
-              v-on="on"
+              v-bind="attrs"
             >
               <RuiIcon name="more-2-fill" />
             </RuiButton>
@@ -742,7 +742,7 @@ watchImmediate(route, async (route) => {
             >
               <template #prepend>
                 <RuiBadge
-                  :value="eventTaskLoading"
+                  :model-value="eventTaskLoading"
                   color="primary"
                   dot
                   placement="top"
@@ -761,7 +761,7 @@ watchImmediate(route, async (route) => {
             >
               <template #prepend>
                 <RuiBadge
-                  :value="protocolCacheUpdatesLoading"
+                  :model-value="protocolCacheUpdatesLoading"
                   color="primary"
                   dot
                   placement="top"
@@ -827,8 +827,8 @@ watchImmediate(route, async (route) => {
             </div>
           </TableStatusFilter>
           <TableFilter
+            v-model:matches="filters"
             class="min-w-[20rem]"
-            :matches.sync="filters"
             :matchers="matchers"
             :location="SavedFilterLocation.HISTORY_EVENTS"
           />
@@ -847,7 +847,7 @@ watchImmediate(route, async (route) => {
         <BlockchainAccountSelector
           v-if="!useExternalAccountFilter"
           class="min-w-[15rem] max-w-[20rem]"
-          :value="accounts"
+          :model-value="accounts"
           :chains="txChainIds"
           dense
           :label="t('transactions.filter.account')"
@@ -856,7 +856,7 @@ watchImmediate(route, async (route) => {
           multichain
           hide-chain-icon
           unique
-          @input="onFilterAccountsChanged($event)"
+          @update:model-value="onFilterAccountsChanged($event)"
         />
       </HistoryTableActions>
 
@@ -875,14 +875,12 @@ watchImmediate(route, async (route) => {
           }"
         >
           <RuiDataTable
+            v-model:pagination.external="pagination"
+            v-model:sort.external="sort"
             :expanded="eventsData"
             :cols="tableHeaders"
             :rows="eventsData"
             :loading="loading"
-            :pagination.sync="pagination"
-            :pagination-modifiers="{ external: true }"
-            :sort.sync="sort"
-            :sort-modifiers="{ external: true }"
             :item-class="getItemClass"
             :empty="{ label: t('data_table.no_data') }"
             :texts="{
@@ -890,7 +888,7 @@ watchImmediate(route, async (route) => {
               itemsNumber: t('data_table.items_no'),
               of: t('common.of'),
             }"
-            row-attr="txHash"
+            row-attr="identifier"
             outlined
           >
             <template #item.ignoredInAccounting="{ row }">
@@ -950,6 +948,7 @@ watchImmediate(route, async (route) => {
             </template>
             <template #body.prepend="{ colspan }">
               <HistoryQueryStatus
+                v-model:current-action="currentAction"
                 :include-evm-events="includeEvmEvents"
                 :include-online-events="includeOnlineEvents"
                 :only-chains="onlyChains"
@@ -958,7 +957,6 @@ watchImmediate(route, async (route) => {
                 :decoding="eventTaskLoading"
                 :colspan="colspan"
                 :loading="processing"
-                :current-action.sync="currentAction"
                 @show-decode-details="decodingStatusDialogOpen = true"
               />
               <UpgradeRow

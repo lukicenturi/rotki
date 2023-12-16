@@ -1,4 +1,4 @@
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import DefiWizard from '@/components/defi/wizard/DefiWizard.vue';
 import { snakeCaseTransformer } from '@/services/axios-tranformers';
@@ -11,7 +11,7 @@ vi.mock('@/composables/api/settings/settings-api', () => ({
 }));
 
 describe('defiWizard.vue', () => {
-  let wrapper: Wrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof DefiWizard>>;
   let settings: FrontendSettings;
   let api: ReturnType<typeof useSettingsApi>;
 
@@ -19,8 +19,10 @@ describe('defiWizard.vue', () => {
     const pinia = createPinia();
     setActivePinia(pinia);
     return mount(DefiWizard, {
-      pinia,
-      stubs: ['module-selector', 'module-address-selector'],
+      global: {
+        plugins: [pinia],
+        stubs: ['module-selector', 'module-address-selector'],
+      },
     });
   };
 
@@ -29,6 +31,10 @@ describe('defiWizard.vue', () => {
     wrapper = createWrapper();
     api = useSettingsApi();
     api.setSettings = vi.fn();
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
   });
 
   it('wizard completes when use default is pressed', async () => {

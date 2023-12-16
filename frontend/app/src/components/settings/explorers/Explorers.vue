@@ -101,11 +101,11 @@ const { t } = useI18n();
         :label="t('explorers.chain_selector')"
         :item-height="56"
         variant="outlined"
-        @input="onChange()"
+        @update:model-value="onChange()"
       >
         <template #item="{ item }">
           <ChainDisplay
-            v-if="!additional.includes(item)"
+            v-if="!additional.some(chain => chain === item)"
             dense
             :chain="item"
           />
@@ -118,7 +118,7 @@ const { t } = useI18n();
         </template>
         <template #selection="{ item }">
           <ChainDisplay
-            v-if="!additional.includes(item)"
+            v-if="!additional.some(chain => chain === item)"
             dense
             :chain="item"
           />

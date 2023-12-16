@@ -70,7 +70,7 @@ onMounted(() => {
       :error-messages="
         error || toMessages(v$.balanceSaveFrequency)
       "
-      @input="callIfValid($event, update)"
+      @update:model-value="callIfValid($event, update)"
     />
   </SettingsOption>
 </template>

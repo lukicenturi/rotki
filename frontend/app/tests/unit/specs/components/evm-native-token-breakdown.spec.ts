@@ -1,7 +1,7 @@
 import { type Pinia, setActivePinia } from 'pinia';
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { computed, ref } from 'vue';
@@ -109,7 +109,7 @@ vi.mock('@/store/blockchain/index', () => ({
 }));
 
 describe('evmNativeTokenBreakdown.vue', () => {
-  let wrapper: Wrapper<EvmNativeTokenBreakdown>;
+  let wrapper: VueWrapper<InstanceType<typeof EvmNativeTokenBreakdown>>;
   let pinia: Pinia;
 
   beforeEach(() => {
@@ -117,14 +117,22 @@ describe('evmNativeTokenBreakdown.vue', () => {
     setActivePinia(pinia);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any>) => mount(EvmNativeTokenBreakdown, {
-    pinia,
-    provide: libraryDefaults,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof EvmNativeTokenBreakdown>) => mount(EvmNativeTokenBreakdown, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+      provide: libraryDefaults,
+    },
     ...options,
   });
 
   it('should show correct entries', () => {
-    wrapper = createWrapper({ propsData: { identifier: 'ETH' } });
+    wrapper = createWrapper({ props: { identifier: 'ETH' } });
     const expectedResult = [
       {
         location: 'ethereum',
@@ -162,7 +170,7 @@ describe('evmNativeTokenBreakdown.vue', () => {
 
   it('should show correct entries for blockchainOnly=true', () => {
     wrapper = createWrapper({
-      propsData: { identifier: 'ETH', blockchainOnly: true },
+      props: { identifier: 'ETH', blockchainOnly: true },
     });
     const expectedResult = [
       {

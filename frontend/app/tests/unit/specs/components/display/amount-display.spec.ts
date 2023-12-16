@@ -1,5 +1,5 @@
 import { BigNumber } from '@rotki/common';
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import flushPromises from 'flush-promises';
 import { useCurrencies } from '@/types/currencies';
 import { CurrencyLocation } from '@/types/currency-location';
@@ -9,15 +9,8 @@ import { createCustomPinia } from '../../../utils/create-pinia';
 import { updateGeneralSettings } from '../../../utils/general-settings';
 import type { Pinia } from 'pinia';
 
-vi.mocked(useCssModule).mockReturnValue({
-  blur: 'blur',
-  profit: 'profit',
-  loss: 'loss',
-  display: 'display',
-});
-
 describe('amountDisplay.vue', () => {
-  let wrapper: Wrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof AmountDisplay>>;
   let pinia: Pinia;
 
   const createWrapper = (
@@ -35,8 +28,12 @@ describe('amountDisplay.vue', () => {
       timestamp?: number;
     } = {},
   ) => mount(AmountDisplay, {
-    pinia,
-    propsData: {
+    global: {
+      plugins: [
+        pinia,
+      ],
+    },
+    props: {
       value,
       ...props,
     },
@@ -45,7 +42,6 @@ describe('amountDisplay.vue', () => {
   beforeEach(() => {
     pinia = createCustomPinia();
     setActivePinia(pinia);
-    document.body.dataset.app = 'true';
     const { findCurrency } = useCurrencies();
 
     updateGeneralSettings({
@@ -59,6 +55,7 @@ describe('amountDisplay.vue', () => {
 
   afterEach(() => {
     useSessionStore().$reset();
+    wrapper.unmount();
   });
 
   describe('common case', () => {
@@ -98,7 +95,7 @@ describe('amountDisplay.vue', () => {
           .find('[data-cy=amount-display]:nth-child(1)')
           .text()
           .replace(/ +(?= )/g, ''),
-      ).toBe('< 1.21');
+      ).toBe('<1.21');
       await wrapper.find('[data-cy=display-amount]').trigger('mouseover');
       await nextTick();
       expect(wrapper.find('[data-cy=display-full-value]').text()).toMatch(

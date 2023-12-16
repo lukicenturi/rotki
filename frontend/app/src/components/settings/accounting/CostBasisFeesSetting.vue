@@ -33,7 +33,7 @@ function getSuccessMessage(enabled: boolean) {
       :error-messages="error"
       :label="t('accounting_settings.trade.labels.include_fees_in_cost_basis')"
       color="primary"
-      @input="update($event)"
+      @update:model-value="update($event)"
     />
   </SettingsOption>
 </template>

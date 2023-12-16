@@ -12,7 +12,7 @@ const props = withDefaults(
     label?: string;
     hint?: string;
     persistentHint?: boolean;
-    value?: string;
+    modelValue: string;
     limitNow?: boolean;
     allowEmpty?: boolean;
     milliseconds?: boolean;
@@ -27,7 +27,6 @@ const props = withDefaults(
     label: '',
     hint: '',
     persistentHint: false,
-    value: '',
     limitNow: false,
     allowEmpty: false,
     milliseconds: false,
@@ -40,10 +39,9 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{ (e: 'input', value: string): void }>();
+const emit = defineEmits<{ (e: 'update:model-value', value: string): void }>();
 
-const { value, allowEmpty, limitNow, errorMessages, milliseconds, dateOnly } = toRefs(props);
-
+const { allowEmpty, limitNow, errorMessages, milliseconds, dateOnly } = toRefs(props);
 const imask: Ref<InputMask<any> | null> = ref(null);
 
 const { t } = useI18n();
@@ -182,11 +180,11 @@ function onValueChange(value: string) {
   }
 }
 
-watch(value, onValueChange);
-watch(selectedTimezone, () => onValueChange(get(value)));
+watch(() => props.modelValue, onValueChange);
+watch(selectedTimezone, () => onValueChange(props.modelValue));
 
 function input(dateTime: string) {
-  emit('input', dateTime);
+  emit('update:model-value', dateTime);
 }
 
 function emitIfValid(value: string) {
@@ -304,18 +302,10 @@ function initImask() {
     mask,
   });
 
-  set(imask, newImask);
-}
-
-onMounted(() => {
-  set(selectedTimezone, guessTimezone());
-  initImask();
-});
-
-watch(
-  () => get(imask)?.value,
-  (value, prev) => {
+  newImask.on('accept', () => {
     const unmasked = get(imask)?.unmaskedValue;
+    const value = get(imask)?.value;
+    const prev = get(currentValue);
     set(currentValue, value);
     if (prev === undefined) {
       // Reset validation when imask just created
@@ -323,8 +313,15 @@ watch(
     }
     if (value && unmasked)
       emitIfValid(value);
-  },
-);
+  });
+
+  set(imask, newImask);
+}
+
+onMounted(() => {
+  set(selectedTimezone, guessTimezone());
+  initImask();
+});
 
 function focus() {
   const inputWrapper = get(inputField)!;
@@ -337,13 +334,6 @@ function focus() {
   });
 }
 
-function filteredListeners(listeners: any) {
-  return {
-    ...listeners,
-    input: () => {},
-  };
-}
-
 defineExpose({
   valid: computed(() => !get(v$).$invalid),
 });
@@ -352,7 +342,7 @@ defineExpose({
 <template>
   <RuiTextField
     ref="inputField"
-    :value="currentValue"
+    :model-value="currentValue"
     :label="label"
     :hint="hint"
     :disabled="disabled"
@@ -364,10 +354,6 @@ defineExpose({
     :error-messages="toMessages(v$.date)"
     :dense="dense"
     @focus="focus()"
-    v-on="
-      // eslint-disable-next-line vue/no-deprecated-dollar-listeners-api
-      filteredListeners($listeners)
-    "
   >
     <template
       v-if="!inputOnly"
@@ -377,7 +363,7 @@ defineExpose({
         :popper="{ placement: 'bottom-end' }"
         menu-class="date-time-picker w-[20rem]"
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <RuiButton
             variant="text"
             type="button"
@@ -385,7 +371,7 @@ defineExpose({
             icon
             size="sm"
             class="!p-1.5"
-            v-on="on"
+            v-bind="attrs"
           >
             <RuiIcon name="earth-line" />
           </RuiButton>

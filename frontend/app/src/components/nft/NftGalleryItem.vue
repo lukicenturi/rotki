@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StyleValue } from 'vue/types/jsx';
+import type { StyleValue } from 'vue';
 import type { GalleryNft } from '@/types/nfts';
 
 const props = defineProps<{

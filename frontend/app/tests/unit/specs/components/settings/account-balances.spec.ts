@@ -1,5 +1,5 @@
 import { Blockchain } from '@rotki/common/lib/blockchain';
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import { setActivePinia } from 'pinia';
 import AccountBalances from '@/components/accounts/AccountBalances.vue';
 import { Section, Status } from '@/types/status';
@@ -7,7 +7,7 @@ import { TaskType } from '@/types/task-type';
 import { createCustomPinia } from '../../../utils/create-pinia';
 import { libraryDefaults } from '../../../utils/provide-defaults';
 
-vi.mock('vue-router/composables', () => ({
+vi.mock('vue-router', () => ({
   useRoute: vi.fn().mockReturnValue({
     query: {
       limit: '10',
@@ -15,27 +15,36 @@ vi.mock('vue-router/composables', () => ({
     },
   }),
   useRouter: vi.fn(),
+  createRouter: vi.fn().mockImplementation(() => ({
+    beforeEach: vi.fn(),
+  })),
+  createWebHashHistory: vi.fn(),
 }));
 
 describe('accountBalances.vue', () => {
-  let wrapper: Wrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof AccountBalances>>;
 
   beforeEach(() => {
     const pinia = createCustomPinia();
     setActivePinia(pinia);
     wrapper = mount(AccountBalances, {
-      pinia,
-      propsData: {
+      props: {
         blockchain: Blockchain.ETH,
         balances: [],
         title: 'ETH balances',
       },
-      provide: libraryDefaults,
+      global: {
+        provide: libraryDefaults,
+        plugins: [
+          pinia,
+        ],
+      },
     });
   });
 
   afterEach(() => {
     useSessionStore().$reset();
+    wrapper.unmount();
   });
 
   it('table enters into loading state when balances load', async () => {
@@ -61,8 +70,8 @@ describe('accountBalances.vue', () => {
       wrapper
         .find('[data-cy=account-balances-refresh-menu]')
         .find('button')
-        .attributes('disabled'),
-    ).toBe('disabled');
+        .attributes(),
+    ).toHaveProperty('disabled');
 
     expect(wrapper.find('tbody td div[role=progressbar]').exists()).toBeTruthy();
 

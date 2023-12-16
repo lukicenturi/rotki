@@ -14,11 +14,11 @@ const props = withDefaults(
 );
 
 const { source } = toRefs(props);
-const dateInputFormat = ref<string | null>(null);
+const dateInputFormat = ref<string>();
 const uploaded = ref(false);
 const errorMessage = ref('');
 const formatHelp = ref<boolean>(false);
-const file = ref<File | null>(null);
+const file = ref<File>();
 
 const { t } = useI18n();
 const { appSession } = useInterop();
@@ -147,18 +147,18 @@ const slots = useSlots();
     <form>
       <FileUpload
         v-model="file"
+        v-model:error-message="errorMessage"
         :loading="loading"
         :uploaded="uploaded"
         :source="source"
-        :error-message.sync="errorMessage"
         @update:uploaded="uploaded = $event"
       />
       <RuiSwitch
         v-if="!isRotkiCustomImport"
         color="primary"
         class="mt-4"
-        :value="dateInputFormat !== null"
-        @input="changeShouldCustomDateFormat()"
+        :model-value="dateInputFormat !== null"
+        @update:model-value="changeShouldCustomDateFormat()"
       >
         {{ t('file_upload.date_input_format.switch_label') }}
       </RuiSwitch>

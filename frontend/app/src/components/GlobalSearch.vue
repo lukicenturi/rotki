@@ -28,7 +28,7 @@ const open = ref<boolean>(false);
 const isMac = ref<boolean>(false);
 
 const input = ref<any>(null);
-const selected = ref<number | string>('');
+const selected = ref<number>();
 const search = ref<string>('');
 const loading = ref(false);
 const visibleItems: Ref<SearchItem[]> = ref([]);
@@ -362,7 +362,7 @@ watch(open, (open) => {
         get(input)?.focus?.();
       }, 100);
     }
-    set(selected, '');
+    set(selected, undefined);
     set(search, '');
   });
 });
@@ -370,7 +370,7 @@ watch(open, (open) => {
 function change(index: number) {
   const item: SearchItem = get(visibleItems)[index];
   if (item) {
-    if (item.route && router.currentRoute.fullPath !== item.route)
+    if (item.route && get(router.currentRoute).fullPath !== item.route)
       startPromise(router.push(item.route));
 
     item?.action?.();
@@ -399,7 +399,7 @@ onBeforeMount(async () => {
     max-width="800"
     content-class="mt-[16rem] !top-0 pb-2"
   >
-    <template #activator="{ on }">
+    <template #activator="{ attrs }">
       <MenuTooltipButton
         :tooltip="
           t('global_search.menu_tooltip', {
@@ -407,7 +407,7 @@ onBeforeMount(async () => {
             key,
           })
         "
-        v-on="on"
+        v-bind="attrs"
       >
         <RuiIcon name="search-line" />
       </MenuTooltipButton>
@@ -421,9 +421,9 @@ onBeforeMount(async () => {
       <RuiAutoComplete
         ref="input"
         v-model="selected"
+        v-model:search-input="search"
         no-filter
         :no-data-text="t('global_search.no_actions')"
-        :search-input.sync="search"
         hide-details
         :loading="loading"
         :item-height="50"
@@ -433,7 +433,7 @@ onBeforeMount(async () => {
         label=""
         auto-select-first
         :placeholder="t('global_search.search_placeholder')"
-        @input="change($event)"
+        @update:model-value="change($event)"
       >
         <template #selection>
           <span />

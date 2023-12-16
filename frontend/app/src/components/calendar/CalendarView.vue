@@ -256,7 +256,7 @@ onMounted(async () => {
           <CalendarEventList
             v-for="event in selectedDateEvents"
             :key="event.identifier"
-            :selected-date.sync="selectedDate"
+            v-model:selected-date="selectedDate"
             :visible-date="visibleDate"
             :event="event"
             @edit="edit(event)"

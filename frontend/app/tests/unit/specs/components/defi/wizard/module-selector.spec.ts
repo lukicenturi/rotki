@@ -1,4 +1,4 @@
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
 import flushPromises from 'flush-promises';
 import ModuleSelector from '@/components/defi/wizard/ModuleSelector.vue';
@@ -13,14 +13,20 @@ vi.mock('@/composables/api/settings/settings-api', () => ({
 }));
 
 describe('moduleSelector.vue', () => {
-  let wrapper: Wrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof ModuleSelector>>;
   let settingsStore: ReturnType<typeof useGeneralSettingsStore>;
   let pinia: Pinia;
   let api: ReturnType<typeof useSettingsApi>;
 
   const createWrapper = () => mount(ModuleSelector, {
-    pinia,
-    provide: libraryDefaults,
+    global: {
+      stubs: ['card'],
+      plugins: [
+        pinia,
+      ],
+      provide: libraryDefaults,
+    },
+
   });
 
   beforeEach(() => {
@@ -33,6 +39,10 @@ describe('moduleSelector.vue', () => {
     setModules([Module.AAVE]);
     wrapper = createWrapper();
     api.setSettings = vi.fn();
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
   });
 
   it('displays active modules', () => {

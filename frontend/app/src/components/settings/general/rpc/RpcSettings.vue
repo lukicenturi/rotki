@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { Blockchain } from '@rotki/common/lib/blockchain';
-import type { AsyncComponent } from 'vue';
+import type { Component } from 'vue';
 
 const { t } = useI18n();
 
 interface ChainRpcSettingTab {
   chain: Blockchain;
-  component: AsyncComponent;
+  component: Component;
 }
 
 interface CustomRpcSettingTab {
   id: string;
   name: string;
   image: string;
-  component: AsyncComponent;
+  component: Component;
 }
 
 type RpcSettingTab = ChainRpcSettingTab | CustomRpcSettingTab;
@@ -101,27 +101,20 @@ const rpcSettingTabs = computed<RpcSettingTab[]>(() => [
       </RuiTabs>
       <RuiDivider class="mb-4" />
       <RuiTabItems v-model="rpcSettingTab">
-        <template #default>
-          <template
-            v-for="tab in rpcSettingTabs"
-          >
-            <RuiTabItem
-              :key="isChain(tab) ? tab.chain : tab.id"
-            >
-              <template #default>
-                <Component
-                  :is="tab.component"
-                  v-if="isChain(tab)"
-                  :chain="tab.chain"
-                />
-                <Component
-                  :is="tab.component"
-                  v-else
-                />
-              </template>
-            </RuiTabItem>
-          </template>
-        </template>
+        <RuiTabItem
+          v-for="tab in rpcSettingTabs"
+          :key="isChain(tab) ? tab.chain : tab.id"
+        >
+          <Component
+            :is="tab.component"
+            v-if="isChain(tab)"
+            :chain="tab.chain"
+          />
+          <Component
+            :is="tab.component"
+            v-else
+          />
+        </RuiTabItem>
       </RuiTabItems>
     </div>
   </RuiCard>

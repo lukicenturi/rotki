@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RuiIcons } from '@rotki/ui-library';
 import type { ImportSource } from '@/types/upload-types';
 
 const { t } = useI18n();
@@ -121,8 +122,9 @@ const sources = computed<ImportSource[]>(() => [
 const selectedSource = ref<ImportSource | null>(null);
 
 const [DefineDisplay, ReuseDisplay] = createReusableTemplate<{
-  logo: string;
-  icon: string;
+  logo?: string;
+  icon: RuiIcons;
+  label: string;
 }>();
 </script>
 

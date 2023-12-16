@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useRotkiTheme } from '@rotki/ui-library-compat';
+import { useRotkiTheme } from '@rotki/ui-library';
 import type { Dayjs } from 'dayjs';
 import type { CalendarEvent } from '@/types/history/calendar';
 

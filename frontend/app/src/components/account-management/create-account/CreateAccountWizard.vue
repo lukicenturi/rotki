@@ -76,10 +76,10 @@ function confirm() {
 <template>
   <Transition
     appear
-    enter-class="translate-y-5 opacity-0"
+    enter-from-class="translate-y-5 opacity-0"
     enter-to-class="translate-y-0 opacity-1"
     enter-active-class="transform duration-300"
-    leave-class="-translate-y-0 opacity-1"
+    leave-from-class="-translate-y-0 opacity-1"
     leave-to-class="-translate-y-5 opacity-0"
     leave-active-class="transform duration-100"
   >
@@ -91,67 +91,65 @@ function confirm() {
             {{ t('create_account.title') }}
           </h4>
           <div class="w-full">
-            <RuiTabItems :value="step - 1">
-              <template #default>
-                <RuiTabItem>
-                  <CreateAccountIntroduction @next="nextStep()" />
-                </RuiTabItem>
-                <RuiTabItem>
-                  <CreateAccountPremium
+            <RuiTabItems :model-value="step - 1">
+              <RuiTabItem>
+                <CreateAccountIntroduction @next="nextStep()" />
+              </RuiTabItem>
+              <RuiTabItem>
+                <CreateAccountPremium
+                  v-model:premium-enabled="premiumEnabled"
+                  v-model:form="premiumSetupForm"
+                  :loading="loading"
+                  @back="prevStep()"
+                  @next="nextStep()"
+                />
+              </RuiTabItem>
+              <RuiTabItem>
+                <CreateAccountCredentials
+                  v-model:form="credentialsForm"
+                  v-model:password-confirm="passwordConfirm"
+                  v-model:user-prompted="userPrompted"
+                  :loading="loading"
+                  :sync-database="premiumSetupForm.syncDatabase"
+                  @back="prevStep()"
+                  @next="nextStep()"
+                />
+              </RuiTabItem>
+              <RuiTabItem>
+                <div class="space-y-8">
+                  <CreateAccountSubmitAnalytics
+                    v-model:submit-usage-analytics="submitUsageAnalytics"
                     :loading="loading"
-                    :premium-enabled.sync="premiumEnabled"
-                    :form.sync="premiumSetupForm"
-                    @back="prevStep()"
-                    @next="nextStep()"
                   />
-                </RuiTabItem>
-                <RuiTabItem>
-                  <CreateAccountCredentials
-                    :loading="loading"
-                    :sync-database="premiumSetupForm.syncDatabase"
-                    :form.sync="credentialsForm"
-                    :password-confirm.sync="passwordConfirm"
-                    :user-prompted.sync="userPrompted"
-                    @back="prevStep()"
-                    @next="nextStep()"
-                  />
-                </RuiTabItem>
-                <RuiTabItem>
-                  <div class="space-y-8">
-                    <CreateAccountSubmitAnalytics
-                      :loading="loading"
-                      :submit-usage-analytics.sync="submitUsageAnalytics"
-                    />
-                    <RuiAlert
-                      v-if="error"
-                      type="error"
+                  <RuiAlert
+                    v-if="error"
+                    type="error"
+                  >
+                    {{ error }}
+                  </RuiAlert>
+                  <div class="grid grid-cols-2 gap-4">
+                    <RuiButton
+                      size="lg"
+                      class="w-full"
+                      :disabled="loading"
+                      @click="prevStep()"
                     >
-                      {{ error }}
-                    </RuiAlert>
-                    <div class="grid grid-cols-2 gap-4">
-                      <RuiButton
-                        size="lg"
-                        class="w-full"
-                        :disabled="loading"
-                        @click="prevStep()"
-                      >
-                        {{ t('common.actions.back') }}
-                      </RuiButton>
-                      <RuiButton
-                        data-cy="create-account__submit-analytics__button__continue"
-                        size="lg"
-                        class="w-full"
-                        :disabled="loading"
-                        :loading="loading"
-                        color="primary"
-                        @click="confirm()"
-                      >
-                        {{ t('common.actions.continue') }}
-                      </RuiButton>
-                    </div>
+                      {{ t('common.actions.back') }}
+                    </RuiButton>
+                    <RuiButton
+                      data-cy="create-account__submit-analytics__button__continue"
+                      size="lg"
+                      class="w-full"
+                      :disabled="loading"
+                      :loading="loading"
+                      color="primary"
+                      @click="confirm()"
+                    >
+                      {{ t('common.actions.continue') }}
+                    </RuiButton>
                   </div>
-                </RuiTabItem>
-              </template>
+                </div>
+              </RuiTabItem>
             </RuiTabItems>
           </div>
           <div :class="css.register__actions__footer">

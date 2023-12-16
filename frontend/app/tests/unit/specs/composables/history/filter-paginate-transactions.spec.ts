@@ -1,5 +1,6 @@
 import { Blockchain } from '@rotki/common/lib/blockchain';
 import flushPromises from 'flush-promises';
+import { vi } from 'vitest';
 import { type LocationQuery, RouterAccountsSchema } from '@/types/route';
 import { useMainStore } from '@/store/main';
 import { FilterBehaviour } from '@/types/filtering';
@@ -13,19 +14,20 @@ import type { Account } from '@rotki/common/src/account';
 import type { MaybeRef } from '@vueuse/core';
 import type Vue from 'vue';
 
-vi.mock('vue-router/composables', () => ({
-  useRoute: vi.fn().mockReturnValue(
-    reactive({
-      query: {},
+vi.mock('vue-router', () => {
+  const route = ref({
+    query: {},
+  });
+  return ({
+    useRoute: vi.fn().mockReturnValue(route),
+    useRouter: vi.fn().mockReturnValue({
+      push: vi.fn(({ query }) => {
+        set(route, { query });
+        return true;
+      }),
     }),
-  ),
-  useRouter: vi.fn().mockReturnValue({
-    push: vi.fn(({ query }) => {
-      useRoute().query = query;
-      return true;
-    }),
-  }),
-}));
+  });
+});
 
 vi.mock('vue', async () => {
   const mod = await vi.importActual<Vue>('vue');
@@ -194,7 +196,7 @@ describe('composables::history/filter-paginate', () => {
 
       expect(pushSpy).toHaveBeenCalledOnce();
       expect(pushSpy).toHaveBeenCalledWith({ query });
-      expect(route.query).toEqual(query);
+      expect(get(route).query).toEqual(query);
       expect(get(isLoading)).toBe(true);
       await flushPromises();
       expect(get(isLoading)).toBe(false);
@@ -213,7 +215,7 @@ describe('composables::history/filter-paginate', () => {
     });
 
     it('add protocols to filters and expect the value to be set', async () => {
-      set(protocols, ['gas', 'ens']);
+      set(protocols, ['ga s', 'ens']);
 
       const query = {
         sortBy: ['timestamp'],

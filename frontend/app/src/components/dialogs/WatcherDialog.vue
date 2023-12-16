@@ -5,6 +5,9 @@ import {
   type WatcherOpTypes,
   WatcherType,
 } from '@/types/session';
+import type { RuiIcons } from '@rotki/ui-library';
+
+interface WatcherOperation { op: WatcherOpTypes; value: WatcherOpTypes; text: string }
 
 const props = withDefaults(
   defineProps<{
@@ -26,12 +29,11 @@ const props = withDefaults(
 
 const emit = defineEmits<{ (e: 'cancel'): void }>();
 
-const { display, preselectWatcherType, existingWatchers, watcherContentId }
-  = toRefs(props);
-const watcherType: Ref<typeof WatcherType | null> = ref(null);
-const watcherOperation: Ref<WatcherOpTypes | null> = ref(null);
-const watcherValue: Ref<string | undefined> = ref();
-const validationMessage: Ref<string> = ref('');
+const { display, preselectWatcherType, existingWatchers, watcherContentId } = toRefs(props);
+const watcherType = ref<typeof WatcherType>();
+const watcherOperation = ref<WatcherOpTypes>();
+const watcherValue = ref<string>();
+const validationMessage = ref<string>('');
 const validationStatus: Ref<'success' | 'error' | ''> = ref('');
 const existingWatchersEdit: Ref<Record<string, boolean>> = ref({});
 
@@ -56,7 +58,7 @@ const watcherTypes = computed(() => [
   },
 ]);
 
-const watcherOperations = computed(() => ({
+const watcherOperations = computed<{ [WatcherType]: WatcherOperation[] }>(() => ({
   makervault_collateralization_ratio: [
     {
       op: 'gt',
@@ -81,7 +83,7 @@ const watcherOperations = computed(() => ({
   ],
 }));
 
-const operations = computed(() => {
+const operations = computed<WatcherOperation[]>(() => {
   const operations = get(watcherOperations);
   const type = get(watcherType);
   if (!type)
@@ -90,7 +92,7 @@ const operations = computed(() => {
   return operations[type] ?? [];
 });
 
-function existingWatchersIcon(identifier: string): string {
+function existingWatchersIcon(identifier: string): RuiIcons {
   const edit = get(existingWatchersEdit);
   return edit[identifier] ? 'check-line' : 'pencil-line';
 }
@@ -238,7 +240,7 @@ const [CreateLabel, ReuseLabel] = createReusableTemplate<{ label: string }>();
 
 <template>
   <RuiDialog
-    :value="display"
+    :model-value="display"
     persistent
     max-width="650"
     class="watcher-dialog"
@@ -266,8 +268,6 @@ const [CreateLabel, ReuseLabel] = createReusableTemplate<{ label: string }>();
         v-model="watcherType"
         :options="watcherTypes"
         :label="t('watcher_dialog.labels.type')"
-        key-attr="value"
-        text-attr="text"
         dense
         variant="outlined"
         required

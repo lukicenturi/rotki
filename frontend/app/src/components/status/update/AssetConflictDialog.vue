@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SupportedAsset } from '@rotki/common/lib/data';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
 import type { Writeable } from '@/types';
 import type {
   AssetUpdateConflictResult,
@@ -21,7 +21,7 @@ const { t } = useI18n();
 
 const { conflicts } = toRefs(props);
 
-const tableHeaders = computed<DataTableColumn[]>(() => [
+const tableHeaders = computed<DataTableColumn<AssetUpdateConflictResult>[]>(() => [
   {
     label: t('conflict_dialog.table.headers.local'),
     key: 'local',
@@ -158,8 +158,8 @@ onMounted(() => {
     @cancel="cancel()"
   >
     <template #subtitle>
-      <i18n
-        path="conflict_dialog.subtitle"
+      <i18n-t
+        keypath="conflict_dialog.subtitle"
         tag="span"
       >
         <template #conflicts>
@@ -168,7 +168,7 @@ onMounted(() => {
         <template #remaining>
           <span class="font-medium"> {{ remaining }} </span>
         </template>
-      </i18n>
+      </i18n-t>
     </template>
     <template #default="{ wrapper }">
       <RuiAlert
@@ -176,11 +176,14 @@ onMounted(() => {
         class="my-2"
         type="warning"
       >
-        <i18n path="conflict_dialog.duplicate_warn">
+        <i18n-t
+          keypath="conflict_dialog.duplicate_warn"
+          tag="span"
+        >
           <template #identifiers>
             <strong> {{ duplicateIdentifiers.join(', ') }} </strong>
           </template>
-        </i18n>
+        </i18n-t>
       </RuiAlert>
       <div
         v-if="!manualResolution"
@@ -268,16 +271,14 @@ onMounted(() => {
               v-model="resolution[conflict.identifier]"
               color="primary"
               variant="outlined"
-              @input="onStrategyChange(resolution[conflict.identifier])"
+              @update:model-value="onStrategyChange(resolution[conflict.identifier])"
             >
-              <template #default>
-                <RuiButton value="local">
-                  {{ t('conflict_dialog.action.local') }}
-                </RuiButton>
-                <RuiButton value="remote">
-                  {{ t('conflict_dialog.action.remote') }}
-                </RuiButton>
-              </template>
+              <RuiButton value="local">
+                {{ t('conflict_dialog.action.local') }}
+              </RuiButton>
+              <RuiButton value="remote">
+                {{ t('conflict_dialog.action.remote') }}
+              </RuiButton>
             </RuiButtonGroup>
           </template>
         </RuiDataTable>

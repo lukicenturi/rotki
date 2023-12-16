@@ -1,4 +1,4 @@
-import { useBreakpoint } from '@rotki/ui-library-compat';
+import { useBreakpoint } from '@rotki/ui-library';
 import type { Nullable } from '@rotki/common';
 import type { Pinned } from '@/types/session';
 

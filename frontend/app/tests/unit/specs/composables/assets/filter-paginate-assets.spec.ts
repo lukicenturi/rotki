@@ -6,7 +6,7 @@ import type { MaybeRef } from '@vueuse/core';
 import type Vue from 'vue';
 import type { AssetRequestPayload } from '@/types/asset';
 
-vi.mock('vue-router/composables', () => ({
+vi.mock('vue-router', () => ({
   useRoute: vi.fn().mockReturnValue(
     reactive({
       query: {},

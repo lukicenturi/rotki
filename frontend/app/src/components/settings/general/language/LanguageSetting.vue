@@ -3,6 +3,10 @@ import { supportedLanguages } from '@/data/supported-language';
 import { SupportedLanguage } from '@/types/settings/frontend-settings';
 import { externalLinks } from '@/data/external-links';
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = withDefaults(
   defineProps<{
     dense?: boolean;
@@ -18,7 +22,7 @@ const props = withDefaults(
 
 const { useLocalSetting } = toRefs(props);
 
-const language = ref<string>(SupportedLanguage.EN);
+const language = ref<SupportedLanguage>(SupportedLanguage.EN);
 
 const { lastLanguage } = useLastLanguage();
 
@@ -41,7 +45,6 @@ onMounted(() => {
 });
 
 const { t } = useI18n();
-const rootAttrs = useAttrs();
 </script>
 
 <template>
@@ -62,8 +65,8 @@ const rootAttrs = useAttrs();
           :error-messages="error"
           key-attr="identifier"
           variant="outlined"
-          v-bind="rootAttrs"
-          @input="updateSetting($event, updateImmediate)"
+          v-bind="$attrs"
+          @update:model-value="updateSetting($event as SupportedLanguage, updateImmediate)"
         >
           <template #selection="{ item }">
             <LanguageSelectorItem
@@ -107,8 +110,8 @@ const rootAttrs = useAttrs();
       hide-details
       class="mt-1"
       color="primary"
-      :value="forceUpdateMachineLanguage === 'true'"
-      @input="updateForceUpdateMachineLanguage($event)"
+      :model-value="forceUpdateMachineLanguage === 'true'"
+      @update:model-value="updateForceUpdateMachineLanguage($event)"
     >
       {{
         t(

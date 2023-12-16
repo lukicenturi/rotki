@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { contextColors } from '@rotki/ui-library-compat';
+import { contextColors } from '@rotki/ui-library';
 
 const props = withDefaults(
   defineProps<{
-    value?: string;
+    modelValue?: string;
   }>(),
   {
-    value: '',
+    modelValue: '',
   },
 );
 
 const emit = defineEmits<{
-  (e: 'input', value: string): void;
+  (e: 'update:model-value', value: string): void;
 }>();
 
 const vModel = useSimpleVModel(props, emit);
 
-const { value } = toRefs(props);
+const { modelValue } = toRefs(props);
 
 const contextColorsInHex: string[] = contextColors.map((item) => {
   const name = `--rui-light-${item}-main`;
@@ -27,9 +27,9 @@ const contextColorsInHex: string[] = contextColors.map((item) => {
   return '';
 }).filter(item => !!item);
 
-watchImmediate(value, (value) => {
+watchImmediate(modelValue, (value) => {
   if (!value && contextColorsInHex.length > 0)
-    emit('input', contextColorsInHex[0]);
+    emit('update:model-value', contextColorsInHex[0]);
 });
 </script>
 
@@ -39,13 +39,13 @@ watchImmediate(value, (value) => {
       :popper="{ placement: 'left' }"
       menu-class="max-w-[18rem]"
     >
-      <template #activator="{ on }">
+      <template #activator="{ attrs }">
         <div
           class="rounded-full w-8 h-8 border-2 border-rui-grey-100 cursor-pointer"
           :style="{
-            backgroundColor: `#${value}`,
+            backgroundColor: `#${modelValue}`,
           }"
-          v-on="on"
+          v-bind="attrs"
         />
       </template>
       <div class="p-2 flex gap-2">
@@ -56,7 +56,7 @@ watchImmediate(value, (value) => {
           :style="{
             backgroundColor: `#${color}`,
           }"
-          @click="emit('input', color)"
+          @click="emit('update:model-value', color)"
         />
       </div>
       <RuiColorPicker v-model="vModel" />

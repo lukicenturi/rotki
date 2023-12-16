@@ -285,12 +285,12 @@ const slots = useSlots();
         :popper="{ placement: 'right-start' }"
         menu-class="max-w-[25rem]"
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <RuiButton
             variant="text"
             class="!p-2"
             icon
-            v-on="on"
+            v-bind="attrs"
           >
             <RuiIcon name="information-line" />
           </RuiButton>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { StyleValue } from 'vue/types/jsx';
+import type { ComputedRef, StyleValue } from 'vue';
 
 const props = withDefaults(
   defineProps<{

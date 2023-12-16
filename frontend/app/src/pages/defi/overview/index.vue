@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type TablePaginationData, useBreakpoint } from '@rotki/ui-library-compat';
+import { type TablePaginationData, useBreakpoint } from '@rotki/ui-library';
 import { Section } from '@/types/status';
 
 const page = ref(1);

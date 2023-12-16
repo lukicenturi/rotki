@@ -18,7 +18,7 @@ export const useHistoryEventsForm = createSharedComposable(() => {
 
   const saveHistoryEventHandler = async (
     payload: NewHistoryEventPayload | EditHistoryEventPayload,
-    assetPriceForm: Ref<InstanceType<typeof HistoryEventAssetPriceForm> | null>,
+    assetPriceForm: Ref<InstanceType<typeof HistoryEventAssetPriceForm> | undefined>,
     errorMessages: Ref<Record<string, string[]>>,
     reset: () => any,
   ) => {

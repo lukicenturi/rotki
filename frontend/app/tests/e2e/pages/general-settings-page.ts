@@ -119,7 +119,7 @@ export class GeneralSettingsPage {
     );
 
     settings.evmchainsToSkipDetection.forEach((item) => {
-      cy.get(`.general-settings__fields__account-chains-to-skip-detection .rui-chip[data-value=${item}]`).should('exist');
+      cy.get(`.general-settings__fields__account-chains-to-skip-detection [role=button][data-value=${item}]`).should('exist');
     });
     cy.get('.general-settings__fields__date-display-format input').should(
       'have.value',

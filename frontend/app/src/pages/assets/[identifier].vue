@@ -2,7 +2,7 @@
 import { AssetAmountAndValueOverTime } from '@/premium/premium';
 import { Routes } from '@/router/routes';
 import { EVM_TOKEN } from '@/types/asset';
-import type { RawLocation } from 'vue-router';
+import type { RouteLocationRaw } from 'vue-router';
 import type { AssetBalanceWithPrice } from '@rotki/common';
 
 defineOptions({
@@ -75,7 +75,7 @@ const collectionId: ComputedRef<number | undefined> = computed(() => {
   return (collectionId && parseInt(collectionId)) || undefined;
 });
 
-const editRoute = computed<RawLocation>(() => ({
+const editRoute = computed<RouteLocationRaw>(() => ({
   path: get(isCustomAsset)
     ? Routes.ASSET_MANAGER_CUSTOM
     : Routes.ASSET_MANAGER_MANAGED,
@@ -180,8 +180,8 @@ async function toggleSpam() {
               color="primary"
               hide-details
               :disabled="isWhitelisted || isSpam"
-              :value="isIgnored"
-              @input="toggleIgnoreAsset()"
+              :model-value="isIgnored"
+              @update:model-value="toggleIgnoreAsset()"
             />
           </template>
           {{ isSpam ? t('ignore.spam.hint') : t('ignore.whitelist.hint') }}

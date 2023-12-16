@@ -48,7 +48,7 @@ watch(showNotificationBar, (showNotificationBar) => {
     :timeout="visibleNotification.duration"
     width="400px"
     class="top-[3.5rem]"
-    @input="displayed([visibleNotification.id])"
+    @update:model-value="displayed([visibleNotification.id])"
   >
     <Notification
       popup

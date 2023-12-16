@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useBreakpoint } from '@rotki/ui-library-compat';
-import Fragment from '@/components/helper/Fragment';
+import { useBreakpoint } from '@rotki/ui-library';
 import type BigNumber from 'bignumber.js';
 import type { BlockchainAccountWithBalance, XpubData } from '@/types/blockchain/accounts';
 
@@ -55,7 +54,7 @@ const usdSum = computed<BigNumber>(() => balanceUsdValueSum(get(items)));
   >
     {{ t('account_group_header.standalone') }}
   </td>
-  <Fragment v-else>
+  <template v-else>
     <td
       colspan="2"
       :class="{
@@ -149,5 +148,5 @@ const usdSum = computed<BigNumber>(() => balanceUsdValueSum(get(items)));
         @delete-click="emit('delete', xpub);"
       />
     </td>
-  </Fragment>
+  </template>
 </template>

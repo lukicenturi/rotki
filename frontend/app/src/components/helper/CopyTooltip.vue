@@ -14,10 +14,6 @@ const { t } = useI18n();
     class="text-no-wrap "
     :class="{ 'cursor-pointer': !disabled }"
     :disabled="disabled"
-    v-on="
-      // eslint-disable-next-line vue/no-deprecated-dollar-listeners-api
-      $listeners
-    "
   >
     <template #activator>
       <slot />

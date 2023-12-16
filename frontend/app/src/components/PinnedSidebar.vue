@@ -1,11 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ visible: boolean }>();
-
-const emit = defineEmits<{
-  (e: 'update:visible', visible: boolean): void;
-}>();
-
-const display = useVModel(props, 'visible', emit);
+const display = defineModel<boolean>({ required: true });
 
 const ReportActionableCard = defineAsyncComponent(
   () => import('@/components/profitloss/ReportActionableCard.vue'),

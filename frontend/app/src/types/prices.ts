@@ -97,6 +97,11 @@ export const ManualPrice = AssetPair.extend({
 
 export type ManualPrice = z.infer<typeof ManualPrice>;
 
+export type ManualPriceWithUsd = ManualPrice & {
+  id: number;
+  usdPrice: BigNumber;
+};
+
 export const ManualPrices = z.array(ManualPrice);
 
 export type ManualPrices = z.infer<typeof ManualPrices>;

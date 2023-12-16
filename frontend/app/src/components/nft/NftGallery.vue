@@ -4,7 +4,7 @@ import { Blockchain } from '@rotki/common/lib/blockchain';
 import {
   type TablePaginationData,
   useBreakpoint,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import { keyBy } from 'lodash-es';
 import type { AddressData, BlockchainAccount } from '@/types/blockchain/accounts';
 import type { Module } from '@/types/modules';
@@ -261,12 +261,14 @@ function sortNfts(sortBy: Ref<'name' | 'priceUsd' | 'collection'>, sortDesc: Ref
             v-model="selectedCollection"
             class="md:col-span-3"
             :items="collections"
+            variant="outlined"
+            density="compact"
           />
 
           <NftSorter
+            v-model:sort-desc="sortDescending"
             class="md:col-span-2"
             :sort-by="sortBy"
-            :sort-desc.sync="sortDescending"
             @update:sort-by="updateSortBy($event)"
           />
         </div>
@@ -276,7 +278,10 @@ function sortNfts(sortBy: Ref<'name' | 'priceUsd' | 'collection'>, sortDesc: Ref
         v-if="!premium && visibleNfts.length > 0"
         type="info"
       >
-        <i18n path="nft_gallery.upgrade">
+        <i18n-t
+          keypath="nft_gallery.upgrade"
+          tag="span"
+        >
           <template #limit>
             {{ limit }}
           </template>
@@ -287,7 +292,7 @@ function sortNfts(sortBy: Ref<'name' | 'priceUsd' | 'collection'>, sortDesc: Ref
               premium
             />
           </template>
-        </i18n>
+        </i18n-t>
       </RuiAlert>
 
       <div

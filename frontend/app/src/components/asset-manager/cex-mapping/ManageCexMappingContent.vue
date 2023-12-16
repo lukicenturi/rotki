@@ -126,11 +126,11 @@ const dialogTitle = computed<string>(() =>
     </template>
     <RuiCard>
       <ManageCexMappingTable
+        v-model:location="selectedLocation"
+        v-model:symbol="selectedSymbol"
+        v-model:pagination="pagination"
         :collection="state"
-        :location.sync="selectedLocation"
-        :symbol.sync="selectedSymbol"
         :loading="loading"
-        :pagination.sync="pagination"
         @refresh="fetchData()"
         @edit="edit($event)"
         @delete="showDeleteConfirmation($event)"

@@ -43,7 +43,7 @@ onMounted(() => {
         class="mt-4"
         :success-messages="success"
         :error-messages="error"
-        @input="update($event)"
+        @update:model-value="update($event)"
       />
     </SettingsOption>
   </div>

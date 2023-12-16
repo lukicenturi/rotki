@@ -83,7 +83,7 @@ function close() {
 
 <template>
   <RuiDialog
-    value
+    :model-value="true"
     max-width="450px"
     @closed="close()"
   >

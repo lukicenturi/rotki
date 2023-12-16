@@ -81,9 +81,9 @@ onMounted(() => {
           }}
         </template>
         <template #subheader>
-          <i18n
+          <i18n-t
             tag="div"
-            path="general_settings.nft_setting.subtitle.nft_images_rendering_setting_hint"
+            keypath="general_settings.nft_setting.subtitle.nft_images_rendering_setting_hint"
           >
             <template #link>
               <ExternalLink
@@ -93,11 +93,10 @@ onMounted(() => {
                 {{ t('common.here') }}
               </ExternalLink>
             </template>
-          </i18n>
+          </i18n-t>
         </template>
       </RuiCardHeader>
     </template>
-
     <SettingsOption
       #default="{ error, success, updateImmediate }"
       setting="renderAllNftImages"
@@ -108,22 +107,18 @@ onMounted(() => {
         color="primary"
         :success-messages="success"
         :error-messages="error"
-        @input="updateRenderingSetting($event, updateImmediate)"
+        @update:model-value="updateRenderingSetting($event, updateImmediate)"
       >
-        <template #default>
-          <RuiRadio internal-value="all">
-            {{
-              t('general_settings.nft_setting.label.render_setting.allow_all')
-            }}
-          </RuiRadio>
-          <RuiRadio internal-value="whitelisted">
-            {{
-              t(
-                'general_settings.nft_setting.label.render_setting.only_allow_whitelisted',
-              )
-            }}
-          </RuiRadio>
-        </template>
+        <RuiRadio value="all">
+          {{
+            t('general_settings.nft_setting.label.render_setting.allow_all')
+          }}
+        </RuiRadio>
+        <RuiRadio value="whitelisted">
+          {{
+            t('general_settings.nft_setting.label.render_setting.only_allow_whitelisted')
+          }}
+        </RuiRadio>
       </RuiRadioGroup>
     </SettingsOption>
 

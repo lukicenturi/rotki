@@ -79,9 +79,9 @@ onMounted(() => {
         min="0"
         :label="t('statistics_graph_settings.multiplier.label')"
         type="number"
-        :success-messages="success"
+        :messages="success"
         :error-messages="error || toMessages(v$.multiplier)"
-        @input="callIfValid($event, update)"
+        @update:model-value="callIfValid($event, update)"
       />
     </SettingsOption>
 

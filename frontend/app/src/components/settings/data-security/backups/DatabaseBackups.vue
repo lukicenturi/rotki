@@ -4,7 +4,7 @@ import { size } from '@/utils/data';
 import type {
   DataTableColumn,
   DataTableSortData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type { UserDbBackup, UserDbBackupWithId } from '@/types/backup';
 
 const props = withDefaults(
@@ -26,7 +26,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const sort = ref<DataTableSortData>({
+const sort = ref<DataTableSortData<UserDbBackupWithId>>({
   column: 'size',
   direction: 'desc',
 });
@@ -44,9 +44,9 @@ const selection = computed({
       props.items.filter(x => value.includes(x.id)),
     );
   },
-}) as unknown as WritableComputedRef<string[]>; // TODO: remove after upgrading to vue 3
+});
 
-const tableHeaders = computed<DataTableColumn[]>(() => [
+const tableHeaders = computed<DataTableColumn<UserDbBackupWithId>[]>(() => [
   {
     key: 'version',
     label: t('database_backups.column.version'),
@@ -114,11 +114,11 @@ function showDeleteConfirmation(item: UserDbBackupWithId) {
 <template>
   <RuiDataTable
     v-model="selection"
+    v-model:sort="sort"
     :rows="items"
     row-attr="id"
     outlined
     dense
-    :sort.sync="sort"
     :cols="tableHeaders"
     :loading="loading"
   >

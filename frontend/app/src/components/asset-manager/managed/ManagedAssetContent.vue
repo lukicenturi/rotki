@@ -222,16 +222,14 @@ watch(ignoredFilter, (oldValue, newValue) => {
         </template>
         {{ t('managed_asset_content.add_asset') }}
       </RuiButton>
-      <RuiMenu
-        :popper="{ placement: 'bottom-end' }"
-      >
-        <template #activator="{ on }">
+      <RuiMenu :popper="{ placement: 'bottom-end' }">
+        <template #activator="{ attrs }">
           <RuiButton
             variant="text"
             icon
             size="sm"
             class="!p-2"
-            v-on="on"
+            v-bind="attrs"
           >
             <RuiIcon name="more-2-fill" />
           </RuiButton>
@@ -265,17 +263,17 @@ watch(ignoredFilter, (oldValue, newValue) => {
       <MergeDialog v-model="mergeTool" />
 
       <ManagedAssetTable
+        v-model:filters="filters"
+        v-model:ignored-filter="ignoredFilter"
+        v-model:expanded="expanded"
+        v-model:selected="selectedRows"
+        v-model:pagination="pagination"
+        v-model:sort="sort"
         :collection="assets"
         :loading="loading"
         :change="!loading"
-        :filters.sync="filters"
         :matchers="matchers"
         :ignored-assets="ignoredAssets"
-        :ignored-filter.sync="ignoredFilter"
-        :expanded.sync="expanded"
-        :selected.sync="selectedRows"
-        :pagination.sync="pagination"
-        :sort.sync="sort"
         @refresh="fetchData()"
         @edit="edit($event)"
         @delete-asset="showDeleteConfirmation($event)"

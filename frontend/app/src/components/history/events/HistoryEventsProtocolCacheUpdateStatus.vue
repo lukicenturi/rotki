@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { TaskType } from '@/types/task-type';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { ProtocolCacheUpdatesData } from '@/types/websocket-messages';
+import type { DataTableColumn } from '@rotki/ui-library';
+
+type Data = ProtocolCacheUpdatesData & {
+  key: string;
+  protocolInfo: {
+    name: string;
+    icon?: string;
+  };
+};
 
 defineProps<{
   refreshing: boolean;
@@ -17,7 +26,7 @@ const taskRunning = isTaskRunning(TaskType.REFRESH_GENERAL_CACHE);
 
 const { t } = useI18n();
 
-const headers: DataTableColumn[] = [
+const headers: DataTableColumn<Data>[] = [
   {
     label: t('common.chain'),
     key: 'chain',
@@ -46,7 +55,7 @@ const headers: DataTableColumn[] = [
 
 const { getDefiName, getDefiImage, loading: metadataLoading } = useDefiMetadata();
 
-const dataWithInfo = computed(() => get(protocolCacheStatus).map((item) => {
+const dataWithInfo = computed<Data[]>(() => get(protocolCacheStatus).map((item) => {
   const protocolImage = get(getDefiImage(item.protocol));
   const protocolName = get(getDefiName(item.protocol));
 
@@ -54,7 +63,7 @@ const dataWithInfo = computed(() => get(protocolCacheStatus).map((item) => {
     ...item,
     key: `${item.chain}#${item.protocol}`,
     protocolInfo: {
-      icon: get(metadataLoading) ? null : protocolImage,
+      icon: get(metadataLoading) ? undefined : protocolImage,
       name: protocolName,
     },
   };
@@ -129,9 +138,9 @@ function showConfirmation() {
             color="primary"
             :value="(data.processed / data.total) * 100"
           />
-          <i18n
+          <i18n-t
             tag="span"
-            path="transactions.protocol_cache_updates.pools_refreshed"
+            keypath="transactions.protocol_cache_updates.pools_refreshed"
           >
             <template #processed>
               {{ data.processed }}
@@ -139,7 +148,7 @@ function showConfirmation() {
             <template #total>
               {{ data.total }}
             </template>
-          </i18n>
+          </i18n-t>
         </div>
         <div v-else>
           -

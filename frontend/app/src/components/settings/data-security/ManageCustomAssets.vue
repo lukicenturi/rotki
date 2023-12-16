@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const zip = ref<File | null>(null);
+const zip = ref<File>();
 const importError = ref('');
 const exportError = ref('');
 const downloading = ref(false);

@@ -10,7 +10,7 @@ const props = withDefaults(
 const { identifier } = toRefs(props);
 
 const preview = computed<string | null>(() => get(identifier) ?? null);
-const icon = ref<File | null>(null);
+const icon = ref<File>();
 
 const refreshIconLoading = ref<boolean>(false);
 const { notify } = useNotificationsStore();

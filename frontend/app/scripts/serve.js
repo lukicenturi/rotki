@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { spawn } = require('node:child_process');
-const process = require('node:process');
-const { ArgumentParser } = require('argparse');
-const electron = require('electron');
-const { createServer, build, createLogger } = require('vite');
-const { LOG_LEVEL, sharedConfig } = require('./setup');
+import { spawn } from 'node:child_process';
+import process from 'node:process';
+import { ArgumentParser } from 'argparse';
+import electron from 'electron';
+import { build, createLogger, createServer } from 'vite';
+import { LOG_LEVEL, sharedConfig } from './setup.js';
 
 const parser = new ArgumentParser({
   description: 'Rotki frontend build',

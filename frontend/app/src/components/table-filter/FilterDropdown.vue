@@ -5,18 +5,12 @@ import type {
   Suggestion,
 } from '@/types/filtering';
 
-const props = withDefaults(
-  defineProps<{
-    matchers: SearchMatcher<any>[];
-    selectedMatcher?: SearchMatcher<any> | null;
-    keyword?: string;
-    selectedSuggestion: number;
-  }>(),
-  {
-    selectedMatcher: null,
-    keyword: '',
-  },
-);
+const props = defineProps<{
+  matchers: SearchMatcher<any>[];
+  selectedMatcher?: SearchMatcher<any>;
+  keyword: string;
+  selectedSuggestion: number;
+}>();
 
 const emit = defineEmits<{
   (e: 'click', item: SearchMatcher<any>): void;
@@ -138,18 +132,16 @@ watch([keyword, selectedMatcher], async ([keyword, selectedMatcher]) => {
         exclude,
       })),
   );
-});
+}, { immediate: true });
 
 const { t } = useI18n();
 
-watch(selectedSuggestion, () => {
+watch(selectedSuggestion, async () => {
   if (get(selectedMatcher))
     return;
 
-  nextTick(() => {
-    document
-      .getElementsByClassName('highlightedMatcher')[0]
-      ?.scrollIntoView?.({ block: 'nearest' });
+  await nextTick(() => {
+    document.getElementsByClassName('highlightedMatcher')[0]?.scrollIntoView?.({ block: 'nearest' });
   });
 });
 
@@ -165,6 +157,7 @@ const css = useCssModule();
         v-if="suggested.length > 0"
         class="mb-2"
         :class="css.suggestions"
+        data-cy="suggestions"
       >
         <RuiButton
           v-for="(item, index) in suggested"
@@ -185,16 +178,17 @@ const css = useCssModule();
         class="pb-0"
       >
         <div class="text-rui-text-secondary">
-          <i18n
+          <i18n-t
             v-if="!('asset' in selectedMatcher)"
-            path="table_filter.no_suggestions"
+            keypath="table_filter.no_suggestions"
+            tag="span"
           >
             <template #search>
               <span class="font-medium text-rui-primary">
                 {{ keywordSplited.key }}
               </span>
             </template>
-          </i18n>
+          </i18n-t>
           <template v-else>
             {{ t('table_filter.asset_suggestion') }}
           </template>
@@ -235,7 +229,10 @@ const css = useCssModule();
         {{ t('table_filter.title') }}
       </div>
       <RuiDivider class="my-2" />
-      <div :class="css.suggestions">
+      <div
+        :class="css.suggestions"
+        data-cy="suggestions"
+      >
         <FilterEntry
           v-for="(matcher, index) in matchers"
           :key="matcher.key"

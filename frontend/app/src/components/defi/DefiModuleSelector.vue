@@ -11,17 +11,17 @@ defineOptions({
 
 const props = withDefaults(
   defineProps<{
-    value?: string;
+    modelValue?: string;
     items?: Module[];
   }>(),
   {
-    value: '',
+    modelValue: '',
     items: () => [],
   },
 );
 
 const emit = defineEmits<{
-  (e: 'input', value: string): void;
+  (e: 'update:model-value', value: string): void;
 }>();
 
 const model = useSimpleVModel(props, emit);
@@ -47,10 +47,6 @@ const modules = computed<SupportedModule[]>(() => {
     clearable
     variant="outlined"
     :item-height="52"
-    v-on="
-      // eslint-disable-next-line vue/no-deprecated-dollar-listeners-api
-      $listeners
-    "
   >
     <template #selection="{ item }">
       <DefiIcon :item="item" />

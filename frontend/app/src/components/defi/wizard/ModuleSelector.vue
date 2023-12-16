@@ -5,8 +5,10 @@ import {
   type SupportedModule,
 } from '@/types/modules';
 import { Section } from '@/types/status';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
 import type { CamelCase } from '@/types/common';
+
+type ModuleEntry = SupportedModule & { enabled: boolean };
 
 const { t } = useI18n();
 
@@ -23,7 +25,7 @@ const { update: updateSettings } = useSettingsStore();
 const balancesStore = useNonFungibleBalancesStore();
 const { resetStatus } = useStatusUpdater(Section.NON_FUNGIBLE_BALANCES);
 
-const headers = computed<DataTableColumn[]>(() => [
+const headers = computed<DataTableColumn<ModuleEntry>[]>(() => [
   {
     label: t('common.name'),
     key: 'name',
@@ -41,7 +43,7 @@ const headers = computed<DataTableColumn[]>(() => [
   },
 ]);
 
-const modules = computed<(SupportedModule & { enabled: boolean })[]>(() => {
+const modules = computed<ModuleEntry[]>(() => {
   const active = get(activeModules);
   const filter = get(search).toLowerCase();
   const filteredModules = filter
@@ -201,10 +203,10 @@ onMounted(async () => {
           color="primary"
           :data-cy="`${row.identifier}-module-switch`"
           :disabled="loading"
-          :value="row.enabled"
+          :model-value="row.enabled"
           hide-details
           class="py-2"
-          @input="switchModule(row.identifier, $event)"
+          @update:model-value="switchModule(row.identifier, $event)"
         />
       </template>
     </RuiDataTable>

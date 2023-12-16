@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type NotificationAction, type NotificationData, Severity } from '@rotki/common/lib/messages';
 import dayjs from 'dayjs';
+import { type RuiIcons, isRuiIcon } from '@rotki/ui-library';
 
 const props = withDefaults(
   defineProps<{
@@ -33,7 +34,7 @@ function dismiss(id: number) {
   emit('dismiss', id);
 }
 
-const icon = computed(() => {
+const icon = computed<RuiIcons>(() => {
   switch (get(notification).severity) {
     case Severity.ERROR:
     case Severity.INFO:
@@ -42,8 +43,9 @@ const icon = computed(() => {
       return 'alarm-warning-line';
     case Severity.REMINDER:
       return 'alarm-line';
+    default:
+      return 'error-warning-line';
   }
-  return '';
 });
 
 const color = computed(() => {
@@ -128,6 +130,10 @@ function messageClicked() {
 
 function buttonClicked() {
   set(expanded, !get(expanded));
+}
+
+function getIcon(action: NotificationAction): RuiIcons {
+  return isRuiIcon(action.icon) ? action.icon : 'arrow-right-line';
 }
 </script>
 
@@ -230,7 +236,7 @@ function buttonClicked() {
         {{ action.label }}
         <template #append>
           <RuiIcon
-            :name="action.icon ?? 'arrow-right-line'"
+            :name="getIcon(action)"
             size="16"
           />
         </template>

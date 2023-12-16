@@ -7,7 +7,7 @@ import type { RoundingMode } from '@/types/settings/frontend-settings';
 
 const props = withDefaults(
   defineProps<{
-    value: BigNumber;
+    value: BigNumber | undefined;
     loading?: boolean;
     amount?: BigNumber;
     // This is what the fiat currency is `value` in. If it is null, it means we want to show it the way it is, no conversion, e.g. amount of an asset.
@@ -115,8 +115,11 @@ const evaluating = or(
   isPending(createKey(get(sourceCurrency) || '', get(timestampToUse))),
 );
 
-const latestFiatValue: ComputedRef<BigNumber> = computed(() => {
+const latestFiatValue = computed<BigNumber>(() => {
   const currentValue = get(value);
+  if (!currentValue)
+    return Zero;
+
   const to = get(currentCurrency);
   const from = get(sourceCurrency);
 
@@ -129,14 +132,14 @@ const latestFiatValue: ComputedRef<BigNumber> = computed(() => {
   if (!multiplierRate || !dividerRate)
     return currentValue;
 
-  return currentValue.multipliedBy(multiplierRate).dividedBy(dividerRate);
+  return currentValue?.multipliedBy(multiplierRate).dividedBy(dividerRate) ?? Zero;
 });
 
-const internalValue: ComputedRef<BigNumber> = computed(() => {
+const internalValue = computed<BigNumber>(() => {
   // If there is no `sourceCurrency`, it means that no fiat currency, or the unit is asset not fiat, hence we should just show the `value` passed.
   // If `forceCurrency` is true, we should also just return the value.
   if (!isDefined(sourceCurrency) || get(forceCurrency))
-    return get(value);
+    return get(value) ?? Zero;
 
   const sourceCurrencyVal = get(sourceCurrency);
   const currentCurrencyVal = get(currentCurrency);
@@ -174,7 +177,7 @@ const internalValue: ComputedRef<BigNumber> = computed(() => {
       );
 
       if (historicRate.isPositive())
-        calculatedValue = get(value).multipliedBy(historicRate);
+        calculatedValue = get(value)?.multipliedBy(historicRate) ?? Zero;
       else
         calculatedValue = Zero;
     }
@@ -182,7 +185,7 @@ const internalValue: ComputedRef<BigNumber> = computed(() => {
     return calculatedValue;
   }
 
-  return get(value);
+  return get(value) ?? Zero;
 });
 
 const displayValue: ComputedRef<BigNumber> = useNumberScrambler({

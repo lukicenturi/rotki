@@ -5,14 +5,11 @@ import windowStateKeeper from 'electron-window-state';
 import { ipcSetup } from '@/electron-main/ipc-setup';
 import { getUserMenu } from '@/electron-main/menu';
 import { TrayManager } from '@/electron-main/tray-manager';
-import { checkIfDevelopment } from '@/utils/env-utils';
 import { assert } from '@/utils/assertions';
 import { startPromise } from '@/utils';
 import { createProtocol } from './create-protocol';
 import { SubprocessHandler } from './subprocess-handler';
 import type { Nullable } from '@/types';
-
-const isDevelopment = checkIfDevelopment();
 
 let trayManager: Nullable<TrayManager> = null;
 let forceQuit = false;
@@ -48,34 +45,8 @@ async function onActivate(): Promise<void> {
     win?.show();
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-async function installDevTools() {
-  // Install Vue Devtools
-  try {
-    // Vite 4.x and cjs module (figure out if there is a better solution)
-    const { VUEJS_DEVTOOLS, default: tools } = await import('electron-devtools-installer');
-    if ('default' in tools && typeof tools.default === 'function')
-      await tools.default(VUEJS_DEVTOOLS);
-    else if (typeof tools === 'function')
-      await tools(VUEJS_DEVTOOLS);
-    else
-      console.error('something is wrong with devtools installer');
-  }
-  catch (error: any) {
-    console.error('Vue Devtools failed to install:', error.toString());
-  }
-}
-
 // Some APIs can only be used after this event occurs.
 async function onReady(): Promise<void> {
-  if (isDevelopment) {
-    if (process.env.ENABLE_DEV_TOOLS)
-      await installDevTools();
-    else
-      console.warn('To enable Vue dev tools set ENABLE_DEV_TOOLS in .env.development.local');
-  }
-
   const getWindow = () => {
     const window = win;
     assert(window !== null);
@@ -217,7 +188,7 @@ async function createWindow(): Promise<BrowserWindow> {
       nodeIntegration: false,
       sandbox: true,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(import.meta.dirname, 'preload.js'),
     },
   });
 

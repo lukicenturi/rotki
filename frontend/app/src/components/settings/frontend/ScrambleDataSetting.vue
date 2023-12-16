@@ -39,7 +39,7 @@ const css = useCssModule();
         :label="t('frontend_settings.label.scramble')"
         :success-messages="success"
         :error-messages="error"
-        @input="update($event)"
+        @update:model-value="update($event)"
       />
     </SettingsOption>
     <SettingsOption

@@ -1,4 +1,4 @@
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import { beforeEach } from 'vitest';
 import OnboardingSettings from '@/components/settings/OnboardingSettings.vue';
 import { useMainStore } from '@/store/main';
@@ -14,11 +14,20 @@ vi.mock('@/composables/electron-interop', () => ({
   }),
 }));
 
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(),
+  useRouter: vi.fn().mockReturnValue({
+    push: vi.fn(),
+  }),
+  createRouter: vi.fn().mockImplementation(() => ({
+    beforeEach: vi.fn(),
+  })),
+  createWebHashHistory: vi.fn(),
+}));
+
 let saveOptions = vi.fn();
 vi.mock('@/composables/backend', async () => {
-  const mod = await vi.importActual<typeof import('@/composables/backend')>(
-    '@/composables/backend',
-  );
+  const mod = await vi.importActual<typeof import('@/composables/backend')>('@/composables/backend');
   return {
     ...mod,
     useBackendManagement: vi.fn().mockImplementation((loaded) => {
@@ -55,21 +64,26 @@ vi.mock('@/composables/api/settings/settings-api', () => ({
 
 describe('onboardingSetting.vue', () => {
   let pinia: Pinia;
-  let wrapper: Wrapper<OnboardingSettings>;
+  let wrapper: VueWrapper<InstanceType<typeof OnboardingSettings>>;
 
   function createWrapper() {
     return mount(OnboardingSettings, {
-      pinia,
-      stubs: {
-        RuiMenuSelect: {
-          template: `
+      global: {
+        plugins: [
+          pinia,
+        ],
+        stubs: {
+          RuiMenuSelect: {
+            template: `
             <div>
-              <input :value="value" class="input" type="text" @input="$emit('input', $event.value)">
+              <input :value="modelValue" class="input" type="text" @input="$emit('update:model-value', $event.value)">
             </div>
           `,
-          props: {
-            value: { type: String },
+            props: {
+              modelValue: { type: String },
+            },
           },
+          Teleport: true,
         },
       },
     });
@@ -84,6 +98,10 @@ describe('onboardingSetting.vue', () => {
   beforeEach(async () => {
     wrapper = createWrapper();
     await nextTick();
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
   });
 
   describe('standard settings', () => {
@@ -102,19 +120,11 @@ describe('onboardingSetting.vue', () => {
         .element as HTMLInputElement;
       expect(logLevelInput.value).toBe('debug');
 
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
     });
 
     it('should save the data directory setting', async () => {
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
 
       const newDataDirectory = '/Users/home/rotki/develop_data1';
 
@@ -132,23 +142,14 @@ describe('onboardingSetting.vue', () => {
         dataDirectory: newDataDirectory,
       });
 
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
     });
 
     it('should save the loglevel setting', async () => {
-      const logLevelInput = wrapper.find('.loglevel-input .input')
-        .element as HTMLInputElement;
+      const logLevelInput = wrapper.find('.loglevel-input .input').element as HTMLInputElement;
       expect(logLevelInput.value).toBe('debug');
 
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
 
       await wrapper
         .find('.loglevel-input .input')
@@ -164,18 +165,10 @@ describe('onboardingSetting.vue', () => {
         loglevel: 'warning',
       });
 
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
 
       // should be able to change back to default loglevel (debug)
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
 
       await wrapper
         .find('.loglevel-input .input')
@@ -217,11 +210,7 @@ describe('onboardingSetting.vue', () => {
       ).element as HTMLInputElement;
       expect(sqliteInstructions.value).toBe('5000');
 
-      expect(
-        wrapper
-          .find('[data-cy=onboarding-setting__submit-button]')
-          .attributes('disabled'),
-      ).toBe('disabled');
+      expect(wrapper.find('[data-cy=onboarding-setting__submit-button]').attributes()).toHaveProperty('disabled');
     });
 
     it('should save the setting', async () => {

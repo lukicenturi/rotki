@@ -47,8 +47,8 @@ describe('blockchain balances', () => {
       '[data-cy="account-tag-field"]',
       'public',
       'Public Accounts',
-      '#EF703C',
-      '#FFFFF8',
+      'EF703C',
+      'FFFFF8',
     );
     blockchainBalancesPage.addBalance(blockchainBalances[0]);
     blockchainBalancesPage.isEntryVisible(0, blockchainBalances[0]);

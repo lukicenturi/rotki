@@ -8,7 +8,7 @@ import type {
   DataTableColumn,
   DataTableSortData,
   TablePaginationData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type {
   AddressBookEntry,
   AddressBookLocation,
@@ -19,14 +19,10 @@ const props = defineProps<{
   collection: Collection<AddressBookEntry>;
   location: AddressBookLocation;
   loading: boolean;
-  sort: DataTableSortData;
-  pagination: TablePaginationData;
 }>();
 
 const emit = defineEmits<{
   (e: 'edit', item: AddressBookEntry): void;
-  (e: 'update:sort', sort: DataTableSortData): void;
-  (e: 'update:pagination', pagination: TablePaginationData): void;
   (e: 'refresh'): void;
 }>();
 
@@ -34,10 +30,10 @@ const { location } = toRefs(props);
 
 const { t } = useI18n();
 
-const paginationModel = useVModel(props, 'pagination', emit);
-const sortModel = useVModel(props, 'sort', emit);
+const paginationModel = defineModel<TablePaginationData>('pagination', { required: true });
+const sortModel = defineModel<DataTableSortData<AddressBookEntry>>('sort', { required: true });
 
-const cols = computed<DataTableColumn[]>(() => [
+const cols = computed<DataTableColumn<AddressBookEntry>[]>(() => [
   {
     label: t('common.address'),
     key: 'address',
@@ -127,13 +123,11 @@ const { showDeleteConfirmation } = addressBookDeletion(location);
     >
       <template #default="{ data }">
         <RuiDataTable
+          v-model:pagination.external="paginationModel"
+          v-model:sort.external="sortModel"
           :rows="data"
           :cols="cols"
           :loading="loading"
-          :pagination.sync="paginationModel"
-          :pagination-modifiers="{ external: true }"
-          :sort.sync="sortModel"
-          :sort-modifiers="{ external: true }"
           row-attr="address"
           outlined
           dense
@@ -142,7 +136,7 @@ const { showDeleteConfirmation } = addressBookDeletion(location);
             <AccountDisplay
               :account="{
                 address: row.address,
-                chain: row.blockchain,
+                chain: row.blockchain ?? 'ALL',
               }"
               :use-alias-name="false"
               :truncate="false"

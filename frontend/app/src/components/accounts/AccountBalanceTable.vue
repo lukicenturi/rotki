@@ -12,7 +12,7 @@ import type {
 import type {
   DataTableColumn,
   DataTableSortData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type { Balance } from '@rotki/common';
 
 const props = withDefaults(
@@ -20,7 +20,6 @@ const props = withDefaults(
     balances: BlockchainAccountWithBalance[];
     blockchain: string;
     visibleTags: string[];
-    selected: string[];
     loopring?: boolean;
   }>(),
   {
@@ -31,8 +30,9 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'edit-click', account: BlockchainAccountWithBalance): void;
   (e: 'delete-xpub', payload: BlockchainAccountWithBalance<XpubData>): void;
-  (e: 'update:selected', selected: string[]): void;
 }>();
+
+const selected = defineModel<string[]>('selected', { required: true });
 
 const { t } = useI18n();
 
@@ -40,7 +40,7 @@ type Account = BlockchainAccountWithBalance & {
   identifier: string;
 };
 
-const { balances, blockchain, visibleTags, selected, loopring } = toRefs(props);
+const { balances, blockchain, visibleTags, loopring } = toRefs(props);
 
 const rootAttrs = useAttrs();
 
@@ -58,9 +58,9 @@ const loading = computed<boolean>(() => {
   return get(isLoading(Section.BLOCKCHAIN, section));
 });
 
-const expanded: Ref<BlockchainAccountWithBalance[]> = ref([]);
+const expanded = ref<Account[]>([]);
 
-const sort: Ref<DataTableSortData> = ref({
+const sort = ref<DataTableSortData<Account>>({
   column: 'usdValue',
   direction: 'desc' as const,
 });
@@ -143,7 +143,7 @@ const asset: ComputedRef<string> = computed(() => {
   return get(assetSymbol(nativeAsset));
 });
 
-const tableHeaders = computed<DataTableColumn[]>(() => {
+const tableHeaders = computed<DataTableColumn<Account>[]>(() => {
   const currency = { symbol: get(currencySymbol) };
 
   const currencyHeader = get(hasTokenDetection)
@@ -154,7 +154,7 @@ const tableHeaders = computed<DataTableColumn[]>(() => {
     ? t('account_balances.headers.validator')
     : t('common.account');
 
-  const headers: DataTableColumn[] = [
+  const headers: DataTableColumn<Account>[] = [
     {
       label: accountHeader,
       key: 'display',
@@ -221,11 +221,7 @@ function editClick(account: BlockchainAccountWithBalance) {
   emit('edit-click', account);
 }
 
-function addressesSelected(selected: string[]) {
-  emit('update:selected', selected);
-}
-
-function getItems(groupId: string) {
+function getItems(groupId?: string) {
   return get(balances).filter(account => account.groupId === groupId);
 }
 
@@ -240,14 +236,14 @@ function expand(row: Account) {
 
 <template>
   <RuiDataTable
-    :value="selected"
+    v-model="selected"
     v-bind="rootAttrs"
+    v-model:expanded="expanded"
+    v-model:sort="sort"
     :cols="tableHeaders"
     :rows="rows"
     :loading="isAnyLoading"
     row-attr="identifier"
-    :expanded.sync="expanded"
-    :sort.sync="sort"
     :empty="{ description: t('data_table.no_data') }"
     :loading-text="t('account_balances.data_table.loading')"
     class="account-balances-list"
@@ -258,11 +254,6 @@ function expand(row: Account) {
     outlined
     dense
     sticky-header
-    v-on="
-      // eslint-disable-next-line vue/no-deprecated-dollar-listeners-api
-      $listeners
-    "
-    @input="addressesSelected($event ?? [])"
   >
     <template #item.display="{ row }">
       <div class="py-2 account-balance-table__account">
@@ -291,7 +282,10 @@ function expand(row: Account) {
       v-if="isEth2"
       #item.ownershipPercentage="{ row }"
     >
-      <PercentageDisplay :value="row.data.ownershipPercentage ?? '100'" />
+      <PercentageDisplay
+        v-if="'ownershipPercentage' in row.data"
+        :value="row.data.ownershipPercentage ?? '100'"
+      />
     </template>
     <template
       v-if="hasTokenDetection && !loopring"
@@ -369,7 +363,7 @@ function expand(row: Account) {
     <template #group.header="{ header, isOpen, toggle }">
       <AccountGroupHeader
         :group="header.identifier"
-        :items="getItems(header.group.groupId)"
+        :items="getItems(header.group?.groupId)"
         :expanded="isOpen"
         :loading="loading"
         @expand="toggle()"

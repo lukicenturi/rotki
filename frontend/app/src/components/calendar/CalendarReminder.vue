@@ -283,10 +283,10 @@ defineExpose({
                 <CalendarReminderEntry
                   v-if="data.secsBefore > 0"
                   :key="data.identifier"
-                  :value="data"
+                  :model-value="data"
                   :latest="data.identifier === newIdCreated"
                   @delete="deleteData(index)"
-                  @input="updateData(index, $event)"
+                  @update:model-value="updateData(index, $event)"
                 />
               </template>
             </div>

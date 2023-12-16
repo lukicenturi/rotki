@@ -41,7 +41,7 @@ function getSuccessMessage(enabled: boolean) {
         )
       "
       color="primary"
-      @input="update($event)"
+      @update:model-value="update($event)"
     />
   </SettingsOption>
 </template>

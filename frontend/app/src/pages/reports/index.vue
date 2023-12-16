@@ -73,7 +73,7 @@ async function generate(period: ProfitLossReportPeriod) {
   };
 
   if (reportId > 0) {
-    if (router.currentRoute.path === Routes.PROFIT_LOSS_REPORTS) {
+    if (route.path === Routes.PROFIT_LOSS_REPORTS) {
       action();
       return;
     }

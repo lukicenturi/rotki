@@ -6,7 +6,7 @@ import type { AssetBreakdown, BlockchainAccount } from '@/types/blockchain/accou
 import type {
   DataTableColumn,
   DataTableSortData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type { BigNumber } from '@rotki/common';
 
 type AssetLocations = AssetLocation[];
@@ -22,7 +22,7 @@ const { t } = useI18n();
 
 const { identifier } = toRefs(props);
 
-const sort = ref<DataTableSortData>({
+const sort = ref<DataTableSortData<AssetLocation>>({
   column: 'amount',
   direction: 'desc',
 });
@@ -81,7 +81,7 @@ function getPercentage(usdValue: BigNumber): string {
   return percentage.toFixed(2);
 }
 
-const headers = computed<DataTableColumn[]>(() => {
+const headers = computed<DataTableColumn<AssetLocation>[]>(() => {
   const visibleItemsLength = get(visibleAssetLocations).length;
   const eth2Length = get(visibleAssetLocations).filter(
     account => account?.location === Blockchain.ETH2,
@@ -146,12 +146,12 @@ const headers = computed<DataTableColumn[]>(() => {
       </div>
     </div>
     <RuiDataTable
+      v-model:sort="sort"
       :cols="headers"
       :rows="visibleAssetLocations"
       outlined
       dense
       row-attr="location"
-      :sort.sync="sort"
       :loading="detailsLoading"
     >
       <template #item.location="{ row }">
@@ -168,6 +168,7 @@ const headers = computed<DataTableColumn[]>(() => {
             :account="row.account"
           />
           <TagDisplay
+            v-if="row.tags"
             :tags="row.tags"
             small
           />

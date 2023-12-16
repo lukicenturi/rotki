@@ -133,7 +133,7 @@ const chainsSelection = useArrayMap(txChains, item => item.id);
         />
         <ChainSelect
           v-if="source === Purgeable.TRANSACTIONS"
-          :model-value.sync="chainToClear"
+          v-model="chainToClear"
           class="flex-1"
           clearable
           persistent-hint

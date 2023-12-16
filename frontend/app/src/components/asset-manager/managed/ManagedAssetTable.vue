@@ -12,7 +12,7 @@ import type {
   DataTableColumn,
   DataTableSortData,
   TablePaginationData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type { SupportedAsset } from '@rotki/common/lib/data';
 import type { ActionStatus } from '@/types/action';
 
@@ -22,9 +22,8 @@ const props = withDefaults(
     matchers: Matcher[];
     filters: Filters;
     pagination: TablePaginationData;
-    sort: DataTableSortData;
+    sort: DataTableSortData<SupportedAsset>;
     expanded: SupportedAsset[];
-    selected: string[];
     ignoredAssets: string[];
     ignoredFilter: {
       onlyShowOwned: boolean;
@@ -42,10 +41,9 @@ const emit = defineEmits<{
   (e: 'edit', asset: SupportedAsset): void;
   (e: 'delete-asset', asset: SupportedAsset): void;
   (e: 'update:filters', filters: Filters): void;
-  (e: 'update:selected', selectedAssets: string[]): void;
   (e: 'update:expanded', expandedAssets: SupportedAsset[]): void;
   (e: 'update:pagination', pagination: TablePaginationData): void;
-  (e: 'update:sort', sort: DataTableSortData): void;
+  (e: 'update:sort', sort: DataTableSortData<SupportedAsset>): void;
   (
     e: 'update:ignored-filter',
     value: {
@@ -62,8 +60,9 @@ const { t } = useI18n();
 
 const paginationModel = useVModel(props, 'pagination', emit);
 const sortModel = useVModel(props, 'sort', emit);
+const selected = defineModel<string[]>('selected', { required: true });
 
-const cols = computed<DataTableColumn[]>(() => [
+const cols = computed<DataTableColumn<SupportedAsset>[]>(() => [
   {
     label: t('common.asset'),
     key: 'symbol',
@@ -107,10 +106,6 @@ const deleteAsset = (asset: SupportedAsset) => emit('delete-asset', asset);
 
 const updateFilter = (filters: Filters) => emit('update:filters', filters);
 
-function updateSelected(selectedAssets: string[]) {
-  emit('update:selected', selectedAssets);
-}
-
 function updateExpanded(expandedAssets: SupportedAsset[]) {
   return emit('update:expanded', expandedAssets);
 }
@@ -125,7 +120,7 @@ const disabledIgnoreActions = computed(() => {
   });
 });
 
-const formatType = (string?: string) => toSentenceCase(string ?? 'EVM token');
+const formatType = (string?: string | null) => toSentenceCase(string ?? 'EVM token');
 
 function getAsset(item: SupportedAsset) {
   const name
@@ -192,7 +187,7 @@ async function toggleWhitelistAsset(identifier: string) {
 }
 
 async function massIgnore(ignored: boolean) {
-  const ids = get(props.selected)
+  const ids = get(selected)
     .filter((identifier) => {
       const isItemIgnored = get(isAssetIgnored(identifier));
       return ignored ? !isItemIgnored : isItemIgnored;
@@ -217,7 +212,7 @@ async function massIgnore(ignored: boolean) {
     status = await unignoreAsset(ids);
 
   if (status.success) {
-    updateSelected([]);
+    set(selected, []);
     if (props.ignoredFilter.ignoredAssetsHandling !== 'none')
       emit('refresh');
   }
@@ -262,7 +257,7 @@ const disabledRows = computed(() => {
           <RuiButton
             size="sm"
             variant="text"
-            @click="updateSelected([])"
+            @click="selected = []"
           >
             {{ t('common.actions.clear_selection') }}
           </RuiButton>
@@ -292,23 +287,21 @@ const disabledRows = computed(() => {
     >
       <template #default="{ data }">
         <RuiDataTable
+          v-model="selected"
+          v-model:pagination.external="paginationModel"
+          v-model:sort.external="sortModel"
           dense
           :value="selected"
           :rows="data"
           :loading="loading"
           :cols="cols"
           :expanded="expanded"
-          :pagination.sync="paginationModel"
-          :pagination-modifiers="{ external: true }"
-          :sort.sync="sortModel"
-          :sort-modifiers="{ external: true }"
           :disabled-rows="disabledRows"
           row-attr="identifier"
           data-cy="managed-assets-table"
           single-expand
           sticky-header
           outlined
-          @input="updateSelected($event ?? [])"
         >
           <template #item.symbol="{ row }">
             <AssetDetailsBase
@@ -321,7 +314,7 @@ const disabledRows = computed(() => {
             <HashLink
               v-if="row.address"
               :text="row.address"
-              :chain="getChain(row.evmChain)"
+              :chain="row?.evmChain ? getChain(row.evmChain) : undefined"
               hide-alias-name
             />
           </template>
@@ -352,8 +345,8 @@ const disabledRows = computed(() => {
                     :disabled="
                       isAssetWhitelistedValue(row.identifier) || isSpamAsset(row)
                     "
-                    :value="isAssetIgnored(row.identifier).value"
-                    @input="toggleIgnoreAsset(row.identifier)"
+                    :model-value="isAssetIgnored(row.identifier).value"
+                    @update:model-value="toggleIgnoreAsset(row.identifier)"
                   />
                 </template>
                 {{

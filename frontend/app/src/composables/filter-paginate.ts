@@ -3,7 +3,7 @@ import { Severity } from '@rotki/common/lib/messages';
 import { isEmpty, isEqual } from 'lodash-es';
 import { type LocationQuery, type RawLocationQuery, RouterPaginationOptionsSchema } from '@/types/route';
 import { FilterBehaviour, type MatchedKeywordWithBehaviour, type SearchMatcher } from '@/types/filtering';
-import type { DataTableSortData, TablePaginationData } from '@rotki/ui-library-compat';
+import type { DataTableSortColumn, DataTableSortData, TablePaginationData } from '@rotki/ui-library';
 import type { MaybeRef } from '@vueuse/core';
 import type { AxiosError } from 'axios';
 import type { ZodSchema } from 'zod';
@@ -16,6 +16,8 @@ export interface FilterSchema<F, M> {
   matchers: ComputedRef<M[]>;
   RouteFilterSchema?: ZodSchema;
 }
+
+export type TableRowKey<T> = keyof T extends string ? keyof T : never;
 
 /**
  * Creates a universal pagination and filter structure
@@ -37,7 +39,7 @@ export function usePaginationFilters<
   X extends SearchMatcher<string, string> | void = undefined,
 >(locationOverview: MaybeRef<string | null>, mainPage: MaybeRef<boolean>, filterSchema: () => FilterSchema<W, X>, fetchAssetData: (payload: MaybeRef<U>) => Promise<S>, options: {
   onUpdateFilters?: (query: LocationQuery) => void;
-  extraParams?: ComputedRef<LocationQuery>;
+  extraParams?: ComputedRef<RawLocationQuery>;
   customPageParams?: ComputedRef<Partial<U>>;
   defaultParams?: ComputedRef<Partial<U> | undefined>;
   defaultCollection?: () => S;
@@ -51,9 +53,7 @@ export function usePaginationFilters<
   const { notify } = useNotificationsStore();
   const router = useRouter();
   const route = useRoute();
-  const paginationOptions: Ref<TablePagination<V>> = ref(
-    defaultOptions<V>(options.defaultSortBy),
-  );
+  const paginationOptions: Ref<TablePagination<V>> = ref(markRaw(defaultOptions<V>(options.defaultSortBy)));
   const selected: Ref<V[]> = ref([]);
   const openDialog: Ref<boolean> = ref(false);
   const editableItem: Ref<V | undefined> = ref();
@@ -74,7 +74,7 @@ export function usePaginationFilters<
 
   const { filters, matchers, RouteFilterSchema } = filterSchema();
 
-  const sort = computed<DataTableSortData>({
+  const sort = computed<DataTableSortData<V>>({
     get() {
       const opts = get(paginationOptions);
       if (opts.singleSort) {
@@ -82,15 +82,15 @@ export function usePaginationFilters<
           return [];
 
         return {
-          column: opts.sortBy[0],
+          column: opts.sortBy[0] as TableRowKey<V>,
           direction: opts.sortDesc?.[0] ? 'desc' : 'asc',
-        };
+        } satisfies DataTableSortColumn<V>;
       }
 
       return opts.sortBy.map(((sort, index) => ({
-        column: sort,
+        column: sort as TableRowKey<V>,
         direction: opts.sortDesc?.[index] ? 'desc' : 'asc',
-      })));
+      } satisfies DataTableSortColumn<V>)));
     },
     set(sort) {
       set(userAction, true);
@@ -326,7 +326,7 @@ export function usePaginationFilters<
    * Returns the parsed pagination and filter query params
    * @returns {LocationQuery}
    */
-  const getQuery = (): RawLocationQuery => {
+  const getQuery = (): LocationQuery => {
     const opts = get(paginationOptions);
     assert(opts);
     const { itemsPerPage, page, sortBy, sortDesc } = opts;

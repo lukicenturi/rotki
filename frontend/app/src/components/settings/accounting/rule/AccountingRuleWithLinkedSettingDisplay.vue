@@ -44,7 +44,7 @@ const value: ComputedRef<boolean> = computed(() => {
     size="sm"
     color="secondary"
     class="[&_span]:!px-0"
-    :value="!!selectedLinkableSetting"
+    :model-value="!!selectedLinkableSetting"
   >
     <template #icon>
       <RuiTooltip

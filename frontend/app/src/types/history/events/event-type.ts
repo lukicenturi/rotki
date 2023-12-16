@@ -1,12 +1,20 @@
 import { z } from 'zod';
-import { contextColors } from '@rotki/ui-library-compat';
+import { type RuiIcons, contextColors, isRuiIcon } from '@rotki/ui-library';
 import { HistoryEventEntryType } from '@rotki/common/lib/history/events';
 
 const HistoryEventTypeMapping = z.record(z.record(z.string()));
 
+const RuiIcon = z.string().transform((icon) => {
+  if (isRuiIcon(icon))
+    return icon;
+
+  console.warn(`${icon} returned from the backend does not match RuiIcons`);
+  return 'question-line' satisfies RuiIcons;
+});
+
 const HistoryEventCategoryDetail = z.object({
   label: z.string(),
-  icon: z.string(),
+  icon: RuiIcon,
   color: z.enum(contextColors).optional(),
 });
 
@@ -36,7 +44,7 @@ export type HistoryEventCategoryMapping = z.infer<
 export const HistoryEventTypeData = z.object({
   globalMappings: HistoryEventTypeMapping,
   eventCategoryDetails: HistoryEventCategoryMapping,
-  accountingEventsIcons: z.record(z.string()),
+  accountingEventsIcons: z.record(RuiIcon),
   entryTypeMappings: z.record(
     z.nativeEnum(HistoryEventEntryType),
     z.record(HistoryEventTypeMapping),

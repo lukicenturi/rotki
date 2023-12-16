@@ -36,11 +36,12 @@ const css = useCssModule();
     <RuiMenu
       :popper="{ placement: 'bottom-start' }"
     >
-      <template #activator="{ on }">
+      <template #activator="{ attrs }">
         <RefreshButton
           :loading="loading"
           :disabled="disabled"
           :tooltip="tooltip"
+          v-bind="attrs"
           @refresh="refresh()"
         />
         <RuiButton
@@ -49,7 +50,6 @@ const css = useCssModule();
           icon
           variant="text"
           size="sm"
-          v-on="on"
         >
           <RuiIcon
             size="16"

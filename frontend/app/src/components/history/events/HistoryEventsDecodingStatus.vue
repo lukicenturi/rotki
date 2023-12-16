@@ -1,7 +1,13 @@
 <script lang="ts" setup>
 import { TaskType } from '@/types/task-type';
 import type { EvmUnDecodedTransactionsData } from '@/types/websocket-messages';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
+
+interface LocationData {
+  evmChain: string;
+  processed: number;
+  total: number;
+}
 
 const props = defineProps<{
   refreshing: boolean;
@@ -37,7 +43,7 @@ function refresh() {
     emit('reset-undecoded-transactions');
 }
 
-const headers: DataTableColumn[] = [
+const headers: DataTableColumn<LocationData>[] = [
   {
     label: t('common.location'),
     key: 'chain',
@@ -109,11 +115,11 @@ onMounted(() => refresh());
             thickness="2"
             size="20"
             color="primary"
-            :value="(data.processed / data.total) * 100"
+            :model-value="(data.processed / data.total) * 100"
           />
-          <i18n
+          <i18n-t
             tag="span"
-            path="transactions.events_decoding.transactions_processed"
+            keypath="transactions.events_decoding.transactions_processed"
           >
             <template #processed>
               {{ data.processed }}
@@ -121,7 +127,7 @@ onMounted(() => refresh());
             <template #total>
               {{ data.total }}
             </template>
-          </i18n>
+          </i18n-t>
         </div>
         <div v-else>
           -

@@ -1,43 +1,30 @@
 <script setup lang="ts">
 import { Routes } from '@/router/routes';
 
+type NavType = 'uniswap_v2' | 'uniswap_v3' | 'balancer' | 'sushiswap';
+
 interface LiquidityPageInfo {
-  id: string;
+  id: NavType;
   image: string;
   name: string;
 }
 
-const props = withDefaults(
-  defineProps<{
-    location?: 'uniswap_v2' | 'uniswap_v3' | 'balancer' | 'sushiswap';
-  }>(),
-  {
-    location: undefined,
-  },
-);
+const props = defineProps<{
+  location: NavType[] | '';
+}>();
 
 const imageSize = '64px';
 
 const pages = {
-  uniswap_v2: defineAsyncComponent(
-    () => import('@/pages/defi/deposits/liquidity/uniswap_v2/index.vue'),
-  ),
-  uniswap_v3: defineAsyncComponent(
-    () => import('@/pages/defi/deposits/liquidity/uniswap_v3/index.vue'),
-  ),
-  balancer: defineAsyncComponent(
-    () => import('@/pages/defi/deposits/liquidity/balancer/index.vue'),
-  ),
-  sushiswap: defineAsyncComponent(
-    () => import('@/pages/defi/deposits/liquidity/sushiswap/index.vue'),
-  ),
+  uniswap_v2: defineAsyncComponent(() => import('@/pages/defi/deposits/liquidity/uniswap_v2/index.vue')),
+  uniswap_v3: defineAsyncComponent(() => import('@/pages/defi/deposits/liquidity/uniswap_v3/index.vue')),
+  balancer: defineAsyncComponent(() => import('@/pages/defi/deposits/liquidity/balancer/index.vue')),
+  sushiswap: defineAsyncComponent(() => import('@/pages/defi/deposits/liquidity/sushiswap/index.vue')),
 };
-
-const { location } = toRefs(props);
 
 const { t } = useI18n();
 
-const liquidities: ComputedRef<LiquidityPageInfo[]> = computed(() => [
+const liquidities = computed<LiquidityPageInfo[]>(() => [
   {
     id: 'uniswap_v2',
     image: './assets/images/protocols/uniswap.svg',
@@ -62,10 +49,16 @@ const liquidities: ComputedRef<LiquidityPageInfo[]> = computed(() => [
 
 const router = useRouter();
 
-const lastLocation = useLocalStorage(
-  'rotki.staking.last_liquidity_provider',
-  '',
-);
+const lastLocation = useLocalStorage('rotki.staking.last_liquidity_provider', '');
+
+const location = computed({
+  get() {
+    return Array.isArray(props.location) ? props.location[0] : undefined;
+  },
+  set(value?: NavType) {
+    set(lastLocation, value);
+  },
+});
 
 const [DefineIcon, ReuseIcon] = createReusableTemplate<{ image: string }>();
 
@@ -74,18 +67,15 @@ const page = computed(() => {
   return selectedLocation ? pages[selectedLocation] : null;
 });
 
-async function updateLocation(location: string) {
-  if (location)
-    set(lastLocation, location);
+watchImmediate(lastLocation, async (location) => {
+  if (!location)
+    return;
 
-  await router.push(
-    Routes.DEFI_DEPOSITS_LIQUIDITY.replace(':location*', location),
-  );
-}
-
-onBeforeMount(async () => {
-  if (get(lastLocation))
-    await updateLocation(get(lastLocation));
+  await nextTick(() => {
+    router.push(
+      Routes.DEFI_DEPOSITS_LIQUIDITY.replace(':location*', location),
+    );
+  });
 });
 </script>
 
@@ -106,14 +96,13 @@ onBeforeMount(async () => {
         </AdaptiveWrapper>
       </DefineIcon>
       <RuiMenuSelect
-        :value="location"
+        v-model="location"
         :options="liquidities"
         :label="t('staking_page.dropdown_label')"
         key-attr="id"
         text-attr="name"
         hide-details
         variant="outlined"
-        @input="updateLocation($event)"
       >
         <template #selection="{ item: { image, name } }">
           <div class="flex items-center gap-3">

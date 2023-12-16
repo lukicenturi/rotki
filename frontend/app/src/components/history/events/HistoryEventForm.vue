@@ -22,8 +22,8 @@ const entryType: Ref<HistoryEventEntryType> = ref(
   HistoryEventEntryType.HISTORY_EVENT,
 );
 
-function getEvent<T extends HistoryEvent>(event: HistoryEvent, type: HistoryEventEntryType): T | undefined {
-  if (isOfEventType<T>(event, type))
+function getEvent<T extends HistoryEvent>(event: HistoryEvent | undefined, type: HistoryEventEntryType): T | undefined {
+  if (event && isOfEventType<T>(event, type))
     return event;
 
   return undefined;

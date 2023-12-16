@@ -6,7 +6,7 @@ import { TableColumn } from '@/types/table-column';
 import type { BigNumber } from '@rotki/common';
 import type {
   DataTableColumn,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type { IgnoredAssetsHandlingType } from '@/types/asset';
 import type {
   NonFungibleBalance,
@@ -51,10 +51,10 @@ const { isLoading: isSectionLoading } = useStatusStore();
 const loading = isSectionLoading(Section.NON_FUNGIBLE_BALANCES);
 const { totalUsdValue } = getCollectionData<NonFungibleBalance>(balances);
 
-const tableHeaders = computed<DataTableColumn[]>(() => {
+const tableHeaders = computed<DataTableColumn<NonFungibleBalance>[]>(() => {
   const visibleColumns = get(dashboardTablesVisibleColumns)[group];
 
-  const headers: DataTableColumn[] = [
+  const headers: DataTableColumn<NonFungibleBalance>[] = [
     {
       label: t('common.name'),
       key: 'name',
@@ -153,12 +153,12 @@ watch(loading, async (isLoading, wasLoading) => {
         menu-class="max-w-[15rem]"
         :popper="{ placement: 'bottom-end' }"
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <MenuTooltipButton
             :tooltip="t('dashboard_asset_table.select_visible_columns')"
             class-name="nft_balance_table__column-filter__button"
             custom-color
-            v-on="on"
+            v-bind="attrs"
           >
             <RuiIcon name="more-2-fill" />
           </MenuTooltipButton>
@@ -182,13 +182,11 @@ watch(loading, async (isLoading, wasLoading) => {
     >
       <template #default="{ data }">
         <RuiDataTable
+          v-model:sort.external="sort"
+          v-model:pagination.external="pagination"
           :cols="tableHeaders"
           :rows="data"
           :loading="isLoading"
-          :sort.sync="sort"
-          :pagination.sync="pagination"
-          :pagination-modifiers="{ external: true }"
-          :sort-modifiers="{ external: true }"
           :empty="{ description: t('data_table.no_data') }"
           row-attr="id"
           sticky-header

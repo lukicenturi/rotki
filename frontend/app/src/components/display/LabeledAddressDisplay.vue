@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useBreakpoint } from '@rotki/ui-library-compat';
+import { useBreakpoint } from '@rotki/ui-library';
 import { getChain } from '@/utils/blockchain/accounts';
 import type {
   BlockchainAccount,

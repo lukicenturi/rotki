@@ -20,25 +20,19 @@ const { t } = useI18n();
         frontend-setting
       >
         <RuiRadioGroup
-          :value="blockchainRefreshButtonBehaviour"
+          :model-value="blockchainRefreshButtonBehaviour"
           color="primary"
           class="mt-0"
           hide-details
-          @input="updateImmediate($event)"
+          @update:model-value="updateImmediate($event)"
         >
           <RuiRadio
-            :internal-value="
-              BlockchainRefreshButtonBehaviour.ONLY_REFRESH_BALANCES
-            "
-            :label="
-              t('dashboard.blockchain_balances.behaviour.only_refresh_balances')
-            "
+            :model-value="BlockchainRefreshButtonBehaviour.ONLY_REFRESH_BALANCES.toString()"
+            :label="t('dashboard.blockchain_balances.behaviour.only_refresh_balances')"
           />
           <RuiRadio
-            :internal-value="BlockchainRefreshButtonBehaviour.REDETECT_TOKENS"
-            :label="
-              t('dashboard.blockchain_balances.behaviour.redetect_tokens')
-            "
+            :model-value="BlockchainRefreshButtonBehaviour.REDETECT_TOKENS.toString()"
+            :label="t('dashboard.blockchain_balances.behaviour.redetect_tokens')"
           />
         </RuiRadioGroup>
       </SettingsOption>

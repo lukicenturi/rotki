@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { StyleValue } from 'vue/types/jsx';
+import { getAddressFromEvmIdentifier } from '@/utils/assets';
+import type { StyleValue } from 'vue';
 import type { AssetInfoWithId } from '@/types/asset';
 
 const props = withDefaults(

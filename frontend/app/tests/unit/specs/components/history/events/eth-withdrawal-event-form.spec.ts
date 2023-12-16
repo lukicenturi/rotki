@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
@@ -17,7 +17,7 @@ vi.mock('@/store/balances/prices', () => ({
 
 describe('ethWithdrawalEventForm.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<EthWithdrawalEventForm>;
+  let wrapper: VueWrapper<InstanceType<typeof EthWithdrawalEventForm>>;
   let pinia: Pinia;
 
   const asset = {
@@ -60,8 +60,16 @@ describe('ethWithdrawalEventForm.vue', () => {
     vi.mocked(useBalancePricesStore().getHistoricPrice).mockResolvedValue(One);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any> = {}) => mount(EthWithdrawalEventForm, {
-    pinia,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof EthWithdrawalEventForm> = {}) => mount(EthWithdrawalEventForm, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+    },
     ...options,
   });
 
@@ -112,7 +120,7 @@ describe('ethWithdrawalEventForm.vue', () => {
       expect(
         (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
           .value,
-      ).toBe('');
+      ).toBe('0');
 
       expect(
         (wrapper.find('[data-cy=isExited] input').element as HTMLInputElement)

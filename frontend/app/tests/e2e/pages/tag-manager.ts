@@ -1,3 +1,5 @@
+import { hexToRgbPoints } from '@/utils/color';
+
 export class TagManager {
   addTag(
     parent: string,
@@ -16,12 +18,22 @@ export class TagManager {
       cy.get(
         '[data-cy=tag-creator__color-picker__background] input',
       ).type(background);
+      cy.get('[data-cy=tag-creator__color-picker__background] .rui-color-display').should(
+        'css',
+        'background-color',
+        `rgb(${hexToRgbPoints(background).join(', ')})`,
+      );
       cy.get(
         '[data-cy=tag-creator__color-picker__foreground] input',
       ).clear();
       cy.get(
         '[data-cy=tag-creator__color-picker__foreground] input',
       ).type(foreground);
+      cy.get('[data-cy=tag-creator__color-picker__foreground] .rui-color-display').should(
+        'css',
+        'background-color',
+        `rgb(${hexToRgbPoints(foreground).join(', ')})`,
+      );
     }
     cy.get('[data-cy=tag-creator__buttons__save]').click();
   }

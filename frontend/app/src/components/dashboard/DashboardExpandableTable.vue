@@ -33,7 +33,7 @@ const panel = computed<number>(() => (get(expanded) ? 0 : -1));
         </div>
       </div>
     </template>
-    <RuiAccordions :value="panel">
+    <RuiAccordions :model-value="panel">
       <RuiAccordion eager>
         <template #default>
           <slot />

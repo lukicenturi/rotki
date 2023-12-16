@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
@@ -18,7 +18,7 @@ vi.mock('@/store/balances/prices', () => ({
 
 describe('onlineHistoryEventForm.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<OnlineHistoryEventForm>;
+  let wrapper: VueWrapper<InstanceType<typeof OnlineHistoryEventForm>>;
   let pinia: Pinia;
 
   const asset = {
@@ -59,8 +59,16 @@ describe('onlineHistoryEventForm.vue', () => {
     vi.mocked(useBalancePricesStore().getHistoricPrice).mockResolvedValue(One);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any> = {}) => mount(OnlineHistoryEventForm, {
-    pinia,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof OnlineHistoryEventForm> = {}) => mount(OnlineHistoryEventForm, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+    },
     ...options,
   });
 
@@ -70,63 +78,43 @@ describe('onlineHistoryEventForm.vue', () => {
       await nextTick();
 
       expect(
-        (
-          wrapper.find('[data-cy=eventIdentifier] input')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=eventIdentifier] input').element as HTMLInputElement).value,
       ).toBe('');
 
       expect(
-        (
-          wrapper.find('[data-cy=locationLabel] .input-value')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=locationLabel] .input-value').element as HTMLInputElement).value,
       ).toBe('');
 
       expect(
-        (
-          wrapper.find('[data-cy=sequenceIndex] input')
-            .element as HTMLInputElement
-        ).value,
-      ).toBe('');
+        (wrapper.find('[data-cy=sequenceIndex] input').element as HTMLInputElement).value,
+      ).toBe('0');
     });
 
     it('`groupHeader` and `nextSequence` are passed', async () => {
       wrapper = createWrapper();
       await nextTick();
       await wrapper.setProps({ groupHeader, nextSequence: '10' });
+      await nextTick();
 
       expect(
-        (
-          wrapper.find('[data-cy=eventIdentifier] input')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=eventIdentifier] input').element as HTMLInputElement).value,
       ).toBe(groupHeader.eventIdentifier);
 
       expect(
-        (
-          wrapper.find('[data-cy=locationLabel] .input-value')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=locationLabel] .input-value').element as HTMLInputElement).value,
       ).toBe(groupHeader.locationLabel);
 
       expect(
         (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
           .value,
-      ).toBe('');
+      ).toBe('0');
 
       expect(
-        (
-          wrapper.find('[data-cy=sequenceIndex] input')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=sequenceIndex] input').element as HTMLInputElement).value,
       ).toBe('10');
 
       expect(
-        (
-          wrapper.find('[data-cy=notes] textarea:not([aria-hidden="true"])')
-            .element as HTMLTextAreaElement
-        ).value,
+        (wrapper.find('[data-cy=notes] textarea:not([aria-hidden="true"])').element as HTMLTextAreaElement).value,
       ).toBe('');
     });
 
@@ -134,44 +122,33 @@ describe('onlineHistoryEventForm.vue', () => {
       wrapper = createWrapper();
       await nextTick();
       await wrapper.setProps({ groupHeader, editableItem: groupHeader, nextSequence: '10' });
+      await nextTick();
 
       expect(
-        (
-          wrapper.find('[data-cy=eventIdentifier] input')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=eventIdentifier] input').element as HTMLInputElement).value,
       ).toBe(groupHeader.eventIdentifier);
 
       expect(
-        (
-          wrapper.find('[data-cy=locationLabel] .input-value')
-            .element as HTMLInputElement
-        ).value,
+        (wrapper.find('[data-cy=locationLabel] .input-value').element as HTMLInputElement).value,
       ).toBe(groupHeader.locationLabel);
 
       expect(
-        (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
-          .value,
+        (wrapper.find('[data-cy=amount] input').element as HTMLInputElement).value,
       ).toBe(groupHeader.balance.amount.toString());
 
       expect(
-        (
-          wrapper.find('[data-cy=sequenceIndex] input')
-            .element as HTMLInputElement
+        (wrapper.find('[data-cy=sequenceIndex] input').element as HTMLInputElement
         ).value.replace(',', ''),
       ).toBe(groupHeader.sequenceIndex.toString());
 
       expect(
-        (
-          wrapper.find('[data-cy=notes] textarea:not([aria-hidden="true"])')
-            .element as HTMLTextAreaElement
-        ).value,
+        (wrapper.find('[data-cy=notes] textarea:not([aria-hidden="true"])').element as HTMLTextAreaElement).value,
       ).toBe(groupHeader.notes);
     });
   });
 
   it('should show all eventTypes options correctly', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -183,7 +160,7 @@ describe('onlineHistoryEventForm.vue', () => {
   });
 
   it('should show all eventSubTypes options correctly', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -195,7 +172,7 @@ describe('onlineHistoryEventForm.vue', () => {
   });
 
   it('should show correct eventSubtypes options, based on selected eventType', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 

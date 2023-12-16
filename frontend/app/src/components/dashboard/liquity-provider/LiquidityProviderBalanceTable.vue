@@ -11,28 +11,28 @@ import { TableColumn } from '@/types/table-column';
 import type {
   DataTableColumn,
   DataTableSortData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 import type {
+  XSwapLiquidityBalance,
   XswapAsset,
-  XswapBalance,
 } from '@rotki/common/lib/defi/xswap';
 import type { BigNumber } from '@rotki/common';
 
 const { t } = useI18n();
 const LIQUIDITY_POSITION = DashboardTableType.LIQUIDITY_POSITION;
 
-const sort: Ref<DataTableSortData> = ref({
+const sort = ref<DataTableSortData<XSwapLiquidityBalance>>({
   column: 'usdValue',
   direction: 'desc' as const,
 });
 
 function createTableHeaders(currency: Ref<string>, dashboardTablesVisibleColumns: Ref<DashboardTablesVisibleColumns>) {
-  return computed<DataTableColumn[]>(() => {
+  return computed<DataTableColumn<XSwapLiquidityBalance>[]>(() => {
     const visibleColumns = get(dashboardTablesVisibleColumns)[
       LIQUIDITY_POSITION
     ];
 
-    const headers: DataTableColumn[] = [
+    const headers: DataTableColumn<XSwapLiquidityBalance>[] = [
       {
         label: t('common.name'),
         key: 'name',
@@ -78,7 +78,7 @@ function createTableHeaders(currency: Ref<string>, dashboardTablesVisibleColumns
 }
 
 const route = Routes.DEFI_DEPOSITS_LIQUIDITY;
-const expanded = ref<XswapBalance[]>([]);
+const expanded = ref<XSwapLiquidityBalance[]>([]);
 
 const {
   fetchV2Balances: fetchUniswapV2Balances,
@@ -183,12 +183,12 @@ const getAssets = (assets: XswapAsset[]) => assets.map(({ asset }) => asset);
         menu-class="max-w-[15rem]"
         :popper="{ placement: 'bottom-end' }"
       >
-        <template #activator="{ on }">
+        <template #activator="{ attrs }">
           <MenuTooltipButton
             :tooltip="t('dashboard_asset_table.select_visible_columns')"
             class-name="liquidity-provider-balance-table__column-filter__button"
             custom-color
-            v-on="on"
+            v-bind="attrs"
           >
             <RuiIcon name="more-2-fill" />
           </MenuTooltipButton>
@@ -208,6 +208,7 @@ const getAssets = (assets: XswapAsset[]) => assets.map(({ asset }) => asset);
       />
     </template>
     <RuiDataTable
+      v-model:expanded="expanded"
       outlined
       dense
       :cols="tableHeaders"
@@ -216,7 +217,6 @@ const getAssets = (assets: XswapAsset[]) => assets.map(({ asset }) => asset);
       :loading="loading"
       row-attr="id"
       single-expand
-      :expanded.sync="expanded"
     >
       <template #item.name="{ row }">
         <div v-if="row.type === 'nft'">

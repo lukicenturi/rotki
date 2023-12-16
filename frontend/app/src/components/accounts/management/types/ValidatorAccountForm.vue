@@ -4,13 +4,13 @@ import type { StakingValidatorManage } from '@/composables/accounts/blockchain/u
 import type { ValidationErrors } from '@/types/api/errors';
 
 const props = defineProps<{
-  value: StakingValidatorManage;
+  modelValue: StakingValidatorManage;
   errorMessages: ValidationErrors;
   loading: boolean;
 }>();
 
 const emit = defineEmits<{
-  (e: 'input', value: StakingValidatorManage): void;
+  (e: 'update:model-value', value: StakingValidatorManage): void;
   (e: 'update:error-messages', value: ValidationErrors): void;
 }>();
 
@@ -32,8 +32,8 @@ defineExpose({
 <template>
   <Eth2Input
     ref="input"
-    :validator.sync="validator"
-    :disabled="loading || value.mode === 'edit'"
-    :error-messages.sync="errors"
+    v-model:validator="validator"
+    v-model:error-messages="errors"
+    :disabled="loading || modelValue.mode === 'edit'"
   />
 </template>

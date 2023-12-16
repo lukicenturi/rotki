@@ -48,7 +48,7 @@ const secondaryText = computed(
 
 <template>
   <RuiDialog
-    :value="display"
+    :model-value="display"
     persistent
     :max-width="maxWidth"
     @keydown.esc.stop="emit('cancel')"

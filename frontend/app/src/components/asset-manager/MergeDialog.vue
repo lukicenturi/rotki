@@ -8,9 +8,9 @@ type Errors = Partial<
   Record<'targetIdentifier' | 'sourceIdentifier', string[]>
 >;
 
-const props = defineProps<{ value: boolean }>();
+const props = defineProps<{ modelValue: boolean }>();
 
-const emit = defineEmits<{ (e: 'input', value: boolean): void }>();
+const emit = defineEmits<{ (e: 'update:model-value', value: boolean): void }>();
 
 const display = useSimpleVModel(props, emit);
 
@@ -92,7 +92,7 @@ async function merge() {
 }
 
 function input(value: boolean) {
-  emit('input', value);
+  emit('update:model-value', value);
   setTimeout(() => reset(), 100);
 }
 
@@ -139,11 +139,11 @@ const excluded = computed(() => {
         </div>
         <AssetSelect
           v-model="targetIdentifier"
+          v-model:asset="target"
           outlined
           :error-messages="toMessages(v$.targetIdentifier)"
           :label="t('merge_dialog.target.label')"
           :disabled="pending"
-          :asset.sync="target"
           :excludes="excluded"
           :hint="target ? t('merge_dialog.target_hint', { identifier: target.identifier }) : ''"
           @focus="clearErrors()"

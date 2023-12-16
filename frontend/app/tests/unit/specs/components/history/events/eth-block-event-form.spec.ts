@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
@@ -17,7 +17,7 @@ vi.mock('@/store/balances/prices', () => ({
 
 describe('ethBlockEventForm.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<EthBlockEventForm>;
+  let wrapper: VueWrapper<InstanceType<typeof EthBlockEventForm>>;
   let pinia: Pinia;
 
   const asset = {
@@ -61,8 +61,14 @@ describe('ethBlockEventForm.vue', () => {
     vi.mocked(useBalancePricesStore().getHistoricPrice).mockResolvedValue(One);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any> = {}) => mount(EthBlockEventForm, {
-    pinia,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof EthBlockEventForm> = {}) => mount(EthBlockEventForm, {
+    global: {
+      plugins: [pinia],
+    },
     ...options,
   });
 
@@ -100,7 +106,7 @@ describe('ethBlockEventForm.vue', () => {
       ).toBeFalsy();
     });
 
-    it('`groupHeader` passed', async () => {
+    it('`groupHeader` are passed', async () => {
       wrapper = createWrapper();
       await nextTick();
       await wrapper.setProps({ groupHeader });
@@ -127,9 +133,8 @@ describe('ethBlockEventForm.vue', () => {
       ).toBe(groupHeader.locationLabel);
 
       expect(
-        (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
-          .value,
-      ).toBe('');
+        (wrapper.find('[data-cy=amount] input').element as HTMLInputElement).value,
+      ).toBe('0');
 
       expect(
         (

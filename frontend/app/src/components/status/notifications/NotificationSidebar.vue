@@ -2,9 +2,7 @@
 import { Priority, Severity } from '@rotki/common/lib/messages';
 import { Routes } from '@/router/routes';
 
-defineProps<{ visible: boolean }>();
-
-const emit = defineEmits(['close']);
+const display = defineModel<boolean>({ required: true });
 
 const { t } = useI18n();
 
@@ -19,14 +17,7 @@ const { prioritized: allNotifications } = storeToRefs(notificationStore);
 const { remove } = notificationStore;
 
 function close() {
-  emit('close');
-}
-
-function input(visible: boolean) {
-  if (visible)
-    return;
-
-  close();
+  set(display, false);
 }
 
 function clear() {
@@ -104,13 +95,12 @@ watch([y, selectedTab, selectedNotifications], ([currentY, currSelectedTab, curr
 
 <template>
   <RuiNavigationDrawer
+    v-model="display"
     :content-class="css.sidebar"
     width="400px"
-    :value="visible"
     position="right"
     temporary
     :stateless="dialogVisible"
-    @input="input($event)"
   >
     <DefineNoMessages>
       <div :class="css['no-messages']">
@@ -151,17 +141,15 @@ watch([y, selectedTab, selectedNotifications], ([currentY, currSelectedTab, curr
             v-model="selectedTab"
             color="primary"
           >
-            <template #default>
-              <RuiTab
-                v-for="item in Object.values(TabCategory)"
-                :key="item"
-                size="sm"
-                class="!min-w-0"
-                :tab-value="item"
-              >
-                {{ tabCategoriesLabel[item] }}
-              </RuiTab>
-            </template>
+            <RuiTab
+              v-for="item in Object.values(TabCategory)"
+              :key="item"
+              size="sm"
+              class="!min-w-0"
+              :value="item"
+            >
+              {{ tabCategoriesLabel[item] }}
+            </RuiTab>
           </RuiTabs>
         </div>
         <div

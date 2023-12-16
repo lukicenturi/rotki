@@ -1,9 +1,9 @@
-const { spawn } = require('node:child_process');
-const process = require('node:process');
-const fs = require('node:fs');
-const { platform } = require('node:os');
-const path = require('node:path');
-const { exit } = require('node:process');
+import { spawn } from 'node:child_process';
+import process, { exit } from 'node:process';
+import fs from 'node:fs';
+import { platform } from 'node:os';
+import path from 'node:path';
+import { config } from 'dotenv';
 
 const PROXY = 'proxy';
 const COMMON = '@rotki/common';
@@ -49,7 +49,7 @@ if (!process.env.VIRTUAL_ENV) {
 let startDevProxy = false;
 const devEnvExists = fs.existsSync('app/.env.development.local');
 if (devEnvExists) {
-  require('dotenv').config({ path: 'app/.env.development.local' });
+  config({ path: 'app/.env.development.local' });
   startDevProxy = !!process.env.VITE_BACKEND_URL;
 }
 

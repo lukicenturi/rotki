@@ -14,19 +14,19 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{ (e: 'input', pairs: string[]): void }>();
+const emit = defineEmits<{ (e: 'update:selection', pairs: string[]): void }>();
 const { name, location } = toRefs(props);
 
-const input = (value: string[]) => emit('input', value);
+const updateSelection = (value: string[]) => emit('update:selection', value);
 
 const queriedMarkets = ref<string[]>([]);
 const selection = ref<string[]>([]);
 const allMarkets = ref<string[]>([]);
 const loading = ref<boolean>(false);
 
-function handleInput(value: string[]) {
+function onSelectionChange(value: string[]) {
   set(selection, value);
-  input(value);
+  updateSelection(value);
 }
 
 const { t } = useI18n();
@@ -89,9 +89,9 @@ onMounted(async () => {
     variant="outlined"
     :label="label || t('binance_market_selector.default_label')"
     class="binance-market-selector"
-    :value="selection"
+    :model-value="selection"
     :item-height="54"
-    @input="handleInput($event)"
+    @update:model-value="onSelectionChange($event)"
   >
     <template #item="data">
       <div

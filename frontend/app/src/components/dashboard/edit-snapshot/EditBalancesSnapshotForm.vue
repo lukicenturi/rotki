@@ -150,16 +150,14 @@ function updateAsset(asset: string) {
           inline
           :disabled="edit"
         >
-          <template #default>
-            <RuiRadio
-              :label="t('dashboard.snapshot.edit.dialog.balances.token')"
-              internal-value="token"
-            />
-            <RuiRadio
-              :label="t('dashboard.snapshot.edit.dialog.balances.nft')"
-              internal-value="nft"
-            />
-          </template>
+          <RuiRadio
+            :label="t('dashboard.snapshot.edit.dialog.balances.token')"
+            value="token"
+          />
+          <RuiRadio
+            :label="t('dashboard.snapshot.edit.dialog.balances.nft')"
+            value="nft"
+          />
         </RuiRadioGroup>
         <AssetSelect
           v-if="assetType === 'token'"
@@ -182,8 +180,8 @@ function updateAsset(asset: string) {
           class="mb-1.5"
           :error-messages="toMessages(v$.assetIdentifier)"
           :hint="t('dashboard.snapshot.edit.dialog.balances.nft_hint')"
-          @blur="updateAsset($event.target.value)"
         />
+        <!-- @blur="updateAsset($event.target.value)" temporarily removed until we figure out what's wrong -->
       </div>
     </div>
     <AmountInput
@@ -195,8 +193,8 @@ function updateAsset(asset: string) {
     />
 
     <TwoFieldsAmountInput
-      :primary-value.sync="price"
-      :secondary-value.sync="usdValue"
+      v-model:primary-value="price"
+      v-model:secondary-value="usdValue"
       data-cy="trade-rate"
       :label="{
         primary: t('common.price'),

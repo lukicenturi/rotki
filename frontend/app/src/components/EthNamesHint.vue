@@ -7,11 +7,11 @@ const { t } = useI18n();
     <RuiMenu
       :popper="{ placement: 'right' }"
     >
-      <template #activator="{ on }">
+      <template #activator="{ attrs }">
         <RuiButton
           variant="text"
           icon
-          v-on="on"
+          v-bind="attrs"
         >
           <RuiIcon name="question-line" />
         </RuiButton>

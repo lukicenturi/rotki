@@ -10,6 +10,7 @@ import {
 import { isEqual } from 'lodash-es';
 import { LogLevel } from '@/utils/log-level';
 import { toMessages } from '@/utils/validation';
+import type { RuiIcons } from '@rotki/ui-library';
 import type { BackendOptions } from '@/electron-main/ipc';
 import type { Writeable } from '@/types';
 import type { BackendConfiguration } from '@/types/backend';
@@ -204,7 +205,7 @@ watch(v$, ({ $invalid }) => {
   set(valid, !$invalid);
 });
 
-function icon(level: LogLevel): string {
+function icon(level: LogLevel): RuiIcons {
   if (level === LogLevel.DEBUG)
     return 'bug-line';
   else if (level === LogLevel.INFO)
@@ -384,11 +385,7 @@ const [CreateLabel, ReuseLabel] = createReusableTemplate<{ item: string }>();
         :disabled="!!fileConfig.loglevel"
         :label="t('backend_settings.settings.log_level.label')"
         :hide-details="!fileConfig.loglevel"
-        :hint="
-          !!fileConfig.loglevel
-            ? t('backend_settings.config_file_disabled')
-            : undefined
-        "
+        :hint="!!fileConfig.loglevel ? t('backend_settings.config_file_disabled') : undefined"
         variant="outlined"
       >
         <template #item="{ item }">

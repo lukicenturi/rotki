@@ -118,8 +118,8 @@ const accountingTreatments = Object.values(AccountingTreatment).map(
 <template>
   <form>
     <HistoryEventTypeForm
-      :event-type.sync="state.eventType"
-      :event-subtype.sync="state.eventSubtype"
+      v-model:event-type="state.eventType"
+      v-model:event-subtype="state.eventSubtype"
       :counterparty="state.counterparty"
       :v$="v$"
       disable-warning

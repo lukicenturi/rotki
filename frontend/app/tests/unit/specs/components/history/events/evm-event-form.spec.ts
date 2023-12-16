@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
@@ -22,7 +22,7 @@ vi.mock('@/store/balances/prices', () => ({
 
 describe('evmEventForm.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<EvmEventForm>;
+  let wrapper: VueWrapper<InstanceType<typeof EvmEventForm>>;
   let pinia: Pinia;
 
   const asset = {
@@ -69,8 +69,19 @@ describe('evmEventForm.vue', () => {
     vi.mocked(useBalancePricesStore().getHistoricPrice).mockResolvedValue(One);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any> = {}) => mount(EvmEventForm, {
-    pinia,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof EvmEventForm> = {}) => mount(EvmEventForm, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+      stubs: {
+        I18nT: true,
+      },
+    },
     ...options,
   });
 
@@ -103,7 +114,7 @@ describe('evmEventForm.vue', () => {
           wrapper.find('[data-cy=sequenceIndex] input')
             .element as HTMLInputElement
         ).value,
-      ).toBe('');
+      ).toBe('0');
     });
 
     it('`groupHeader` and `nextSequence` are passed', async () => {
@@ -111,29 +122,15 @@ describe('evmEventForm.vue', () => {
       await nextTick();
       await wrapper.setProps({ groupHeader, nextSequence: '10' });
 
-      expect(
-        (wrapper.find('[data-cy=txHash] input').element as HTMLInputElement)
-          .value,
-      ).toBe(groupHeader.txHash);
+      expect((wrapper.find('[data-cy=txHash] input').element as HTMLInputElement).value).toBe(groupHeader.txHash);
 
-      expect(
-        (
-          wrapper.find('[data-cy=locationLabel] .input-value')
-            .element as HTMLInputElement
-        ).value,
-      ).toBe(groupHeader.locationLabel);
+      expect((wrapper.find('[data-cy=locationLabel] .input-value').element as HTMLInputElement).value)
+        .toBe(groupHeader.locationLabel);
 
-      expect(
-        (
-          wrapper.find('[data-cy=address] .input-value')
-            .element as HTMLInputElement
-        ).value,
-      ).toBe(groupHeader.address);
+      expect((wrapper.find('[data-cy=address] .input-value').element as HTMLInputElement).value)
+        .toBe(groupHeader.address);
 
-      expect(
-        (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
-          .value,
-      ).toBe('');
+      expect((wrapper.find('[data-cy=amount] input').element as HTMLInputElement).value).toBe('0');
 
       expect(
         (
@@ -196,7 +193,7 @@ describe('evmEventForm.vue', () => {
   });
 
   it('should show all eventTypes options correctly', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -208,7 +205,7 @@ describe('evmEventForm.vue', () => {
   });
 
   it('should show all eventSubTypes options correctly', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -220,7 +217,7 @@ describe('evmEventForm.vue', () => {
   });
 
   it('should show all counterparties options correctly', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -232,7 +229,7 @@ describe('evmEventForm.vue', () => {
   });
 
   it('should show correct eventSubtypes options, based on selected eventType and counterparty', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
@@ -260,13 +257,11 @@ describe('evmEventForm.vue', () => {
   });
 
   it('should show product options, based on selected counterparty', async () => {
-    wrapper = createWrapper({ propsData: { groupHeader } });
+    wrapper = createWrapper({ props: { groupHeader } });
     await nextTick();
     await flushPromises();
 
-    expect(wrapper.find('[data-cy=product]').attributes('disabled')).toBe(
-      'disabled',
-    );
+    expect(wrapper.find('[data-cy=product]').attributes('disabled')).toBe('true');
 
     // input is still disabled, if the counterparty doesn't have mapped products.
     await wrapper.find('[data-cy=counterparty] .input-value').trigger('input', {
@@ -274,9 +269,7 @@ describe('evmEventForm.vue', () => {
     });
     await nextTick();
 
-    expect(wrapper.find('[data-cy=product]').attributes('disabled')).toBe(
-      'disabled',
-    );
+    expect(wrapper.find('[data-cy=product]').attributes('disabled')).toBe('true');
 
     // products options should be showed correctly, if the counterparty have mapped products.
     const selectedCounterparty = 'convex';

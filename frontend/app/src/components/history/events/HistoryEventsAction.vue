@@ -40,13 +40,13 @@ const deleteTxAndEvents = ({ txHash, location }: EvmHistoryEvent) => emit('delet
       :popper="{ placement: 'bottom-end' }"
       close-on-content-click
     >
-      <template #activator="{ on }">
+      <template #activator="{ attrs }">
         <RuiButton
           variant="text"
           icon
           size="sm"
           class="!p-2"
-          v-on="on"
+          v-bind="attrs"
         >
           <RuiIcon
             name="more-2-fill"

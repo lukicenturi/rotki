@@ -1,4 +1,4 @@
-import { type Wrapper, mount } from '@vue/test-utils';
+import { type VueWrapper, mount } from '@vue/test-utils';
 import SuggestedItem from '@/components/table-filter/SuggestedItem.vue';
 import type { Suggestion } from '@/types/filtering';
 
@@ -14,17 +14,13 @@ vi.mock('@/composables/assets/retrieval', () => ({
   }),
 }));
 
-vi.mocked(useCssModule).mockReturnValue({
-  comparator: 'comparator',
-});
-
 describe('table-filter/SuggestedItem.vue', () => {
-  let wrapper: Wrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof SuggestedItem>>;
   const createWrapper = (props: {
     suggestion?: Suggestion;
     chip?: boolean;
   }) => mount(SuggestedItem, {
-    propsData: {
+    props: {
       ...props,
     },
   });
@@ -39,6 +35,10 @@ describe('table-filter/SuggestedItem.vue', () => {
     isCustomAsset: false,
     name: 'Name 1',
   };
+
+  afterEach(() => {
+    wrapper.unmount();
+  });
 
   describe('check if suggestion type is asset', () => {
     it('asset = false', () => {
@@ -120,8 +120,10 @@ describe('table-filter/SuggestedItem.vue', () => {
     wrapper = createWrapper({ suggestion, chip: true });
 
     expect(
-      wrapper.find('span > span:nth-child(2)').classes().includes('comparator'),
-    ).toBe(true);
+      wrapper.find('span > span:nth-child(2)').classes(),
+    ).toEqual(
+      expect.arrayContaining([expect.stringMatching(/_comparator_/)]),
+    );
   });
 
   it('for boolean value', async () => {
@@ -134,7 +136,7 @@ describe('table-filter/SuggestedItem.vue', () => {
     };
     wrapper = createWrapper({ suggestion });
 
-    await expect(wrapper.find('span').text()).toBe(`${key} = true`);
+    await expect(wrapper.find('span').text()).toBe(`${key}=true`);
 
     await wrapper.setProps({ chip: true });
 

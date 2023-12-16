@@ -80,7 +80,7 @@ onMounted(() => {
             :error-messages="
               error || toMessages(v$.refreshPeriod)
             "
-            @input="callIfValid($event, update)"
+            @update:model-value="callIfValid($event, update)"
           />
         </SettingsOption>
       </div>
@@ -97,7 +97,7 @@ onMounted(() => {
           class="mt-4"
           :label="t('frontend_settings.label.refresh_enabled')"
           color="primary"
-          @input="update($event)"
+          @update:model-value="update($event)"
         />
       </SettingsOption>
     </div>

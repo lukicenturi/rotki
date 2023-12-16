@@ -61,7 +61,7 @@ onMounted(() => {
       class="general-settings__fields__date-input-format"
       :success-messages="success"
       :error-messages="error || toMessages(v$.dateInputFormat)"
-      @input="callIfValid($event, updateImmediate)"
+      @update:model-value="callIfValid($event, updateImmediate)"
     />
   </SettingsOption>
 </template>

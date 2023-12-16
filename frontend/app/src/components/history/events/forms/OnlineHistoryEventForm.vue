@@ -36,9 +36,7 @@ const lastLocation = useLocalStorage(
   TRADE_LOCATION_EXTERNAL,
 );
 
-const assetPriceForm: Ref<InstanceType<
-  typeof HistoryEventAssetPriceForm
-> | null> = ref(null);
+const assetPriceForm = ref<InstanceType<typeof HistoryEventAssetPriceForm>>();
 
 const eventIdentifier: Ref<string> = ref('');
 const sequenceIndex: Ref<string> = ref('');
@@ -318,18 +316,18 @@ const locationLabelSuggestions = computed(() =>
 
     <HistoryEventAssetPriceForm
       ref="assetPriceForm"
+      v-model:asset="asset"
+      v-model:amount="amount"
+      v-model:usd-value="usdValue"
       :v$="v$"
       :datetime="datetime"
-      :asset.sync="asset"
-      :amount.sync="amount"
-      :usd-value.sync="usdValue"
     />
 
     <RuiDivider class="my-10" />
 
     <HistoryEventTypeForm
-      :event-type.sync="eventType"
-      :event-subtype.sync="eventSubtype"
+      v-model:event-type="eventType"
+      v-model:event-subtype="eventSubtype"
       :v$="v$"
     />
 

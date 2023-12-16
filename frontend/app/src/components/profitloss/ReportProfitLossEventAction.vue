@@ -84,15 +84,13 @@ async function updatePrice() {
 
 <template>
   <div class="flex justify-end">
-    <RuiMenu
-      :popper="{ placement: 'bottom-end' }"
-    >
-      <template #activator="{ on }">
+    <RuiMenu :popper="{ placement: 'bottom-end' }">
+      <template #activator="{ attrs }">
         <RuiButton
           variant="text"
           class="!p-2"
           icon
-          v-on="on"
+          v-bind="attrs"
         >
           <RuiIcon name="more-2-fill" />
         </RuiButton>
@@ -128,14 +126,14 @@ async function updatePrice() {
             outlined
           />
           <AssetSelect
-            :value="currency"
+            :model-value="currency"
             :label="t('price_form.to_asset')"
             hide-details
             disabled
             outlined
           />
           <DateTimePicker
-            :value="datetime"
+            :model-value="datetime"
             disabled
             hide-details
             :label="t('common.datetime')"

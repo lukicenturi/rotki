@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, setActivePinia } from 'pinia';
@@ -16,7 +16,7 @@ vi.mock('@/composables/api/settings/settings-api', () => ({
 
 describe('dateTimePicker.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<DateTimePicker>;
+  let wrapper: VueWrapper<InstanceType<typeof DateTimePicker>>;
   let store: ReturnType<typeof useFrontendSettingsStore>;
   let pinia: Pinia;
 
@@ -26,22 +26,33 @@ describe('dateTimePicker.vue', () => {
   });
 
   afterEach(() => {
-    useFrontendSettingsStore().$reset();
+    wrapper.unmount();
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any>) => mount(DateTimePicker, {
-    pinia,
-    stubs: {
-      RuiMenu: {
-        template: '<span><slot name="activator"/><slot /></span>',
+  const createWrapper = (options: ComponentMountingOptions<typeof DateTimePicker>) => mount(DateTimePicker, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+      stubs: {
+        RuiMenu: {
+          template: '<span><slot name="activator"/><slot /></span>',
+        },
+
+        TransitionGroup: {
+          template: '<span><slot /></span>',
+        },
       },
-      TransitionGroup: '<span><slot /></span>',
     },
     ...options,
   });
 
   it('should show indicator when format is wrong', async () => {
-    wrapper = createWrapper({});
+    wrapper = createWrapper({
+      props: {
+        modelValue: '',
+      },
+    });
     await nextTick();
 
     await wrapper.find('input').setValue('12/12/202');
@@ -58,7 +69,11 @@ describe('dateTimePicker.vue', () => {
   });
 
   it('should allow seconds value to be optional', async () => {
-    wrapper = createWrapper({});
+    wrapper = createWrapper({
+      props: {
+        modelValue: '',
+      },
+    });
     await nextTick();
 
     await wrapper.find('input').setValue('12/12/2021 12:12');
@@ -68,8 +83,9 @@ describe('dateTimePicker.vue', () => {
 
   it('should allow milliseconds value to be also inputted', async () => {
     wrapper = createWrapper({
-      propsData: {
+      props: {
         milliseconds: true,
+        modelValue: '',
       },
     });
     await nextTick();
@@ -77,11 +93,16 @@ describe('dateTimePicker.vue', () => {
     await wrapper.find('input').setValue('12/12/2021 12:12:12.333');
     await nextTick();
     expect(wrapper.find('.text-rui-error').exists()).toBeFalsy();
-    expect(wrapper.emitted().input?.[0]).toEqual(['12/12/2021 12:12:12.333']);
+    expect(wrapper.emitted()).toHaveProperty('update:model-value');
+    expect(wrapper.emitted('update:model-value')[0]).toEqual(['12/12/2021 12:12:12.333']);
   });
 
   it('should show trim value when the length of the input exceed the max length allowed', async () => {
-    wrapper = createWrapper({});
+    wrapper = createWrapper({
+      props: {
+        modelValue: '',
+      },
+    });
     await nextTick();
 
     await wrapper.find('input').setValue('12/12/2021 12:12:12');
@@ -106,7 +127,7 @@ describe('dateTimePicker.vue', () => {
     vi.setSystemTime(date);
 
     wrapper = createWrapper({
-      propsData: { limitNow: true },
+      props: { limitNow: true, modelValue: '' },
     });
     await nextTick();
 
@@ -126,7 +147,7 @@ describe('dateTimePicker.vue', () => {
     vi.setSystemTime(date);
 
     wrapper = createWrapper({
-      propsData: { limitNow: true },
+      props: { limitNow: true, modelValue: '' },
     });
     await nextTick();
 
@@ -139,7 +160,8 @@ describe('dateTimePicker.vue', () => {
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe(
       '01/01/2023 01:01:01',
     );
-    expect(wrapper.emitted().input?.[0]).toEqual(['01/01/2023 01:01:01']);
+    expect(wrapper.emitted()).toHaveProperty('update:model-value');
+    expect(wrapper.emitted('update:model-value')[0]).toEqual(['01/01/2023 01:01:01']);
   });
 
   it('should work with format YYYY-MM-DD', async () => {
@@ -149,7 +171,7 @@ describe('dateTimePicker.vue', () => {
     });
 
     wrapper = createWrapper({
-      propsData: { value: '12/12/2021 12:12:12' },
+      props: { modelValue: '12/12/2021 12:12:12' },
     });
 
     await nextTick();
@@ -158,17 +180,17 @@ describe('dateTimePicker.vue', () => {
     );
 
     await wrapper.find('input').setValue('2023/06/06 12:12:12');
-    await get(wrapper.vm._setupState.imask).updateValue();
     await nextTick();
 
-    expect(wrapper.emitted().input?.[1]).toEqual(['06/06/2023 12:12:12']);
+    expect(wrapper.emitted()).toHaveProperty('update:model-value');
+    expect(wrapper.emitted('update:model-value')[1]).toEqual(['06/06/2023 12:12:12']);
   });
 
   describe('should adjust the timezone', () => {
     it('should render and emit the value correctly', async () => {
       wrapper = createWrapper({
-        propsData: {
-          value: '12/12/2021 12:12:12',
+        props: {
+          modelValue: '12/12/2021 12:12:12',
         },
       });
 
@@ -186,14 +208,13 @@ describe('dateTimePicker.vue', () => {
       );
 
       await wrapper.find('input').setValue('');
-      await get(wrapper.vm._setupState.imask).updateValue();
       await nextTick();
 
       await wrapper.find('input').setValue('12/12/2021 23:59:12');
-      await get(wrapper.vm._setupState.imask).updateValue();
       await nextTick();
 
-      expect(wrapper.emitted().input?.[2]).toEqual(['12/12/2021 16:59:12']);
+      expect(wrapper.emitted()).toHaveProperty('update:model-value');
+      expect(wrapper.emitted('update:model-value')[2]).toEqual(['12/12/2021 16:59:12']);
     });
 
     it('should not allow future datetime', async () => {
@@ -203,7 +224,7 @@ describe('dateTimePicker.vue', () => {
       vi.setSystemTime(date);
 
       wrapper = createWrapper({
-        propsData: { limitNow: true },
+        props: { limitNow: true, modelValue: '' },
       });
       await nextTick();
 
@@ -214,19 +235,16 @@ describe('dateTimePicker.vue', () => {
 
       await wrapper.find('input').setValue('01/01/2023 00:00:00');
 
-      await get(wrapper.vm._setupState.imask).updateValue();
       await nextTick();
       expect(wrapper.find('.text-rui-error').exists()).toBeFalsy();
 
       await wrapper.find('input').setValue('01/01/2023 00:59:59');
 
-      await get(wrapper.vm._setupState.imask).updateValue();
       await nextTick();
       expect(wrapper.find('.text-rui-error').exists()).toBeFalsy();
 
       await wrapper.find('input').setValue('01/01/2023 01:00:01');
 
-      await get(wrapper.vm._setupState.imask).updateValue();
       await nextTick();
       expect(wrapper.find('.text-rui-error').exists()).toBeTruthy();
     });
@@ -238,7 +256,7 @@ describe('dateTimePicker.vue', () => {
       vi.setSystemTime(date);
 
       wrapper = createWrapper({
-        propsData: { limitNow: true },
+        props: { limitNow: true, modelValue: '' },
       });
       await nextTick();
 
@@ -256,7 +274,8 @@ describe('dateTimePicker.vue', () => {
       expect((wrapper.find('input').element as HTMLInputElement).value).toBe(
         '01/01/2023 06:05:05',
       );
-      expect(wrapper.emitted().input?.[0]).toEqual(['01/01/2023 05:05:05']);
+      expect(wrapper.emitted()).toHaveProperty('update:model-value');
+      expect(wrapper.emitted('update:model-value')[0]).toEqual(['01/01/2023 05:05:05']);
     });
   });
 });

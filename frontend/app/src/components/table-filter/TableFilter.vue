@@ -8,15 +8,19 @@ import type {
   Suggestion,
 } from '@/types/filtering';
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = withDefaults(
   defineProps<{
     matches: MatchedKeywordWithBehaviour<any>;
     matchers: SearchMatcher<any, any>[];
-    location?: SavedFilterLocation | null;
+    location?: SavedFilterLocation;
     disabled?: boolean;
   }>(),
   {
-    location: null,
+    location: undefined,
     disabled: false,
   },
 );
@@ -29,8 +33,6 @@ const { matchers, matches } = toRefs(props);
 
 const input = ref();
 const selection = ref<Suggestion[]>([]);
-
-const selectionWithIdentifier = computed(() => selection.value.map((item, index) => ({ ...item, indexValue: index })));
 
 const search = ref('');
 const selectedSuggestion = ref(0);
@@ -46,7 +48,7 @@ const validKeys = computed(() => get(matchers).map(({ key }) => key));
 const selectedMatcher = computed(() => {
   const searchKey = splitSearch(get(search));
   const key = get(validKeys).find(value => value === searchKey.key);
-  return matcherForKey(key) ?? null;
+  return matcherForKey(key) ?? undefined;
 });
 
 const usedKeys = computed(() => get(selection).map(entry => entry.key));
@@ -117,8 +119,7 @@ function updateMatches(pairs: Suggestion[]) {
       }
     }
     else if ('asset' in matcher) {
-      transformedKeyword
-        = typeof entry.value !== 'string' ? entry.value.identifier : entry.value;
+      transformedKeyword = typeof entry.value !== 'string' ? entry.value.identifier : entry.value;
     }
     else {
       transformedKeyword = true;
@@ -192,7 +193,7 @@ async function applySuggestion() {
 
   const filter = get(suggestedFilter);
   if (filter.value) {
-    nextTick(() => applyFilter(filter));
+    await nextTick(() => applyFilter(filter));
   }
   else {
     const { key, value: keyword, exclude } = splitSearch(get(search));
@@ -220,7 +221,7 @@ async function applySuggestion() {
         && 'validate' in matcher
         && matcher.validate(keyword)
       ) {
-        nextTick(() =>
+        await nextTick(() =>
           applyFilter({
             key,
             asset,
@@ -293,11 +294,11 @@ function getSuggestionText(suggestion: Suggestion) {
   };
 }
 
-function selectItem(suggestion: Suggestion) {
-  nextTick(() => {
+async function selectItem(suggestion: Suggestion) {
+  await nextTick(async () => {
     const suggestionText = getSuggestionText(suggestion);
     set(search, suggestionText.text);
-    nextTick(() => {
+    await nextTick(() => {
       get(input)?.setSelectionRange?.(suggestionText.startSelection, suggestionText.endSelection);
     });
   });
@@ -337,8 +338,7 @@ function restoreSelection(matches: MatchedKeywordWithBehaviour<any>): void {
             normalizedValue = value.substring(1);
             exclude = true;
           }
-          deserializedValue
-            = foundMatchers.deserializer?.(normalizedValue) || normalizedValue;
+          deserializedValue = foundMatchers.deserializer?.(normalizedValue) || normalizedValue;
         }
       }
 
@@ -384,7 +384,8 @@ const { t } = useI18n();
       >
         <RuiAutoComplete
           ref="input"
-          :value="selectionWithIdentifier"
+          v-model:search-input="search"
+          :model-value="selection"
           variant="outlined"
           dense
           :disabled="disabled"
@@ -393,18 +394,15 @@ const { t } = useI18n();
           hide-details
           custom-value
           :options="[]"
-          key-attr="indexValue"
           return-object
           disable-interaction
-          :search-input.sync="search"
-          @input="updateMatches($event)"
+          v-bind="$attrs"
+          @update:model-value="updateMatches($event)"
           @keydown.enter="applySuggestion()"
-          @keydown.up.prevent
-          @keydown.up="moveSuggestion(true)"
-          @keydown.down.prevent
-          @keydown.down="moveSuggestion(false)"
+          @keydown.up.prevent="moveSuggestion(true)"
+          @keydown.down.prevent="moveSuggestion(false)"
         >
-          <template #selection="{ item, chipOn, chipAttrs }">
+          <template #selection="{ item, chipAttrs }">
             <RuiChip
               tile
               size="sm"
@@ -413,7 +411,6 @@ const { t } = useI18n();
               closeable
               v-bind="chipAttrs"
               @click="clickItem(item)"
-              v-on="chipOn"
             >
               <SuggestedItem
                 chip
@@ -425,12 +422,9 @@ const { t } = useI18n();
             <FilterDropdown
               class="py-4"
               :matchers="filteredMatchers"
-              :used="usedKeys"
               :keyword="search"
               :selected-matcher="selectedMatcher"
-              :selection="selection"
               :selected-suggestion="selectedSuggestion"
-              :location="location"
               @apply-filter="applyFilter($event)"
               @suggest="suggestedFilter = $event"
               @click="setSearchToMatcherKey($event)"

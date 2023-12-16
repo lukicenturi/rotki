@@ -244,7 +244,7 @@ onBeforeMount(async () => {
   set(savedUsernames, profiles);
   if (profiles.length === 0) {
     const { currentRoute } = router;
-    if (!currentRoute.query.disableNoUserRedirection)
+    if (!get(currentRoute).query.disableNoUserRedirection)
       newAccount();
     else
       await router.replace({ query: {} });
@@ -310,10 +310,10 @@ function abortLogin() {
 <template>
   <Transition
     appear
-    enter-class="translate-y-5 opacity-0"
+    enter-from-class="translate-y-5 opacity-0"
     enter-to-class="translate-y-0 opacity-1"
     enter-active-class="transform duration-300"
-    leave-class="-translate-y-0 opacity-1"
+    leave-from-class="-translate-y-0 opacity-1"
     leave-to-class="-translate-y-5 opacity-0"
     leave-active-class="transform duration-100"
   >
@@ -327,8 +327,8 @@ function abortLogin() {
           <p class="mb-3">
             {{ t('login.description.welcome') }}
           </p>
-          <i18n
-            path="login.description.more_details"
+          <i18n-t
+            keypath="login.description.more_details"
             tag="p"
           >
             <template #documentation>
@@ -337,7 +337,7 @@ function abortLogin() {
                 :url="externalLinks.usageGuide"
               />
             </template>
-          </i18n>
+          </i18n-t>
         </div>
 
         <div>
@@ -363,7 +363,7 @@ function abortLogin() {
               v-else
               ref="usernameRef"
               v-model="username"
-              :search-input.sync="usernameSearch"
+              v-model:search-input="usernameSearch"
               :label="t('login.label_username')"
               :options="orderedUsernamesList"
               :disabled="loading || conflictExist || customBackendDisplay"
@@ -384,7 +384,7 @@ function abortLogin() {
               </template>
               <template #no-data>
                 <div class="px-4 py-2 text-body-2 font-medium">
-                  <i18n path="login.no_profiles_found">
+                  <i18n-t keypath="login.no_profiles_found">
                     <template #create_account>
                       <RuiButton
                         color="primary"
@@ -397,7 +397,7 @@ function abortLogin() {
                         {{ t('login.button_create_account') }}
                       </RuiButton>
                     </template>
-                  </i18n>
+                  </i18n-t>
                 </div>
               </template>
             </RuiAutoComplete>
@@ -495,10 +495,10 @@ function abortLogin() {
             </div>
 
             <Transition
-              enter-class="h-0 opacity-0"
+              enter-from-class="h-0 opacity-0"
               enter-to-class="h-full opacity-1"
               enter-active-class="transition duration-300"
-              leave-class="h-full opacity-1"
+              leave-from-class="h-full opacity-1"
               leave-to-class="h-0 opacity-0"
               leave-active-class="transition duration-100"
             >
@@ -599,7 +599,7 @@ function abortLogin() {
                 v-model="dynamicMessageDialog"
                 max-width="400"
               >
-                <template #activator="{ on }">
+                <template #activator="{ attrs }">
                   <RuiButton
                     color="primary"
                     class="lg:hidden w-full"
@@ -608,7 +608,7 @@ function abortLogin() {
                     variant="outlined"
                     type="button"
                     data-cy="show-dynamic-messages"
-                    v-on="on"
+                    v-bind="attrs"
                   >
                     {{ welcomeMessage.action.text }}
                   </RuiButton>

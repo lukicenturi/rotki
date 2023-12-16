@@ -55,9 +55,7 @@ const { t } = useI18n();
         v-if="!hideChainIcon"
         class="pr-1"
       >
-        <div
-          class="rounded-full overflow-hidden w-6 h-6 dark:bg-rui-grey-600 flex items-center justify-center"
-        >
+        <div class="rounded-full overflow-hidden w-6 h-6 dark:bg-rui-grey-600 flex items-center justify-center">
           <ChainIcon
             v-if="account.chain && account.chain !== 'ALL'"
             size="22px"

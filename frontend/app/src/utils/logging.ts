@@ -2,6 +2,7 @@ import logger, { type LogLevelNames, type LogLevelNumbers, type LoggingMethod,
 } from 'loglevel';
 import { IndexedDb } from '@/utils/indexed-db';
 import { LogLevel } from '@/utils/log-level';
+import { checkIfDevelopment } from '@/utils/env-utils';
 
 const isDevelopment = checkIfDevelopment();
 

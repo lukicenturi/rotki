@@ -34,6 +34,7 @@ declare global {
   const assert: typeof import('./utils/assertions')['assert']
   const assetSum: typeof import('./utils/calculation')['assetSum']
   const asyncComputed: typeof import('@vueuse/core')['asyncComputed']
+  const attemptPolyfillResizeObserver: typeof import('./utils/cypress')['attemptPolyfillResizeObserver']
   const autoResetRef: typeof import('@vueuse/core')['autoResetRef']
   const awaitParallelExecution: typeof import('./utils/await-parallel-execution')['awaitParallelExecution']
   const backoff: typeof import('./utils/backoff')['backoff']
@@ -216,10 +217,11 @@ declare global {
   const mergeAssociatedAssets: typeof import('./utils/balances')['mergeAssociatedAssets']
   const nextTick: typeof import('vue')['nextTick']
   const nonEmptyProperties: typeof import('./utils/data')['nonEmptyProperties']
+  const nullDefined: typeof import('./utils/model/index')['nullDefined']
   const onActivated: typeof import('vue')['onActivated']
   const onBeforeMount: typeof import('vue')['onBeforeMount']
-  const onBeforeRouteLeave: typeof import('vue-router/composables')['onBeforeRouteLeave']
-  const onBeforeRouteUpdate: typeof import('vue-router/composables')['onBeforeRouteUpdate']
+  const onBeforeRouteLeave: typeof import('vue-router')['onBeforeRouteLeave']
+  const onBeforeRouteUpdate: typeof import('vue-router')['onBeforeRouteUpdate']
   const onBeforeUnmount: typeof import('vue')['onBeforeUnmount']
   const onBeforeUpdate: typeof import('vue')['onBeforeUpdate']
   const onClickOutside: typeof import('@vueuse/core')['onClickOutside']
@@ -532,8 +534,7 @@ declare global {
   const useHistoryTransactionDecoding: typeof import('./composables/history/events/tx/decoding')['useHistoryTransactionDecoding']
   const useHistoryTransactions: typeof import('./composables/history/events/tx/index')['useHistoryTransactions']
   const useHistoryTransactionsForm: typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']
-  const useI18n: typeof import('./composables/usei18n')['useI18n']
-  const useI18nLocale: typeof import('./composables/usei18n')['useI18nLocale']
+  const useI18n: typeof import('vue-i18n')['useI18n']
   const useIdle: typeof import('@vueuse/core')['useIdle']
   const useIgnore: typeof import('./composables/history/index')['useIgnore']
   const useIgnoredAssetsStore: typeof import('./store/assets/ignored')['useIgnoredAssetsStore']
@@ -556,7 +557,7 @@ declare global {
   const useLastLanguage: typeof import('./composables/session/language')['useLastLanguage']
   const useLatestPriceForm: typeof import('./composables/price-manager/latest/form')['useLatestPriceForm']
   const useLatestPrices: typeof import('./composables/price-manager/latest/index')['useLatestPrices']
-  const useLink: typeof import('vue-router/composables')['useLink']
+  const useLink: typeof import('vue-router')['useLink']
   const useLinks: typeof import('./composables/links')['useLinks']
   const useLiquidityPosition: typeof import('./composables/defi/index')['useLiquidityPosition']
   const useLiquityApi: typeof import('./composables/api/defi/liquity')['useLiquityApi']
@@ -645,8 +646,8 @@ declare global {
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useRestartingStatus: typeof import('./composables/user/account')['useRestartingStatus']
   const useRound: typeof import('@vueuse/math')['useRound']
-  const useRoute: typeof import('vue-router/composables')['useRoute']
-  const useRouter: typeof import('vue-router/composables')['useRouter']
+  const useRoute: typeof import('vue-router')['useRoute']
+  const useRouter: typeof import('vue-router')['useRouter']
   const useSavedFilter: typeof import('./composables/filters/saved')['useSavedFilter']
   const useScramble: typeof import('./composables/scramble')['useScramble']
   const useScreenOrientation: typeof import('@vueuse/core')['useScreenOrientation']
@@ -776,6 +777,18 @@ declare global {
   // @ts-ignore
   export type { Component, ComponentPublicInstance, ComputedRef, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { SettingLocation } from './composables/settings/index'
+  import('./composables/settings/index')
+  // @ts-ignore
+  export type { Unit } from './utils/calculation'
+  import('./utils/calculation')
+  // @ts-ignore
+  export type { LogLevel } from './utils/log-level'
+  import('./utils/log-level')
+  // @ts-ignore
+  export type { XpubPrefix } from './utils/xpub'
+  import('./utils/xpub')
 }
 // for vue template auto import
 import { UnwrapRef } from 'vue'
@@ -811,6 +824,7 @@ declare module 'vue' {
     readonly assert: UnwrapRef<typeof import('./utils/assertions')['assert']>
     readonly assetSum: UnwrapRef<typeof import('./utils/calculation')['assetSum']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
+    readonly attemptPolyfillResizeObserver: UnwrapRef<typeof import('./utils/cypress')['attemptPolyfillResizeObserver']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly awaitParallelExecution: UnwrapRef<typeof import('./utils/await-parallel-execution')['awaitParallelExecution']>
     readonly backoff: UnwrapRef<typeof import('./utils/backoff')['backoff']>
@@ -989,10 +1003,11 @@ declare module 'vue' {
     readonly mergeAssociatedAssets: UnwrapRef<typeof import('./utils/balances')['mergeAssociatedAssets']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly nonEmptyProperties: UnwrapRef<typeof import('./utils/data')['nonEmptyProperties']>
+    readonly nullDefined: UnwrapRef<typeof import('./utils/model/index')['nullDefined']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
-    readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router/composables')['onBeforeRouteLeave']>
-    readonly onBeforeRouteUpdate: UnwrapRef<typeof import('vue-router/composables')['onBeforeRouteUpdate']>
+    readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router')['onBeforeRouteLeave']>
+    readonly onBeforeRouteUpdate: UnwrapRef<typeof import('vue-router')['onBeforeRouteUpdate']>
     readonly onBeforeUnmount: UnwrapRef<typeof import('vue')['onBeforeUnmount']>
     readonly onBeforeUpdate: UnwrapRef<typeof import('vue')['onBeforeUpdate']>
     readonly onClickOutside: UnwrapRef<typeof import('@vueuse/core')['onClickOutside']>
@@ -1297,8 +1312,7 @@ declare module 'vue' {
     readonly useHistoryTransactionDecoding: UnwrapRef<typeof import('./composables/history/events/tx/decoding')['useHistoryTransactionDecoding']>
     readonly useHistoryTransactions: UnwrapRef<typeof import('./composables/history/events/tx/index')['useHistoryTransactions']>
     readonly useHistoryTransactionsForm: UnwrapRef<typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']>
-    readonly useI18n: UnwrapRef<typeof import('./composables/usei18n')['useI18n']>
-    readonly useI18nLocale: UnwrapRef<typeof import('./composables/usei18n')['useI18nLocale']>
+    readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
     readonly useIgnore: UnwrapRef<typeof import('./composables/history/index')['useIgnore']>
     readonly useIgnoredAssetsStore: UnwrapRef<typeof import('./store/assets/ignored')['useIgnoredAssetsStore']>
@@ -1321,7 +1335,7 @@ declare module 'vue' {
     readonly useLastLanguage: UnwrapRef<typeof import('./composables/session/language')['useLastLanguage']>
     readonly useLatestPriceForm: UnwrapRef<typeof import('./composables/price-manager/latest/form')['useLatestPriceForm']>
     readonly useLatestPrices: UnwrapRef<typeof import('./composables/price-manager/latest/index')['useLatestPrices']>
-    readonly useLink: UnwrapRef<typeof import('vue-router/composables')['useLink']>
+    readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLinks: UnwrapRef<typeof import('./composables/links')['useLinks']>
     readonly useLiquidityPosition: UnwrapRef<typeof import('./composables/defi/index')['useLiquidityPosition']>
     readonly useLiquityApi: UnwrapRef<typeof import('./composables/api/defi/liquity')['useLiquityApi']>
@@ -1409,8 +1423,8 @@ declare module 'vue' {
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRestartingStatus: UnwrapRef<typeof import('./composables/user/account')['useRestartingStatus']>
     readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>
-    readonly useRoute: UnwrapRef<typeof import('vue-router/composables')['useRoute']>
-    readonly useRouter: UnwrapRef<typeof import('vue-router/composables')['useRouter']>
+    readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
+    readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSavedFilter: UnwrapRef<typeof import('./composables/filters/saved')['useSavedFilter']>
     readonly useScramble: UnwrapRef<typeof import('./composables/scramble')['useScramble']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>
@@ -1566,6 +1580,7 @@ declare module '@vue/runtime-core' {
     readonly assert: UnwrapRef<typeof import('./utils/assertions')['assert']>
     readonly assetSum: UnwrapRef<typeof import('./utils/calculation')['assetSum']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
+    readonly attemptPolyfillResizeObserver: UnwrapRef<typeof import('./utils/cypress')['attemptPolyfillResizeObserver']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly awaitParallelExecution: UnwrapRef<typeof import('./utils/await-parallel-execution')['awaitParallelExecution']>
     readonly backoff: UnwrapRef<typeof import('./utils/backoff')['backoff']>
@@ -1744,10 +1759,11 @@ declare module '@vue/runtime-core' {
     readonly mergeAssociatedAssets: UnwrapRef<typeof import('./utils/balances')['mergeAssociatedAssets']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly nonEmptyProperties: UnwrapRef<typeof import('./utils/data')['nonEmptyProperties']>
+    readonly nullDefined: UnwrapRef<typeof import('./utils/model/index')['nullDefined']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
-    readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router/composables')['onBeforeRouteLeave']>
-    readonly onBeforeRouteUpdate: UnwrapRef<typeof import('vue-router/composables')['onBeforeRouteUpdate']>
+    readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router')['onBeforeRouteLeave']>
+    readonly onBeforeRouteUpdate: UnwrapRef<typeof import('vue-router')['onBeforeRouteUpdate']>
     readonly onBeforeUnmount: UnwrapRef<typeof import('vue')['onBeforeUnmount']>
     readonly onBeforeUpdate: UnwrapRef<typeof import('vue')['onBeforeUpdate']>
     readonly onClickOutside: UnwrapRef<typeof import('@vueuse/core')['onClickOutside']>
@@ -2052,8 +2068,7 @@ declare module '@vue/runtime-core' {
     readonly useHistoryTransactionDecoding: UnwrapRef<typeof import('./composables/history/events/tx/decoding')['useHistoryTransactionDecoding']>
     readonly useHistoryTransactions: UnwrapRef<typeof import('./composables/history/events/tx/index')['useHistoryTransactions']>
     readonly useHistoryTransactionsForm: UnwrapRef<typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']>
-    readonly useI18n: UnwrapRef<typeof import('./composables/usei18n')['useI18n']>
-    readonly useI18nLocale: UnwrapRef<typeof import('./composables/usei18n')['useI18nLocale']>
+    readonly useI18n: UnwrapRef<typeof import('vue-i18n')['useI18n']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
     readonly useIgnore: UnwrapRef<typeof import('./composables/history/index')['useIgnore']>
     readonly useIgnoredAssetsStore: UnwrapRef<typeof import('./store/assets/ignored')['useIgnoredAssetsStore']>
@@ -2076,7 +2091,7 @@ declare module '@vue/runtime-core' {
     readonly useLastLanguage: UnwrapRef<typeof import('./composables/session/language')['useLastLanguage']>
     readonly useLatestPriceForm: UnwrapRef<typeof import('./composables/price-manager/latest/form')['useLatestPriceForm']>
     readonly useLatestPrices: UnwrapRef<typeof import('./composables/price-manager/latest/index')['useLatestPrices']>
-    readonly useLink: UnwrapRef<typeof import('vue-router/composables')['useLink']>
+    readonly useLink: UnwrapRef<typeof import('vue-router')['useLink']>
     readonly useLinks: UnwrapRef<typeof import('./composables/links')['useLinks']>
     readonly useLiquidityPosition: UnwrapRef<typeof import('./composables/defi/index')['useLiquidityPosition']>
     readonly useLiquityApi: UnwrapRef<typeof import('./composables/api/defi/liquity')['useLiquityApi']>
@@ -2164,8 +2179,8 @@ declare module '@vue/runtime-core' {
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRestartingStatus: UnwrapRef<typeof import('./composables/user/account')['useRestartingStatus']>
     readonly useRound: UnwrapRef<typeof import('@vueuse/math')['useRound']>
-    readonly useRoute: UnwrapRef<typeof import('vue-router/composables')['useRoute']>
-    readonly useRouter: UnwrapRef<typeof import('vue-router/composables')['useRouter']>
+    readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
+    readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSavedFilter: UnwrapRef<typeof import('./composables/filters/saved')['useSavedFilter']>
     readonly useScramble: UnwrapRef<typeof import('./composables/scramble')['useScramble']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>

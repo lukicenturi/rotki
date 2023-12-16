@@ -4,7 +4,7 @@ import type { XswapAsset } from '@rotki/common/lib/defi/xswap';
 import type {
   DataTableColumn,
   DataTableSortData,
-} from '@rotki/ui-library-compat';
+} from '@rotki/ui-library';
 
 withDefaults(
   defineProps<{
@@ -19,7 +19,7 @@ withDefaults(
 const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
 const { t } = useI18n();
 
-const tableHeaders = computed<DataTableColumn[]>(() => [
+const tableHeaders = computed<DataTableColumn<AssetBalanceWithPrice>[]>(() => [
   {
     label: t('common.asset'),
     key: 'asset',
@@ -61,7 +61,7 @@ function transformAssets(assets: XswapAsset[]): AssetBalanceWithPrice[] {
   }));
 }
 
-const sort: Ref<DataTableSortData> = ref({
+const sort: Ref<DataTableSortData<AssetBalanceWithPrice>> = ref({
   column: 'usdValue',
   direction: 'desc' as const,
 });

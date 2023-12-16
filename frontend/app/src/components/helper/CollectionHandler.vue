@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends object">
 import type { Collection } from '@/types/collection';
 
 const props = defineProps<{
-  collection: Collection<any>;
+  collection: Collection<T>;
 }>();
 
 const emit = defineEmits<{

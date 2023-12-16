@@ -13,10 +13,10 @@ export function useRandomStepper(steps: number, interval: number = 10000) {
 
   const { pause, resume } = useIntervalFn(setRandomStep, interval);
 
-  function onNavigate(newStep: number) {
+  async function onNavigate(newStep: number) {
     pause();
     set(step, newStep);
-    nextTick(resume);
+    await nextTick(resume);
   }
 
   onMounted(() => {

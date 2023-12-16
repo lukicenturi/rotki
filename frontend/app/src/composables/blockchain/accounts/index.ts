@@ -87,10 +87,10 @@ export function useBlockchainAccounts() {
 
       return result;
     }
+
     catch (error: any) {
       if (!isTaskCancelled(error))
         throw error;
-
       return {};
     }
   };

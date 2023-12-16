@@ -2,14 +2,10 @@
 import { objectOmit } from '@vueuse/shared';
 import { isEqual } from 'lodash-es';
 import { Section } from '@/types/status';
+import type { ManualBalance, ManualBalanceRequestPayload, ManualBalanceWithPrice } from '@/types/manual-balances';
 import type { Filters, Matcher } from '@/composables/filters/manual-balances';
 import type { Collection } from '@/types/collection';
-import type {
-  ManualBalance,
-  ManualBalanceRequestPayload,
-  ManualBalanceWithPrice,
-} from '@/types/manual-balances';
-import type { DataTableColumn } from '@rotki/ui-library-compat';
+import type { DataTableColumn } from '@rotki/ui-library';
 
 const props = defineProps<{
   title: string;
@@ -85,7 +81,7 @@ function getRowClass(item: ManualBalance) {
   return `manual-balance__location__${item.location}`;
 }
 
-const cols = computed<DataTableColumn[]>(() => [
+const cols = computed<DataTableColumn<ManualBalanceWithPrice>[]>(() => [
   {
     label: t('common.location'),
     key: 'location',
@@ -180,23 +176,23 @@ watchDebounced(isLoading(Section.PRICES), async (isLoading, wasLoading) => {
               hide-details
             />
             <TableFilter
+              v-model:matches="filters"
               class="w-full flex-1"
               :matchers="matchers"
-              :matches.sync="filters"
             />
           </div>
         </div>
       </div>
     </template>
     <RuiDataTable
+      v-model:sort="sort"
+      v-model:pagination="pagination"
       outlined
       dense
       :loading="loading"
       :cols="cols"
-      row-attr="id"
+      row-attr="label"
       :rows="state.data"
-      :sort.sync="sort"
-      :pagination.sync="pagination"
       :item-class="getRowClass"
       class="manual-balances-list"
     >
@@ -210,7 +206,7 @@ watchDebounced(isLoading(Section.PRICES), async (isLoading, wasLoading) => {
         >
           {{ row.label }}
         </div>
-        <div>
+        <div v-if="row.tags">
           <TagDisplay
             :tags="row.tags"
             :small="true"

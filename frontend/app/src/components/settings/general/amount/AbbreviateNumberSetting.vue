@@ -55,7 +55,7 @@ const items = computed(() => {
         color="primary"
         :success-messages="success"
         :error-messages="error"
-        @input="update($event)"
+        @update:model-value="update($event)"
       />
     </SettingsOption>
     <SettingsOption
@@ -77,7 +77,7 @@ const items = computed(() => {
         variant="outlined"
         :success-messages="success"
         :error-messages="error"
-        @input="updateImmediate($event)"
+        @update:model-value="updateImmediate($event)"
       />
     </SettingsOption>
   </div>

@@ -97,11 +97,11 @@ const css = useCssModule();
 
       <RuiFooterStepper
         v-if="steps > 1"
-        :value="step"
+        :model-value="step"
         :pages="steps"
         variant="bullet"
         hide-buttons
-        @input="onNavigate($event)"
+        @update:model-value="onNavigate($event)"
       />
     </div>
   </div>

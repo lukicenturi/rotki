@@ -68,7 +68,7 @@ export function useAggregatedBalances() {
     const lpBalances = get(lpAggregatedBalances(false));
     const lpAssets = lpBalances
       .map(item => item.asset)
-      .filter(item => !!item) as string[];
+      .filter(item => !!item);
 
     assets.push(...liabilitiesAsset, ...lpAssets, ...additional);
     return assets.filter(uniqueStrings);

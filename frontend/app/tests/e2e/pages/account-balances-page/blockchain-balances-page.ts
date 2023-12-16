@@ -26,6 +26,7 @@ export class BlockchainBalancesPage {
   addBalance(balance: FixtureBlockchainBalance) {
     cy.get('[data-cy=bottom-dialog]').should('be.visible');
     cy.get('[data-cy="blockchain-balance-form"]').should('be.visible');
+    cy.get('[data-cy="account-blockchain-field"] input').should('not.be.disabled');
     cy.get('[data-cy="account-blockchain-field"]').click();
     cy.get('[data-cy="account-blockchain-field"]').type(balance.chainName);
     cy.get('[role=menu-content] button:first-child').should('contain.text', balance.chainName);

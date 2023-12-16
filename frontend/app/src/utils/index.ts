@@ -1,4 +1,5 @@
 import { UserCancelledTaskError } from '@/types/task';
+import { logger } from '@/utils/logging';
 
 export function startPromise<T>(promise: Promise<T>): void {
   promise.then().catch(error => logger.debug(error));

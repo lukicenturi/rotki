@@ -166,7 +166,7 @@ function isBinance(exchange: string | null): exchange is 'binance' | 'binanceus'
             :label="t('exchange_balances.select_exchange')"
             hide-details
             variant="outlined"
-            @input="openExchangeDetails()"
+            @update:model-value="openExchangeDetails()"
           >
             <template #selection="{ item }">
               <ExchangeAmountRow
@@ -189,28 +189,26 @@ function isBinance(exchange: string | null): exchange is 'binance' | 'binanceus'
             vertical
             color="primary"
           >
-            <template #default>
-              <RuiTab
-                v-for="(usedExchange, i) in usedExchanges"
-                :key="i"
-                link
-                class="h-[8rem]"
-                :to="`/accounts-balances/exchange-balances/${usedExchange}`"
-                :value="usedExchange"
-              >
-                <LocationDisplay
-                  :open-details="false"
-                  :identifier="usedExchange"
-                  size="36px"
-                />
-                <AmountDisplay
-                  class="mt-1 text-xl"
-                  show-currency="symbol"
-                  fiat-currency="USD"
-                  :value="exchangeBalance(usedExchange)"
-                />
-              </RuiTab>
-            </template>
+            <RuiTab
+              v-for="(usedExchange, i) in usedExchanges"
+              :key="i"
+              link
+              class="h-[8rem]"
+              :to="`/accounts-balances/exchange-balances/${usedExchange}`"
+              :model-value="usedExchange"
+            >
+              <LocationDisplay
+                :open-details="false"
+                :identifier="usedExchange"
+                size="36px"
+              />
+              <AmountDisplay
+                class="mt-1 text-xl"
+                show-currency="symbol"
+                fiat-currency="USD"
+                :value="exchangeBalance(usedExchange)"
+              />
+            </RuiTab>
           </RuiTabs>
         </div>
         <div class="flex-1">
@@ -219,33 +217,29 @@ function isBinance(exchange: string | null): exchange is 'binance' | 'binanceus'
               v-model="exchangeDetailTabs"
               color="primary"
             >
-              <template #default>
-                <RuiTab>{{ t('exchange_balances.tabs.balances') }}</RuiTab>
-                <RuiTab v-if="exchangeSavingsExist">
-                  {{ t('exchange_balances.tabs.savings_interest_history') }}
-                </RuiTab>
-              </template>
+              <RuiTab>{{ t('exchange_balances.tabs.balances') }}</RuiTab>
+              <RuiTab v-if="exchangeSavingsExist">
+                {{ t('exchange_balances.tabs.savings_interest_history') }}
+              </RuiTab>
             </RuiTabs>
 
             <RuiDivider />
 
             <RuiTabItems v-model="exchangeDetailTabs">
-              <template #default>
-                <RuiTabItem class="pt-4 md:pl-4">
-                  <AssetBalances
-                    hide-breakdown
-                    :loading="isExchangeLoading"
-                    :balances="balances"
-                    sticky-header
-                  />
-                </RuiTabItem>
-                <RuiTabItem
-                  v-if="exchangeSavingsExist && isBinance(exchange)"
-                  class="md:pl-4"
-                >
-                  <BinanceSavingDetail :exchange="exchange" />
-                </RuiTabItem>
-              </template>
+              <RuiTabItem class="pt-4 md:pl-4">
+                <AssetBalances
+                  hide-breakdown
+                  :loading="isExchangeLoading"
+                  :balances="balances"
+                  sticky-header
+                />
+              </RuiTabItem>
+              <RuiTabItem
+                v-if="exchangeSavingsExist && isBinance(exchange)"
+                class="md:pl-4"
+              >
+                <BinanceSavingDetail :exchange="exchange" />
+              </RuiTabItem>
             </RuiTabItems>
           </div>
 
@@ -261,14 +255,17 @@ function isBinance(exchange: string | null): exchange is 'binance' | 'binanceus'
         v-else
         class="p-2"
       >
-        <i18n path="exchange_balances.no_connected_exchanges">
+        <i18n-t
+          keypath="exchange_balances.no_connected_exchanges"
+          tag="span"
+        >
           <InternalLink
             :to="Routes.API_KEYS_EXCHANGES"
             class="module-not-active__link font-weight-regular text-body-1 text-decoration-none"
           >
             {{ t('exchange_balances.click_here') }}
           </InternalLink>
-        </i18n>
+        </i18n-t>
       </div>
     </RuiCard>
   </TablePageLayout>

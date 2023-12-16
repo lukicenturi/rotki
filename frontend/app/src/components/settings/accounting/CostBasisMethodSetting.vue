@@ -36,7 +36,7 @@ function getErrorMessage(method: string) {
       :success-messages="success"
       :error-messages="error"
       :label="t('accounting_settings.trade.labels.cost_basis_method')"
-      @input="updateImmediate($event)"
+      @update:model-value="updateImmediate($event)"
     />
   </SettingsOption>
 </template>

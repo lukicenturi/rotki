@@ -1,6 +1,6 @@
 import {
-  type ThisTypedMountOptions,
-  type Wrapper,
+  type ComponentMountingOptions,
+  type VueWrapper,
   mount,
 } from '@vue/test-utils';
 import { type Pinia, createPinia, setActivePinia } from 'pinia';
@@ -21,7 +21,7 @@ vi.mock('@/store/balances/prices', () => ({
 
 describe('ethDepositEventForm.vue', () => {
   setupDayjs();
-  let wrapper: Wrapper<EthDepositEventForm>;
+  let wrapper: VueWrapper<InstanceType<typeof EthDepositEventForm>>;
   let pinia: Pinia;
 
   const asset = {
@@ -69,8 +69,16 @@ describe('ethDepositEventForm.vue', () => {
     vi.mocked(useBalancePricesStore().getHistoricPrice).mockResolvedValue(One);
   });
 
-  const createWrapper = (options: ThisTypedMountOptions<any> = {}) => mount(EthDepositEventForm, {
-    pinia,
+  afterEach(() => {
+    wrapper.unmount();
+  });
+
+  const createWrapper = (options: ComponentMountingOptions<typeof EthDepositEventForm> = {}) => mount(EthDepositEventForm, {
+    global: {
+      plugins: [
+        pinia,
+      ],
+    },
     ...options,
   });
 
@@ -115,7 +123,7 @@ describe('ethDepositEventForm.vue', () => {
           wrapper.find('[data-cy=sequenceIndex] input')
             .element as HTMLInputElement
         ).value,
-      ).toBe('');
+      ).toBe('0');
     });
 
     it('`groupHeader` and `nextSequence` are passed', async () => {
@@ -157,7 +165,7 @@ describe('ethDepositEventForm.vue', () => {
       expect(
         (wrapper.find('[data-cy=amount] input').element as HTMLInputElement)
           .value,
-      ).toBe('');
+      ).toBe('0');
 
       expect(
         (

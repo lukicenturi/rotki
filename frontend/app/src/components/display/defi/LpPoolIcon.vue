@@ -59,10 +59,9 @@ const css = useCssModule();
         :show-chain="false"
       />
       <RuiMenu v-else>
-        <template #activator="{ on }">
+        <template #activator>
           <div
             :class="[css['second-icon'], css['more-assets']]"
-            v-on="on"
           >
             +{{ assets.length - 1 }}
           </div>

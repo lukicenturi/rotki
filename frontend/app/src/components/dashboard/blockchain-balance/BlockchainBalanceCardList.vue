@@ -61,9 +61,11 @@ const balanceBlockchainRoute = Routes.ACCOUNTS_BALANCES_BLOCKCHAIN;
       </ListItem>
     </RouterLink>
     <div v-if="total.children.length > 0">
-      <template v-for="child in total.children">
+      <template
+        v-for="child in total.children"
+        :key="child.protocol"
+      >
         <BlockchainBalanceCardDetails
-          :key="child.protocol"
           :child="child"
           :details="childData(child.protocol)"
         />
