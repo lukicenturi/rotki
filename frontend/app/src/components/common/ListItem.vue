@@ -26,6 +26,8 @@ const avatarSizeClasses = computed(() => {
   }
   return 'w-8 h-8';
 });
+
+const slots = useSlots();
 </script>
 
 <template>
@@ -41,7 +43,7 @@ const avatarSizeClasses = computed(() => {
     "
   >
     <div
-      v-if="$slots.avatar"
+      v-if="slots.avatar"
       :class="avatarSizeClasses"
       class="flex items-center justify-center avatar"
     >
