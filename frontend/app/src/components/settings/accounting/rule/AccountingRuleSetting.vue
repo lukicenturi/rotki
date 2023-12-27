@@ -214,7 +214,7 @@ onMounted(async () => {
     const rule = await getAccountingRule({
       eventTypes: [ruleData.eventType],
       eventSubtypes: [ruleData.eventSubtype],
-      counterparties: counterparty ? [ruleData.counterparty] : undefined,
+      counterparties: counterparty ? [ruleData.counterparty] : [null],
       limit: 1,
       offset: 0
     });
