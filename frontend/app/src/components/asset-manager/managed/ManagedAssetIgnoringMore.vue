@@ -45,25 +45,15 @@ const toggleSpam = () => {
         </RuiButton>
       </template>
       <div class="py-2 text-rui-text-secondary">
-        <RuiButton variant="list" @click="toggleWhitelist()">
+        <RuiButton variant="list" size="sm" @click="toggleWhitelist()">
           <template #prepend>
-            <RuiCheckbox
-              color="primary"
-              class="[&_span]:-mr-1 [&_span]:!py-0"
-              hide-details
-              :value="isWhitelisted"
-            />
+            <RuiCheckbox color="primary" hide-details :value="isWhitelisted" />
           </template>
           {{ t('ignore.whitelist.action.add') }}
         </RuiButton>
-        <RuiButton variant="list" @click="toggleSpam()">
+        <RuiButton variant="list" size="sm" @click="toggleSpam()">
           <template #prepend>
-            <RuiCheckbox
-              color="primary"
-              class="[&_span]:-mr-1 [&_span]:!py-0"
-              hide-details
-              :value="isSpam"
-            />
+            <RuiCheckbox color="primary" hide-details :value="isSpam" />
           </template>
           {{ t('ignore.spam.action.add') }}
         </RuiButton>
