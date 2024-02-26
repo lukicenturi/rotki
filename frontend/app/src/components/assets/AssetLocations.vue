@@ -124,7 +124,7 @@ const headers = computed<DataTableColumn[]>(() => {
     },
     {
       label: t('common.amount'),
-      key: 'amount',
+      key: 'balance.amount',
       align: 'end',
       sortable: true,
     },
@@ -132,7 +132,7 @@ const headers = computed<DataTableColumn[]>(() => {
       label: t('asset_locations.header.value', {
         symbol: get(currencySymbol) ?? CURRENCY_USD,
       }),
-      key: 'usdValue',
+      key: 'balance.usdValue',
       align: 'end',
       sortable: true,
     },
@@ -184,10 +184,10 @@ const headers = computed<DataTableColumn[]>(() => {
           />
         </div>
       </template>
-      <template #item.amount="{ row }">
+      <template #item.balance.amount="{ row }">
         <AmountDisplay :value="row.balance.amount" />
       </template>
-      <template #item.usdValue="{ row }">
+      <template #item.balance.usdValue="{ row }">
         <AmountDisplay
           show-currency="symbol"
           :amount="row.balance.amount"

@@ -1,4 +1,3 @@
-import { BigNumber } from '@rotki/common';
 import type { PiniaPluginContext } from 'pinia';
 
 const PREFIX = 'pinia.store.';
@@ -10,7 +9,7 @@ function convert(data: any): any {
   if (!isObject(data))
     return data;
 
-  if (data instanceof BigNumber)
+  if (isBigNumber(data))
     return `bn::${data.toString()}`;
 
   const converted: Record<string, any> = {};
