@@ -1,5 +1,3 @@
-import { BigNumber } from '@rotki/common';
-
 export function setupFormatter(): void {
   if (!checkIfDevelopment())
     return;
@@ -8,7 +6,7 @@ export function setupFormatter(): void {
   window.devtoolsFormatters = [
     {
       header: (obj: any): unknown[] | null => {
-        if (!(obj instanceof BigNumber))
+        if (!isBigNumber(obj))
           return null;
 
         return ['div', {}, obj.toString()];

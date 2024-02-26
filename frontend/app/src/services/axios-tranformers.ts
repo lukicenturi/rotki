@@ -1,4 +1,3 @@
-import { BigNumber } from '@rotki/common';
 import type { AxiosResponseTransformer } from 'axios';
 
 function isObject(data: any): boolean {
@@ -7,7 +6,7 @@ function isObject(data: any): boolean {
     && !(data instanceof RegExp)
     && !(data instanceof Error)
     && !(data instanceof Date)
-    && !(data instanceof BigNumber);
+    && !(isBigNumber(data));
 }
 
 function getUpdatedKey(key: string, camelCase: boolean): string {

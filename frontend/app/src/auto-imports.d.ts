@@ -135,6 +135,7 @@ declare global {
   const injectLocal: typeof import('@vueuse/core')['injectLocal']
   const invertColor: typeof import('./utils/color')['invertColor']
   const isAccountingRuleProcessed: typeof import('./utils/history/events')['isAccountingRuleProcessed']
+  const isBigNumber: typeof import('./utils/bignumbers')['isBigNumber']
   const isDefined: typeof import('@vueuse/core')['isDefined']
   const isEthBlockEvent: typeof import('./utils/history/events')['isEthBlockEvent']
   const isEthBlockEventRef: typeof import('./utils/history/events')['isEthBlockEventRef']
@@ -877,6 +878,7 @@ declare module 'vue' {
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly invertColor: UnwrapRef<typeof import('./utils/color')['invertColor']>
     readonly isAccountingRuleProcessed: UnwrapRef<typeof import('./utils/history/events')['isAccountingRuleProcessed']>
+    readonly isBigNumber: UnwrapRef<typeof import('./utils/bignumbers')['isBigNumber']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isEthBlockEvent: UnwrapRef<typeof import('./utils/history/events')['isEthBlockEvent']>
     readonly isEthBlockEventRef: UnwrapRef<typeof import('./utils/history/events')['isEthBlockEventRef']>
@@ -1612,6 +1614,7 @@ declare module '@vue/runtime-core' {
     readonly injectLocal: UnwrapRef<typeof import('@vueuse/core')['injectLocal']>
     readonly invertColor: UnwrapRef<typeof import('./utils/color')['invertColor']>
     readonly isAccountingRuleProcessed: UnwrapRef<typeof import('./utils/history/events')['isAccountingRuleProcessed']>
+    readonly isBigNumber: UnwrapRef<typeof import('./utils/bignumbers')['isBigNumber']>
     readonly isDefined: UnwrapRef<typeof import('@vueuse/core')['isDefined']>
     readonly isEthBlockEvent: UnwrapRef<typeof import('./utils/history/events')['isEthBlockEvent']>
     readonly isEthBlockEventRef: UnwrapRef<typeof import('./utils/history/events')['isEthBlockEventRef']>

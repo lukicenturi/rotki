@@ -1,11 +1,11 @@
 // TODO: Split class
 /* eslint-disable max-lines */
-import { type Balance, BigNumber } from '@rotki/common';
 import { assetSymbolToIdentifierMap } from '@rotki/common/lib/data';
 import { sortBy } from 'lodash-es';
 import { type Collateral, type DefiLoan, ProtocolVersion } from '@/types/defi';
 import { Section, Status } from '@/types/status';
 import { DefiProtocol } from '@/types/modules';
+import type { Balance, BigNumber } from '@rotki/common';
 import type {
   AaveHistoryTotal,
   AaveLending,
@@ -361,9 +361,7 @@ export function useDefiLending() {
 
           const balance = makerDsrBalances.balances[address];
           const currentDsr = makerDsrBalances.currentDsr;
-          // noinspection SuspiciousTypeOfGuard
-          const isBigNumber = currentDsr instanceof BigNumber;
-          const format = isBigNumber ? currentDsr.toFormat(2) : 0;
+          const format = isBigNumber(currentDsr) ? currentDsr.toFormat(2) : 0;
           balances.push({
             address,
             protocol: DefiProtocol.MAKERDAO_DSR,

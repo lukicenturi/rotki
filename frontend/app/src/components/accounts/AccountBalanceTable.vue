@@ -96,7 +96,6 @@ const rows = computed<IndexedBlockchainAccountWithBalance[]>(() =>
 
       const row = {
         ...item,
-        ...item.balance,
         display,
         index,
       };
@@ -135,8 +134,6 @@ const rows = computed<IndexedBlockchainAccountWithBalance[]>(() =>
       return {
         ...rowWithTokens,
         balance: { usdValue, amount },
-        usdValue,
-        amount,
       };
     }),
 );
@@ -236,14 +233,14 @@ const tableHeaders = computed<DataTableColumn[]>(() => {
     },
     {
       label: get(asset).toUpperCase(),
-      key: 'amount',
+      key: 'balance.amount',
       sortable: true,
       cellClass: 'py-0',
       align: 'end',
     },
     {
       label: currencyHeader.toString(),
-      key: 'usdValue',
+      key: 'balance.usdValue',
       sortable: true,
       cellClass: 'py-0',
       align: 'end',
@@ -374,13 +371,13 @@ defineExpose({
         />
       </div>
     </template>
-    <template #item.amount="{ row }">
+    <template #item.balance.amount="{ row }">
       <AmountDisplay
         :value="row.balance.amount"
         :loading="loading"
       />
     </template>
-    <template #item.usdValue="{ row }">
+    <template #item.balance.usdValue="{ row }">
       <AmountDisplay
         fiat-currency="USD"
         :value="row.balance.usdValue"

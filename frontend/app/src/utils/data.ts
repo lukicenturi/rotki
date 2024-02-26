@@ -1,4 +1,3 @@
-import { BigNumber } from '@rotki/common';
 import { isString, isUndefined } from 'lodash-es';
 
 export function chunkArray<T>(myArray: T[], size: number): T[][] {
@@ -27,7 +26,7 @@ export function uniqueObjects<T>(arr: T[], getUniqueId: (item: T) => string) {
 export function nonEmptyProperties<T extends object>(object: T, removeEmptyString = false): Partial<NonNullable<T>> {
   const partial: Partial<T> = {};
   const keys = Object.keys(object);
-  if (object instanceof BigNumber)
+  if (isBigNumber(object))
     return object;
 
   for (const obKey of keys) {

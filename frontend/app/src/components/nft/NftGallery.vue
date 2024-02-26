@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { BigNumber } from '@rotki/common';
 import { Blockchain } from '@rotki/common/lib/blockchain';
 import {
   type TablePaginationData,
   useBreakpoint,
 } from '@rotki/ui-library-compat';
+import type { BigNumber } from '@rotki/common';
 import type { GeneralAccount } from '@rotki/common/lib/account';
 import type { Ref } from 'vue';
 import type { Module } from '@/types/modules';
@@ -208,7 +208,7 @@ function sortNfts(sortBy: Ref<'name' | 'priceUsd' | 'collection'>, sortDesc: Ref
       ? bElement.localeCompare(aElement, 'en', { sensitivity: 'base' })
       : aElement.localeCompare(bElement, 'en', { sensitivity: 'base' });
   }
-  else if (aElement instanceof BigNumber && bElement instanceof BigNumber) {
+  else if (isBigNumber(aElement) && isBigNumber(bElement)) {
     return (
       desc ? bElement.minus(aElement) : aElement.minus(bElement)
     ).toNumber();
