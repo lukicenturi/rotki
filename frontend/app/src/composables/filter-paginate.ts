@@ -293,8 +293,8 @@ export function usePaginationFilters<
    * Updates pagination data for just the current page
    * @param {number} page
    */
-  const setPage = (page: number) => {
-    set(userAction, true);
+  const setPage = (page: number, action = true) => {
+    set(userAction, action);
     set(paginationOptions, { ...get(paginationOptions), page });
   };
 
@@ -355,13 +355,13 @@ export function usePaginationFilters<
   watch(
     [filters, extraParams],
     async ([filters, extraParams], [oldFilters, oldExtraParams]) => {
-      if (
-        isEqual(filters, oldFilters)
-        && isEqual(extraParams, oldExtraParams)
-      )
+      const filterEquals = isEqual(filters, oldFilters);
+      const paramEquals = isEqual(extraParams, oldExtraParams);
+
+      if (filterEquals && paramEquals)
         return;
 
-      set(paginationOptions, { ...get(paginationOptions), page: 1 });
+      setPage(1, !paramEquals);
     },
   );
 
