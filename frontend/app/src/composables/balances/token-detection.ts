@@ -1,5 +1,6 @@
-import { Blockchain } from '@rotki/common/lib/blockchain';
 import { TaskType } from '@/types/task-type';
+import { useAccountsAddresses } from '@/composables/accounts/addresses';
+import type { Blockchain } from '@rotki/common/lib/blockchain';
 import type { MaybeRef } from '@vueuse/core';
 
 export function useTokenDetection(chain: MaybeRef<Blockchain>, accountAddress: MaybeRef<string | null> = null) {
@@ -9,25 +10,19 @@ export function useTokenDetection(chain: MaybeRef<Blockchain>, accountAddress: M
     fetchDetectedTokens: fetchDetectedTokensCaller,
   } = useBlockchainTokensStore();
 
-  const { ethAddresses } = storeToRefs(useEthAccountsStore());
-  const {
-    optimismAddresses,
-    polygonAddresses,
-    arbitrumAddresses,
-    baseAddresses,
-    gnosisAddresses,
-  } = storeToRefs(useChainsAccountsStore());
+  const { allAddressMapping } = useAccountsAddresses();
   const { supportsTransactions } = useSupportedChains();
+
+  const isDetectingTaskRunning = (address: string | null) => computed(() => get(
+    isTaskRunning(TaskType.FETCH_DETECTED_TOKENS, {
+      chain: get(chain),
+      ...(address ? { address } : {}),
+    }),
+  ));
 
   const detectingTokens = computed<boolean>(() => {
     const address = get(accountAddress);
-    const blockchain = get(chain);
-    return get(
-      isTaskRunning(TaskType.FETCH_DETECTED_TOKENS, {
-        chain: blockchain,
-        ...(address ? { address } : {}),
-      }),
-    );
+    return get(isDetectingTaskRunning(address));
   });
 
   const detectedTokens = getEthDetectedTokensInfo(chain, accountAddress);
@@ -41,27 +36,13 @@ export function useTokenDetection(chain: MaybeRef<Blockchain>, accountAddress: M
   const detectTokens = async (addresses: string[] = []) => {
     const address = get(accountAddress);
     assert(address || addresses.length > 0);
-    if (address)
-      await fetchDetectedTokens(address);
-    else
-      await Promise.allSettled(addresses.map(fetchDetectedTokens));
+    const usedAddresses = (address ? [address] : addresses).filter(address => !get(isDetectingTaskRunning(address)));
+    await awaitParallelExecution(usedAddresses, item => item, fetchDetectedTokens, 2);
   };
 
   const detectTokensOfAllAddresses = async () => {
     const blockchain = get(chain);
-    let addresses: string[] = [];
-    if (blockchain === Blockchain.OPTIMISM)
-      addresses = get(optimismAddresses);
-    else if (blockchain === Blockchain.ETH)
-      addresses = get(ethAddresses);
-    else if (blockchain === Blockchain.POLYGON_POS)
-      addresses = get(polygonAddresses);
-    else if (blockchain === Blockchain.ARBITRUM_ONE)
-      addresses = get(arbitrumAddresses);
-    else if (blockchain === Blockchain.BASE)
-      addresses = get(baseAddresses);
-    else if (blockchain === Blockchain.GNOSIS)
-      addresses = get(gnosisAddresses);
+    const addresses = get(allAddressMapping)[blockchain];
 
     if (addresses.length > 0)
       await detectTokens(addresses);

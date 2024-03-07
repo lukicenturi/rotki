@@ -4,6 +4,7 @@ import { Severity } from '@rotki/common/lib/messages';
 import { TaskType } from '@/types/task-type';
 import { isBlockchain } from '@/types/blockchain/chains';
 import { Section } from '@/types/status';
+import { useAccountsAddresses } from '@/composables/accounts/addresses';
 import type { MaybeRef } from '@vueuse/core';
 import type {
   AccountPayload,
@@ -11,6 +12,7 @@ import type {
   BaseAddAccountsPayload,
 } from '@/types/blockchain/accounts';
 import type { TaskMeta } from '@/types/task';
+import type { AddressBookSimplePayload } from '@/types/eth-names';
 
 export function useBlockchains() {
   const { addAccount, fetch, addEvmAccount } = useBlockchainAccounts();
@@ -23,7 +25,7 @@ export function useBlockchains() {
   const { resetDefiStatus } = useStatusStore();
   const { detectEvmAccounts: detectEvmAccountsCaller }
     = useBlockchainAccountsApi();
-  const { getChainName, supportsTransactions, evmChains } = useSupportedChains();
+  const { getChainName, supportsTransactions, evmChains, isEvm } = useSupportedChains();
 
   const { isTaskRunning } = useTaskStore();
   const { notify } = useNotificationsStore();
@@ -45,19 +47,29 @@ export function useBlockchains() {
     });
   };
 
+  const { fetchEnsNames } = useAddressesNamesStore();
+  const { allAddressMapping } = useAccountsAddresses();
+
   const fetchAccounts = async (
     blockchain?: Blockchain,
     refreshEns: boolean = false,
   ): Promise<void> => {
-    const promises: Promise<any>[] = [];
+    const chains = blockchain ? [blockchain] : Object.values(Blockchain);
+    await Promise.allSettled(chains.map(fetch));
 
-    const chains = Object.values(Blockchain);
-    if (!blockchain)
-      promises.push(...chains.map(chain => fetch(chain, refreshEns)));
-    else
-      promises.push(fetch(blockchain, refreshEns));
+    const namesPayload: AddressBookSimplePayload[] = [];
+    const addressesMapping = get(allAddressMapping);
 
-    await Promise.allSettled(promises);
+    chains.forEach((chain) => {
+      if (!get(isEvm(chain)))
+        return;
+
+      const addresses = addressesMapping[chain];
+      namesPayload.push(...addresses.map(address => ({ address, blockchain: chain })));
+    });
+
+    if (namesPayload.length > 0)
+      startPromise(fetchEnsNames(namesPayload, refreshEns));
   };
 
   const refreshAccounts = async (
