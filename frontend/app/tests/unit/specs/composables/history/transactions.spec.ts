@@ -14,7 +14,7 @@ vi.mock('@/composables/api/history/events', () => ({
     fetchEvmTransactionsTask: vi.fn().mockResolvedValue({}),
     deleteHistoryEvent: vi.fn(),
     decodeHistoryEvents: vi.fn().mockResolvedValue({}),
-    reDecodeMissingTransactionEvents: vi.fn(),
+    reDecodeMissingEvmEvents: vi.fn(),
     addHistoryEvent: vi.fn(),
     editHistoryEvent: vi.fn(),
     queryOnlineHistoryEvents: vi.fn().mockResolvedValue({}),

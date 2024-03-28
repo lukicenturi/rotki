@@ -29,13 +29,13 @@ export const useHistoryTransactions = createSharedComposable(() => {
   const { removeQueryStatus, resetQueryStatus } = useTxQueryStatusStore();
   const { getEvmChainName, supportsTransactions } = useSupportedChains();
   const { setStatus, resetStatus, fetchDisabled } = useStatusUpdater(Section.HISTORY_EVENT);
-  const { reDecodeMissingTransactionEventsTask } = useHistoryTransactionDecoding();
+  const { reDecodeMissingEvmEventsTask } = useHistoryTransactionDecoding();
   const { addresses } = storeToRefs(useBlockchainStore());
 
-  const syncTransactionTask = async (
+  const syncEvmTransactionTask = async (
     account: EvmChainAddress,
   ): Promise<void> => {
-    const taskType = TaskType.TX;
+    const taskType = TaskType.EVM_TX;
     const defaults: TransactionRequestPayload = {
       accounts: [account],
     };
@@ -76,16 +76,16 @@ export const useHistoryTransactions = createSharedComposable(() => {
     }
   };
 
-  const syncAndRedecode = async (
+  const syncAndRedecodeEvmEvents = async (
     evmChain: string,
     accounts: EvmChainAddress[],
   ): Promise<void> => {
     await awaitParallelExecution(
       accounts,
       item => item.evmChain + item.address,
-      syncTransactionTask,
+      syncEvmTransactionTask,
     );
-    queue.queue(evmChain, () => reDecodeMissingTransactionEventsTask(evmChain));
+    queue.queue(evmChain, () => reDecodeMissingEvmEventsTask(evmChain));
   };
 
   const getTxAccounts = (chains: string[] = []): { address: string; evmChain: string }[] =>
@@ -131,7 +131,7 @@ export const useHistoryTransactions = createSharedComposable(() => {
         awaitParallelExecution(
           grouppedByEvmChain,
           item => item.evmChain,
-          item => syncAndRedecode(item.evmChain, item.data),
+          item => syncAndRedecodeEvmEvents(item.evmChain, item.data),
         ),
         queryOnlineEvent(OnlineHistoryEventsQueryType.ETH_WITHDRAWALS),
         queryOnlineEvent(OnlineHistoryEventsQueryType.BLOCK_PRODUCTIONS),
@@ -140,7 +140,7 @@ export const useHistoryTransactions = createSharedComposable(() => {
 
       if (txAccounts.length > 0) {
         setStatus(
-          get(isTaskRunning(TaskType.TX)) ? Status.REFRESHING : Status.LOADED,
+          get(isTaskRunning(TaskType.EVM_TX)) ? Status.REFRESHING : Status.LOADED,
         );
       }
     }

@@ -157,7 +157,8 @@ const { refreshTransactions } = useHistoryTransactions();
 const {
   unDecodedEventsBreakdown,
   fetchTransactionEvents,
-  fetchUndecodedEventsBreakdown,
+  fetchUndecodedEvmEventsBreakdown,
+  fetchUndecodedEvmLikeEventsBreakdown,
 } = useHistoryTransactionDecoding();
 const { getAccountByAddress } = useBlockchainStore();
 
@@ -341,7 +342,8 @@ function redecodeAllEvmEvents() {
 async function redecodeAllEvmEventsHandler() {
   set(decodingStatusDialogPersistent, false);
   set(currentAction, 'decode');
-  startPromise(fetchUndecodedEventsBreakdown());
+  startPromise(fetchUndecodedEvmEventsBreakdown());
+  startPromise(fetchUndecodedEvmLikeEventsBreakdown());
 
   const chains = get(onlyChains);
   const evmChains: { evmChain: string }[] = [];
@@ -515,7 +517,7 @@ const { isLoading: isSectionLoading } = useStatusStore();
 const sectionLoading = isSectionLoading(Section.HISTORY_EVENT);
 const eventTaskLoading = isTaskRunning(TaskType.EVM_EVENTS_DECODING);
 const onlineHistoryEventsLoading = isTaskRunning(TaskType.QUERY_ONLINE_EVENTS);
-const isTransactionsLoading = isTaskRunning(TaskType.TX);
+const isTransactionsLoading = isTaskRunning(TaskType.EVM_TX);
 
 const { isAllFinished: isQueryingTxsFinished } = toRefs(
   useTxQueryStatusStore(),
@@ -551,7 +553,8 @@ const processing = logicOr(
 const { pause, resume, isActive } = useIntervalFn(() => {
   fetchData();
   fetchAssociatedLocations();
-  fetchUndecodedEventsBreakdown();
+  fetchUndecodedEvmEventsBreakdown();
+  fetchUndecodedEvmLikeEventsBreakdown();
 }, 20000);
 
 watch(shouldFetchEventsRegularly, (shouldFetchEventsRegularly) => {
@@ -618,7 +621,7 @@ async function refresh(userInitiated = false) {
     = entryTypesVal.length > 0
     && !entryTypesVal.includes(HistoryEventEntryType.EVM_EVENT);
   await refreshTransactions(get(onlyChains), disableEvmEvents, userInitiated);
-  startPromise(Promise.all([fetchData(), fetchAssociatedLocations(), fetchUndecodedEventsBreakdown()]));
+  startPromise(Promise.all([fetchAssociatedLocations(), fetchData(), fetchUndecodedEvmEventsBreakdown(), fetchUndecodedEvmLikeEventsBreakdown()]));
 }
 
 onUnmounted(() => {

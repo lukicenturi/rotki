@@ -14,8 +14,9 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
   const { notify } = useNotificationsStore();
 
   const {
-    reDecodeMissingTransactionEvents,
-    getUnDecodedTransactionEventsBreakdown,
+    reDecodeMissingEvmEvents,
+    getUndecodedEvmEventsBreakdown,
+    getUndecodedEvmLikeEventsBreakdown,
     decodeHistoryEvents,
   } = useHistoryEventsApi();
 
@@ -28,8 +29,9 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
   const { resetStatus } = useStatusUpdater(Section.HISTORY_EVENT);
 
   const unDecodedEventsBreakdown: Ref<Record<string, number>> = ref({});
+  const unDecodedEvmLikeEventsBreakdown: Ref<Record<string, number>> = ref({});
 
-  const fetchUndecodedEventsBreakdown = async () => {
+  const fetchUndecodedEvmEventsBreakdown = async () => {
     const taskType = TaskType.EVM_UNDECODED_EVENTS;
     if (get(isTaskRunning(taskType)))
       return;
@@ -37,7 +39,7 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
     const title = t('actions.history.fetch_undecoded_events.task.title');
 
     try {
-      const { taskId } = await getUnDecodedTransactionEventsBreakdown();
+      const { taskId } = await getUndecodedEvmEventsBreakdown();
       const { result } = await awaitTask<Record<string, number>, TaskMeta>(
         taskId,
         taskType,
@@ -65,7 +67,43 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
     }
   };
 
-  const checkMissingTransactionEventsAndRedecode = async () => {
+  const fetchUndecodedEvmLikeEventsBreakdown = async () => {
+    const taskType = TaskType.EVMLIKE_UNDECODED_EVENTS;
+    if (get(isTaskRunning(taskType)))
+      return;
+
+    const title = t('actions.history.fetch_undecoded_events.task.title');
+
+    try {
+      const { taskId } = await getUndecodedEvmLikeEventsBreakdown();
+      const { result } = await awaitTask<Record<string, number>, TaskMeta>(
+        taskId,
+        taskType,
+        {
+          title,
+        },
+      );
+      set(unDecodedEvmLikeEventsBreakdown, snakeCaseTransformer(result));
+    }
+    catch (error: any) {
+      if (!isTaskCancelled(error)) {
+        const description = t(
+          'actions.history.fetch_undecoded_events.error.message',
+          {
+            message: error.message,
+          },
+        );
+
+        notify({
+          title,
+          message: description,
+          display: true,
+        });
+      }
+    }
+  };
+
+  const checkMissingEvmEventsAndRedecode = async () => {
     resetEvmUndecodedTransactionsStatus();
     const evmChains = Object.entries(get(unDecodedEventsBreakdown))
       .filter(([_, number]) => number > 0)
@@ -73,19 +111,19 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
     await awaitParallelExecution(
       evmChains,
       item => item,
-      reDecodeMissingTransactionEventsTask,
+      reDecodeMissingEvmEventsTask,
     );
   };
 
-  const reDecodeMissingTransactionEventsTask = async (evmChain: string) => {
-    await fetchUndecodedEventsBreakdown();
+  const reDecodeMissingEvmEventsTask = async (evmChain: string) => {
+    await fetchUndecodedEvmEventsBreakdown();
     const taskType = TaskType.EVM_EVENTS_DECODING;
 
     if (get(isTaskRunning(taskType, { evmChain })))
       return;
 
     try {
-      const { taskId } = await reDecodeMissingTransactionEvents<PendingTask>([
+      const { taskId } = await reDecodeMissingEvmEvents<PendingTask>([
         evmChain,
       ]);
 
@@ -201,10 +239,11 @@ export const useHistoryTransactionDecoding = createSharedComposable(() => {
   };
 
   return {
-    reDecodeMissingTransactionEventsTask,
-    checkMissingTransactionEventsAndRedecode,
+    reDecodeMissingEvmEventsTask,
+    checkMissingEvmEventsAndRedecode,
     unDecodedEventsBreakdown,
-    fetchUndecodedEventsBreakdown,
+    fetchUndecodedEvmEventsBreakdown,
+    fetchUndecodedEvmLikeEventsBreakdown,
     fetchTransactionEvents,
   };
 });

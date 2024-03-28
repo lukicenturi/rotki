@@ -35,7 +35,28 @@ export function useHistoryEventsApi() {
     asyncQuery: boolean,
   ): Promise<T> => {
     const response = await api.instance.post<ActionResult<T>>(
-      `/blockchains/evm/transactions`,
+      '/blockchains/evm/transactions',
+      snakeCaseTransformer(
+        nonEmptyProperties({
+          asyncQuery,
+          ...payload,
+        }),
+      ),
+      {
+        paramsSerializer,
+        validateStatus: validWithParamsSessionAndExternalService,
+      },
+    );
+
+    return handleResponse(response);
+  };
+
+  const internalEvmLikeTransactions = async <T>(
+    payload: TransactionRequestPayload,
+    asyncQuery: boolean,
+  ): Promise<T> => {
+    const response = await api.instance.post<ActionResult<T>>(
+      '/blockchains/evmlike/transactions',
       snakeCaseTransformer(
         nonEmptyProperties({
           asyncQuery,
@@ -56,9 +77,14 @@ export function useHistoryEventsApi() {
   ): Promise<PendingTask> =>
     internalEvmTransactions<PendingTask>(payload, true);
 
+  const fetchEvmLikeTransactionsTask = (
+    payload: TransactionRequestPayload,
+  ): Promise<PendingTask> =>
+    internalEvmLikeTransactions<PendingTask>(payload, true);
+
   const deleteEvmTransactions = async (evmChain: string): Promise<boolean> => {
     const response = await api.instance.delete<ActionResult<boolean>>(
-      `/blockchains/evm/transactions`,
+      '/blockchains/evm/transactions',
       {
         validateStatus: validStatus,
         data: evmChain ? snakeCaseTransformer({ evmChain }) : null,
@@ -82,30 +108,43 @@ export function useHistoryEventsApi() {
     return handleResponse(response);
   };
 
-  const getUnDecodedTransactionEventsBreakdown
-    = async (): Promise<PendingTask> => {
-      const response = await api.instance.get<ActionResult<PendingTask>>(
-        '/blockchains/evm/transactions/decode',
-        {
-          params: snakeCaseTransformer({
-            asyncQuery: true,
-          }),
-          validateStatus: validStatus,
-        },
-      );
+  const getUndecodedEvmEventsBreakdown = async (): Promise<PendingTask> => {
+    const response = await api.instance.get<ActionResult<PendingTask>>(
+      '/blockchains/evm/transactions/decode',
+      {
+        params: snakeCaseTransformer({
+          asyncQuery: true,
+        }),
+        validateStatus: validStatus,
+      },
+    );
 
-      return handleResponse(response);
-    };
+    return handleResponse(response);
+  };
 
-  const reDecodeMissingTransactionEvents = async <T>(
-    evmChains: string[],
+  const getUndecodedEvmLikeEventsBreakdown = async (): Promise<PendingTask> => {
+    const response = await api.instance.get<ActionResult<PendingTask>>(
+      '/blockchains/evmlike/transactions/decode',
+      {
+        params: snakeCaseTransformer({
+          asyncQuery: true,
+        }),
+        validateStatus: validStatus,
+      },
+    );
+
+    return handleResponse(response);
+  };
+
+  const reDecodeMissingEvmEvents = async <T>(
+    chains: string[],
     asyncQuery = true,
   ): Promise<T> => {
     const response = await api.instance.post<ActionResult<T>>(
       '/blockchains/evm/transactions/decode',
       snakeCaseTransformer({
         asyncQuery,
-        evmChains,
+        chains,
       }),
       { validateStatus: validStatus },
     );
@@ -289,10 +328,12 @@ export function useHistoryEventsApi() {
 
   return {
     fetchEvmTransactionsTask,
+    fetchEvmLikeTransactionsTask,
     deleteEvmTransactions,
     decodeHistoryEvents,
-    getUnDecodedTransactionEventsBreakdown,
-    reDecodeMissingTransactionEvents,
+    getUndecodedEvmEventsBreakdown,
+    getUndecodedEvmLikeEventsBreakdown,
+    reDecodeMissingEvmEvents,
     addHistoryEvent,
     editHistoryEvent,
     deleteHistoryEvent,

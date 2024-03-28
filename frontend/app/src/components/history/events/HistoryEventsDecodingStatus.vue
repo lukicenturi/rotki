@@ -32,21 +32,23 @@ function redecodeAllEvmEvents() {
 const { t } = useI18n();
 
 const {
-  checkMissingTransactionEventsAndRedecode,
-  fetchUndecodedEventsBreakdown,
+  checkMissingEvmEventsAndRedecode,
+  fetchUndecodedEvmEventsBreakdown,
+  fetchUndecodedEvmLikeEventsBreakdown,
 } = useHistoryTransactionDecoding();
 
 onMounted(() => refresh());
 
 async function refresh() {
-  await fetchUndecodedEventsBreakdown();
+  await fetchUndecodedEvmEventsBreakdown();
+  await fetchUndecodedEvmLikeEventsBreakdown();
 
   if (props.locationsData.length === 0)
     emit('reset-evm-undecoded-transactions');
 }
 
 async function redecodeMissingEvents() {
-  await checkMissingTransactionEventsAndRedecode();
+  await checkMissingEvmEventsAndRedecode();
   await refresh();
 }
 

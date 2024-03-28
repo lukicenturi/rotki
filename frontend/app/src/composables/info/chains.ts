@@ -5,6 +5,7 @@ import type {
   ChainInfo,
   EvmChainEntries,
   EvmChainInfo,
+  EvmLikeChainInfo,
   SubstrateChainInfo,
   SupportedChains,
 } from '@/types/api/chains';
@@ -15,6 +16,10 @@ function isEvmChain(info: ChainInfo): info is EvmChainInfo {
 
 function isSubstrateChain(info: ChainInfo): info is SubstrateChainInfo {
   return info.type === 'substrate';
+}
+
+function isEvmLikeChain(info: ChainInfo): info is EvmLikeChainInfo {
+  return info.type === 'evmlike';
 }
 
 export const useSupportedChains = createSharedComposable(() => {
@@ -43,6 +48,10 @@ export const useSupportedChains = createSharedComposable(() => {
 
   const substrateChainsData: ComputedRef<SubstrateChainInfo[]> = computed(() =>
     get(supportedChains).filter(isSubstrateChain),
+  );
+
+  const evmLikeChainsData: ComputedRef<EvmLikeChainInfo[]> = computed(() =>
+    get(supportedChains).filter(isEvmLikeChain),
   );
 
   const txEvmChains: ComputedRef<EvmChainInfo[]> = useArrayFilter(
@@ -89,7 +98,7 @@ export const useSupportedChains = createSharedComposable(() => {
   const getNativeAsset = (chain: MaybeRef<string>) => {
     const blockchain = get(chain);
     return (
-      [...get(evmChainsData), ...get(substrateChainsData)].find(
+      [...get(evmChainsData), ...get(substrateChainsData), ...get(evmLikeChainsData)].find(
         ({ id }) => id === blockchain,
       )?.nativeToken || blockchain
     );

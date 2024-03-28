@@ -15,6 +15,7 @@ export enum Module {
   NFTS = 'nfts',
   PICKLE = 'pickle_finance',
   LIQUITY = 'liquity',
+  ZKSYNC_LITE = 'zksync_lite',
 }
 
 export const ModuleEnum = z.nativeEnum(Module);
@@ -103,6 +104,11 @@ export const SUPPORTED_MODULES: SupportedModule[] = [
     identifier: Module.LIQUITY,
     name: 'Liquity',
     icon: './assets/images/protocols/liquity.svg',
+  },
+  {
+    identifier: Module.ZKSYNC_LITE,
+    name: 'ZKSync Lite',
+    icon: './assets/images/protocols/zksync_lite.svg',
   },
 ];
 

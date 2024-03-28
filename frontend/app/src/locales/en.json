@@ -1473,20 +1473,8 @@
   "blockchain_balances": {
     "add_account": "Add Account",
     "balances": {
-      "arbitrum_one": "Arbitrum One balances",
-      "avax": "Avalanche balances",
-      "base": "Base balances",
-      "bch": "Bitcoin Cash balances",
-      "btc": "Bitcoin balances",
-      "dot": "Polkadot balances",
-      "eth": "Ethereum balances",
-      "eth2": "ETH staking balances",
-      "ksm": "Kusama balances",
-      "loopring": "Loopring balances",
-      "optimism": "Optimism balances",
-      "polygon_pos": "Polygon PoS balances",
-      "gnosis": "Gnosis balances",
-      "scroll": "Scroll balances"
+      "common": "{chain} balances",
+      "eth2": "ETH staking"
     },
     "evm_detection": {
       "title": "Detect EVM accounts",
