@@ -1524,6 +1524,17 @@
     "go_to_date": "Go to date",
     "more_events": "{hidden} more",
     "no_events": "No events",
+    "reminder": {
+      "add_reminder": "Add Reminder",
+      "before_event": "before event",
+      "title": "Reminder",
+      "units": {
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days",
+        "weeks": "Weeks"
+      }
+    },
     "today": "Today",
     "today_events": "Today Events",
     "view_details": "View Details"

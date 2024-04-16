@@ -152,65 +152,65 @@ setSubmitFunc(save);
 </script>
 
 <template>
-  <div>
-    <div class="flex flex-col gap-4">
-      <DateTimePicker
-        v-model="datetime"
-        :label="t('common.datetime')"
-        persistent-hint
-        data-cy="datetime"
-        :error-messages="toMessages(v$.timestamp)"
-        @blur="v$.timestamp.$touch()"
-      />
+  <div class="flex flex-col gap-4">
+    <DateTimePicker
+      v-model="datetime"
+      :label="t('common.datetime')"
+      persistent-hint
+      data-cy="datetime"
+      :error-messages="toMessages(v$.timestamp)"
+      @blur="v$.timestamp.$touch()"
+    />
 
-      <div class="flex gap-4">
-        <RuiTextField
-          v-model="name"
-          class="flex-1"
-          :label="t('common.name')"
-          variant="outlined"
-          color="primary"
-          :error-messages="toMessages(v$.name)"
-          @blur="v$.name.$touch()"
-        />
+    <CalendarReminder :editable-item="editableItem" />
 
-        <div class="pt-3">
-          <CalendarColorInput v-model="color" />
-        </div>
-      </div>
-
-      <RuiTextArea
-        v-model="description"
-        :label="t('common.description')"
+    <div class="flex gap-4">
+      <RuiTextField
+        v-model="name"
+        class="flex-1"
+        :label="t('common.name')"
         variant="outlined"
         color="primary"
-        min-rows="5"
-        :error-messages="toMessages(v$.description)"
-        :hint="t('common.optional')"
-        @blur="v$.description.$touch()"
+        :error-messages="toMessages(v$.name)"
+        @blur="v$.name.$touch()"
       />
 
-      <BlockchainAccountSelector
-        v-model="accounts"
-        outlined
-        no-padding
-        flat
-        :label="t('common.account')"
-        :error-messages="toMessages(v$.accounts)"
-        show-details
-        :custom-hint="t('common.optional')"
-        persistent-hint
-      />
-
-      <CounterpartyInput
-        v-model="counterparty"
-        :label="t('common.counterparty')"
-        data-cy="counterparty"
-        :error-messages="toMessages(v$.counterparty)"
-        :hint="t('common.optional')"
-        persistent-hint
-        @blur="v$.counterparty.$touch()"
-      />
+      <div class="pt-3">
+        <CalendarColorInput v-model="color" />
+      </div>
     </div>
+
+    <RuiTextArea
+      v-model="description"
+      :label="t('common.description')"
+      variant="outlined"
+      color="primary"
+      min-rows="5"
+      :error-messages="toMessages(v$.description)"
+      :hint="t('common.optional')"
+      @blur="v$.description.$touch()"
+    />
+
+    <BlockchainAccountSelector
+      v-model="accounts"
+      outlined
+      no-padding
+      flat
+      :label="t('common.account')"
+      :error-messages="toMessages(v$.accounts)"
+      show-details
+      :custom-hint="t('common.optional')"
+      persistent-hint
+    />
+
+    <CounterpartyInput
+      v-model="counterparty"
+      :label="t('common.counterparty')"
+      data-cy="counterparty"
+      :error-messages="toMessages(v$.counterparty)"
+      :hint="t('common.optional')"
+      persistent-hint
+      @blur="v$.counterparty.$touch()"
+    />
   </div>
 </template>

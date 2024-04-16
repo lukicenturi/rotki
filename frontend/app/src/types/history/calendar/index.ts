@@ -41,3 +41,9 @@ export const CalendarEventCollectionResponse = CollectionCommonFields.extend({
 export interface AddCalendarEventResponse {
   entryId: number;
 }
+
+export interface CalendarReminderTemporaryPayload {
+  seconds: number;
+  identifier: string;
+  isTemporary: boolean;
+}

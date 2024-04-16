@@ -107,6 +107,7 @@ function onFocus() {
     color="primary"
     :value="currentValue"
     v-bind="attrs"
+    autofocus
     :hide-details="hideDetails"
     v-on="
       // eslint-disable-next-line vue/no-deprecated-dollar-listeners-api
