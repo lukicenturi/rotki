@@ -4445,14 +4445,18 @@ class RestAPI:
         Collect the counterparties from decoders in the different evm chains and combine them
         removing duplicates.
         """
-        return api_response(
-            result=process_result(
-                _wrap_in_ok_result(
-                    result=list(self.rotkehlchen.chains_aggregator.get_all_counterparties()),
-                ),
-            ),
-            status_code=HTTPStatus.OK,
-        )
+        result = []
+        for counterparty in self.rotkehlchen.chains_aggregator.get_all_counterparties():
+            result.append({
+                'identifier': counterparty.identifier,
+                'label': counterparty.label,
+            })
+            if counterparty.image is not None:
+                result[-1]['image'] = counterparty.image
+            if counterparty.icon is not None:
+                result[-1]['icon'] = counterparty.icon
+
+        return api_response(result=process_result(_wrap_in_ok_result(result=result)), status_code=HTTPStatus.OK)
 
     def get_evm_products(self) -> Response:
         """
