@@ -499,7 +499,7 @@ async function deleteEventHandler() {
 }
 
 function getItemClass(item: HistoryEventEntry) {
-  return item.ignoredInAccounting ? 'darken-row' : '';
+  return item.ignoredInAccounting ? 'opacity-50' : '';
 }
 
 watch(
@@ -964,6 +964,7 @@ watchImmediate(route, async (route) => {
             <template #expanded-item="{ row }">
               <HistoryEventsList
                 class="-my-4"
+                :class="{ 'opacity-50': row.ignoredInAccounting }"
                 :all-events="allEvents"
                 :event-group="row"
                 :loading="sectionLoading || eventTaskLoading"
