@@ -47,4 +47,5 @@ export const externalLinks = {
     'https://medium.com/@alxlpsc/critical-privacy-vulnerability-getting-exposed-by-metamask-693c63c2ce94',
   binanceCsvExport:
     'https://www.binance.com/en/my/wallet/history',
+  applyTheGraphApiKey: 'https://thegraph.com/studio/apikeys/',
 };

@@ -136,6 +136,7 @@ declare global {
   const getSortItems: typeof import('./utils/assets')['getSortItems']
   const getTags: typeof import('./utils/tags')['getTags']
   const getTextToken: typeof import('./utils/text')['getTextToken']
+  const getTheGraphRegisterUrl: typeof import('./utils/url')['getTheGraphRegisterUrl']
   const getValidSelectorFromEvmAddress: typeof import('./utils/assets')['getValidSelectorFromEvmAddress']
   const getValidatorData: typeof import('./utils/blockchain/accounts/index')['getValidatorData']
   const groupAssetBreakdown: typeof import('./utils/balances')['groupAssetBreakdown']
@@ -529,6 +530,7 @@ declare global {
   const useHistoryTransactions: typeof import('./composables/history/events/tx/index')['useHistoryTransactions']
   const useHistoryTransactionsForm: typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']
   const useI18n: typeof import('./composables/usei18n')['useI18n']
+  const useI18nLocale: typeof import('./composables/usei18n')['useI18nLocale']
   const useIdle: typeof import('@vueuse/core')['useIdle']
   const useIgnore: typeof import('./composables/history/index')['useIgnore']
   const useIgnoredAssetsStore: typeof import('./store/assets/ignored')['useIgnoredAssetsStore']
@@ -905,6 +907,7 @@ declare module 'vue' {
     readonly getSortItems: UnwrapRef<typeof import('./utils/assets')['getSortItems']>
     readonly getTags: UnwrapRef<typeof import('./utils/tags')['getTags']>
     readonly getTextToken: UnwrapRef<typeof import('./utils/text')['getTextToken']>
+    readonly getTheGraphRegisterUrl: UnwrapRef<typeof import('./utils/url')['getTheGraphRegisterUrl']>
     readonly getValidSelectorFromEvmAddress: UnwrapRef<typeof import('./utils/assets')['getValidSelectorFromEvmAddress']>
     readonly getValidatorData: UnwrapRef<typeof import('./utils/blockchain/accounts/index')['getValidatorData']>
     readonly groupAssetBreakdown: UnwrapRef<typeof import('./utils/balances')['groupAssetBreakdown']>
@@ -1289,6 +1292,7 @@ declare module 'vue' {
     readonly useHistoryTransactions: UnwrapRef<typeof import('./composables/history/events/tx/index')['useHistoryTransactions']>
     readonly useHistoryTransactionsForm: UnwrapRef<typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']>
     readonly useI18n: UnwrapRef<typeof import('./composables/usei18n')['useI18n']>
+    readonly useI18nLocale: UnwrapRef<typeof import('./composables/usei18n')['useI18nLocale']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
     readonly useIgnore: UnwrapRef<typeof import('./composables/history/index')['useIgnore']>
     readonly useIgnoredAssetsStore: UnwrapRef<typeof import('./store/assets/ignored')['useIgnoredAssetsStore']>
@@ -1656,6 +1660,7 @@ declare module '@vue/runtime-core' {
     readonly getSortItems: UnwrapRef<typeof import('./utils/assets')['getSortItems']>
     readonly getTags: UnwrapRef<typeof import('./utils/tags')['getTags']>
     readonly getTextToken: UnwrapRef<typeof import('./utils/text')['getTextToken']>
+    readonly getTheGraphRegisterUrl: UnwrapRef<typeof import('./utils/url')['getTheGraphRegisterUrl']>
     readonly getValidSelectorFromEvmAddress: UnwrapRef<typeof import('./utils/assets')['getValidSelectorFromEvmAddress']>
     readonly getValidatorData: UnwrapRef<typeof import('./utils/blockchain/accounts/index')['getValidatorData']>
     readonly groupAssetBreakdown: UnwrapRef<typeof import('./utils/balances')['groupAssetBreakdown']>
@@ -2040,6 +2045,7 @@ declare module '@vue/runtime-core' {
     readonly useHistoryTransactions: UnwrapRef<typeof import('./composables/history/events/tx/index')['useHistoryTransactions']>
     readonly useHistoryTransactionsForm: UnwrapRef<typeof import('./composables/history/events/tx/form')['useHistoryTransactionsForm']>
     readonly useI18n: UnwrapRef<typeof import('./composables/usei18n')['useI18n']>
+    readonly useI18nLocale: UnwrapRef<typeof import('./composables/usei18n')['useI18nLocale']>
     readonly useIdle: UnwrapRef<typeof import('@vueuse/core')['useIdle']>
     readonly useIgnore: UnwrapRef<typeof import('./composables/history/index')['useIgnore']>
     readonly useIgnoredAssetsStore: UnwrapRef<typeof import('./store/assets/ignored')['useIgnoredAssetsStore']>
