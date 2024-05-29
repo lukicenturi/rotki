@@ -1,4 +1,5 @@
 import json
+import random
 from http import HTTPStatus
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -24,6 +25,7 @@ from rotkehlchen.tests.utils.api import (
     assert_error_response,
     assert_proper_response_with_result,
     assert_simple_ok_response,
+    wait_for_async_task_with_result,
 )
 from rotkehlchen.tests.utils.factories import make_evm_tx_hash
 from rotkehlchen.tests.utils.history_base_entry import store_and_retrieve_events
@@ -530,6 +532,7 @@ def test_cache_invalidation(rotkehlchen_api_server: APIServer):
 @pytest.mark.parametrize('initialize_accounting_rules', [True])
 def test_import_export_accounting_rules(rotkehlchen_api_server: 'APIServer'):
     """Test that exporting and importing accounting rules works fine."""
+    async_query = random.choice([True, False])
     with rotkehlchen_api_server.rest_api.rotkehlchen.data.db.conn.read_ctx() as cursor:
         initial_rules = cursor.execute(
             'SELECT * FROM accounting_rules WHERE identifier IN (1, 82);',
@@ -538,17 +541,38 @@ def test_import_export_accounting_rules(rotkehlchen_api_server: 'APIServer'):
 
     with TemporaryDirectory() as temp_directory:
         response = requests.post(
+            api_url_for(  # export the accounting rules as a response json
+                rotkehlchen_api_server,
+                'accountingrulesexportresource',
+            ), json={'async_query': async_query},
+        )
+        if async_query:
+            response_result = wait_for_async_task_with_result(
+                server=rotkehlchen_api_server,
+                task_id=response.json()['result']['task_id'],
+            )
+        else:
+            response_result = assert_proper_response_with_result(response)
+
+        response = requests.post(
             api_url_for(  # export the accounting rules into a json file
                 rotkehlchen_api_server,
                 'accountingrulesexportresource',
-            ), json={'directory_path': temp_directory},
+            ), json={'async_query': async_query, 'directory_path': temp_directory},
         )
-        assert_proper_response_with_result(response)
+        if async_query:
+            assert wait_for_async_task_with_result(
+                server=rotkehlchen_api_server,
+                task_id=response.json()['result']['task_id'],
+            )
+        else:
+            assert assert_proper_response_with_result(response)
 
         rules_file_path = Path(temp_directory) / 'accounting_rules.json'
         with open(rules_file_path, encoding='utf-8') as file:
             rules_data = json.load(file)
 
+        assert rules_data == response_result
         assert len(rules_data['accounting_rules']) == 82
         assert rules_data['accounting_rules']['1'] == {
             'event_type': 'deposit',
@@ -608,18 +632,30 @@ def test_import_export_accounting_rules(rotkehlchen_api_server: 'APIServer'):
             api_url_for(  # import the accounting rules from this json file
                 rotkehlchen_api_server,
                 'accountingrulesimportresource',
-            ), json={'filepath': rules_file_path.as_posix()},
+            ), json={'async_query': async_query, 'filepath': rules_file_path.as_posix()},
         )
-        assert_simple_ok_response(response)
+        if async_query:
+            assert wait_for_async_task_with_result(
+                server=rotkehlchen_api_server,
+                task_id=response.json()['result']['task_id'],
+            )
+        else:
+            assert assert_proper_response_with_result(response)
 
         with open(rules_file_path, encoding='utf-8') as file:
             response = requests.patch(
                 api_url_for(  # also as multipart/form-data
                     rotkehlchen_api_server,
                     'accountingrulesimportresource',
-                ), files={'filepath': file},
+                ), data={'async_query': async_query}, files={'filepath': file},
             )
-        assert_simple_ok_response(response)
+        if async_query:
+            assert wait_for_async_task_with_result(
+                server=rotkehlchen_api_server,
+                task_id=response.json()['result']['task_id'],
+            )
+        else:
+            assert assert_proper_response_with_result(response)
 
     # Check that the imported rules are in the DB
     with rotkehlchen_api_server.rest_api.rotkehlchen.data.db.conn.read_ctx() as cursor:

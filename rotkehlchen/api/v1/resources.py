@@ -1,5 +1,6 @@
 import json
 import sys
+import tempfile
 from collections.abc import Callable, Sequence
 from functools import wraps
 from http import HTTPStatus
@@ -280,6 +281,17 @@ def _combine_parser_data(
                 all_data[key] = value
             data_1 = MultiDictProxy(all_data, schema)
     return data_1
+
+
+def _maybe_get_temp_file(filepath: FileStorage | Path) -> Path:
+    """Checks if filepath is a FileStorage and if so,
+    creates a temporary copied file and returns its path."""
+    if isinstance(filepath, FileStorage):
+        _, tmpfilepath = tempfile.mkstemp()
+        filepath.save(tmpfilepath)
+        return Path(tmpfilepath)
+
+    return filepath
 
 
 @parser.location_loader('json_and_view_args')
@@ -1561,7 +1573,7 @@ class HistoryProcessingDebugResource(BaseMethodView):
         def patch(self, async_query: bool, filepath: FileStorage) -> Response:
             return self.rest_api.import_history_debug(
                 async_query=async_query,
-                filepath=filepath,
+                filepath=_maybe_get_temp_file(filepath),
             )
 
 
@@ -1581,7 +1593,7 @@ class AccountingRulesImportResource(BaseMethodView):
     def patch(self, async_query: bool, filepath: FileStorage) -> Response:
         return self.rest_api.import_accounting_rules(
             async_query=async_query,
-            filepath=filepath,
+            filepath=_maybe_get_temp_file(filepath),
         )
 
 
