@@ -1372,8 +1372,8 @@
         "renew": "Renew",
         "repay": "Repay",
         "send": "Send",
-        "swap_in": "Receive",
-        "swap_out": "Swap",
+        "swap_in": "Swap (in)",
+        "swap_out": "Swap (out)",
         "transfer": "Transfer",
         "unknown": "Unknown",
         "withdraw": "Withdraw"
