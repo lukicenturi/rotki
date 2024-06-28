@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import {
-  type Module,
-  SUPPORTED_MODULES,
-  type SupportedModule,
+import type {
+  Module,
+  SupportedModule,
 } from '@/types/modules';
 
 defineOptions({
@@ -26,11 +25,13 @@ const emit = defineEmits<{
 
 const model = useSimpleVModel(props, emit);
 
+const { supportedModulesData } = useDefiMetadata();
+
 const modules = computed<SupportedModule[]>(() => {
   const items = props.items;
 
-  return SUPPORTED_MODULES.filter(item =>
-    items && items.length > 0 ? items.includes(item.identifier) : true,
+  return get(supportedModulesData).filter(({ identifier }) =>
+    items && items.length > 0 ? items.includes(identifier) : true,
   );
 });
 </script>

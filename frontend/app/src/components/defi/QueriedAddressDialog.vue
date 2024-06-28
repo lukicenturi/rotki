@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Blockchain } from '@rotki/common/lib/blockchain';
-import { type Module, SUPPORTED_MODULES } from '@/types/modules';
+import type { Module } from '@/types/modules';
 import type { AddressData, BlockchainAccount } from '@/types/blockchain/accounts';
 import type { CamelCase } from '@/types/common';
 
@@ -22,12 +22,14 @@ const { t } = useI18n();
 
 const accounts = computed<BlockchainAccount[]>(() => getAccounts(ETH));
 
+const { supportedModulesData } = useDefiMetadata();
+
 const currentModule = computed(() => {
   const currentModule = get(module);
   if (!currentModule)
     return undefined;
 
-  return SUPPORTED_MODULES.find(
+  return get(supportedModulesData).find(
     ({ identifier }) => identifier === currentModule,
   );
 });

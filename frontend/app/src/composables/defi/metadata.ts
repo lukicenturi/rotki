@@ -1,4 +1,5 @@
 import { camelCase } from 'lodash-es';
+import { Module, SUPPORTED_MODULES, type SupportedModule } from '@/types/modules';
 import type { MaybeRef } from '@vueuse/core';
 import type { ProtocolMetadata } from '@/types/defi';
 
@@ -31,20 +32,19 @@ export const useDefiMetadata = createSharedComposable(() => {
   ): ComputedRef<ProtocolMetadata | undefined> =>
     useArrayFind<ProtocolMetadata>(
       metadata,
-      item => decodeHtmlEntities(item.name) === decodeHtmlEntities(get(name)),
+      item => item.name === decodeHtmlEntities(get(name)),
     );
 
   const getDefiName = (identifier: MaybeRef<string>): ComputedRef<string> =>
     useValueOrDefault(
-      useRefMap(getDefiData(identifier), i => i?.name),
+      useRefMap(getDefiData(identifier), i => i?.name && decodeHtmlEntities(i?.name)),
       identifier,
     );
 
-  const getDefiImage = (identifier: MaybeRef<string>): ComputedRef<string> =>
-    useValueOrDefault(
-      useRefMap(getDefiData(identifier), i => i?.icon),
-      computed(() => `${get(identifier)}.svg`),
-    );
+  const getDefiImage = (identifier: MaybeRef<string>): ComputedRef<string> => computed(() => {
+    const imageName = get(getDefiData(identifier))?.icon || `${get(identifier)}.svg`;
+    return `./assets/images/protocols/${imageName}`;
+  });
 
   const getDefiIdentifierByName = (
     name: MaybeRef<string>,
@@ -54,6 +54,28 @@ export const useDefiMetadata = createSharedComposable(() => {
       name,
     );
 
+  const customSupportedModulesData = [
+    {
+      identifier: Module.NFTS,
+      name: 'NFTs',
+      icon: './assets/images/protocols/nfts.png',
+    },
+    {
+      identifier: Module.ETH2,
+      name: 'ETH Staking',
+      icon: './assets/images/protocols/ethereum.svg',
+    },
+  ];
+
+  const supportedModulesData: ComputedRef<SupportedModule[]> = computed(() => SUPPORTED_MODULES.map((identifier) => {
+    const customData = customSupportedModulesData.find(item => item.identifier === identifier);
+    return customData || {
+      identifier,
+      name: get(getDefiName(identifier)),
+      icon: get(getDefiImage(identifier)),
+    };
+  }));
+
   return {
     metadata,
     getDefiData,
@@ -61,5 +83,6 @@ export const useDefiMetadata = createSharedComposable(() => {
     getDefiImage,
     getDefiIdentifierByName,
     loading,
+    supportedModulesData,
   };
 });

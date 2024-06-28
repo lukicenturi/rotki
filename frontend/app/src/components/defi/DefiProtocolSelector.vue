@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   DefiProtocol,
-  SUPPORTED_MODULES,
   isDefiProtocol,
 } from '@/types/modules';
 
@@ -44,8 +43,9 @@ const protocols = computed<DefiProtocol[]>(() => {
   return [...dual, ...lending];
 });
 
+const { supportedModulesData } = useDefiMetadata();
 const protocolsData = computed(() =>
-  SUPPORTED_MODULES.filter(({ identifier }) => {
+  get(supportedModulesData).filter(({ identifier }) => {
     if (!isDefiProtocol(identifier))
       return false;
 

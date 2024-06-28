@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Module, SUPPORTED_MODULES } from '@/types/modules';
+import type { Module } from '@/types/modules';
 import type { Nullable } from '@/types';
 
 interface ModuleWithStatus {
@@ -15,18 +15,18 @@ const { modules } = toRefs(props);
 const manageModule: Ref<Nullable<Module>> = ref(null);
 const confirmEnable: Ref<Nullable<Module>> = ref(null);
 
-const supportedModules = SUPPORTED_MODULES;
-
 const { fetchQueriedAddresses } = useQueriedAddressesStore();
 const { update } = useSettingsStore();
 const { activeModules } = storeToRefs(useGeneralSettingsStore());
 
+const { supportedModulesData } = useDefiMetadata();
+
 const moduleStatus = computed(() => {
   const active = get(activeModules);
-  return get(modules)
-    .map(module => ({
-      identifier: module,
-      enabled: active.includes(module),
+  return get(supportedModulesData).filter(item => get(modules).includes(item.identifier))
+    .map(data => ({
+      ...data,
+      enabled: active.includes(data.identifier),
     }))
     .sort((a, b) => (a.enabled === b.enabled ? 0 : a.enabled ? -1 : 1));
 });
@@ -50,23 +50,7 @@ async function enableModule() {
   set(confirmEnable, null);
 }
 
-function name(module: string): string {
-  const data = supportedModules.find(value => value.identifier === module);
-  return data?.name ?? '';
-}
-
-function icon(module: Module): string {
-  const data = supportedModules.find(value => value.identifier === module);
-  return data?.icon ?? '';
-}
-
 const { t } = useI18n();
-
-function getName(module: Nullable<Module>) {
-  return {
-    name: module ? name(module) : '',
-  };
-}
 
 onMounted(async () => {
   await fetchQueriedAddresses();
@@ -80,7 +64,7 @@ function showConfirmation() {
       title: t('active_modules.enable.title'),
       message: t(
         'active_modules.enable.description',
-        getName(get(confirmEnable)),
+        { name: get(getDefiName(get(confirmEnable) || '')) },
       ),
       type: 'info',
     },
@@ -117,17 +101,17 @@ function showConfirmation() {
                   width="24px"
                   height="24px"
                   contain
-                  :src="icon(module.identifier)"
+                  :src="module.icon"
                 />
               </RuiButton>
             </template>
             <span v-if="module.enabled">
               {{
-                t('active_modules.view_addresses', getName(module.identifier))
+                t('active_modules.view_addresses', { name: module.name })
               }}
             </span>
             <span v-else>
-              {{ t('active_modules.activate', getName(module.identifier)) }}
+              {{ t('active_modules.activate', { name: module.name }) }}
             </span>
           </RuiTooltip>
         </div>

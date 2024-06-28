@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type Module, SUPPORTED_MODULES } from '@/types/modules';
+import type { Module } from '@/types/modules';
 import type { CamelCase } from '@/types/common';
 
 const emit = defineEmits(['update:selection']);
@@ -22,9 +22,10 @@ function hasAddresses(module: Module) {
   return false;
 }
 
+const { supportedModulesData } = useDefiMetadata();
+
 const visibleModules = computed(() =>
-  SUPPORTED_MODULES.filter((module) => {
-    const identifier = module.identifier;
+  get(supportedModulesData).filter(({ identifier }) => {
     const isActive = get(activeModules).includes(identifier);
     const activeWithQueried = isActive && hasAddresses(identifier);
     return activeWithQueried || !isActive;

@@ -5,12 +5,12 @@ import {
   type SupportedModule,
 } from '@/types/modules';
 import { Section } from '@/types/status';
+import { toSentenceCase } from '@/utils/text';
 import type { DataTableColumn } from '@rotki/ui-library-compat';
 import type { CamelCase } from '@/types/common';
 
 const { t } = useI18n();
 
-const supportedModules = SUPPORTED_MODULES;
 const loading = ref(false);
 const search = ref('');
 const manageModule = ref<Module>();
@@ -41,12 +41,15 @@ const headers = computed<DataTableColumn[]>(() => [
   },
 ]);
 
+const { supportedModulesData } = useDefiMetadata();
+
 const modules = computed<(SupportedModule & { enabled: boolean })[]>(() => {
   const active = get(activeModules);
   const filter = get(search).toLowerCase();
+  const allSupportedModules = get(supportedModulesData);
   const filteredModules = filter
-    ? supportedModules.filter(m => m.name.toLowerCase().includes(filter))
-    : supportedModules;
+    ? allSupportedModules.filter(m => m.name.toLowerCase().includes(filter))
+    : allSupportedModules;
   return filteredModules.map(module => ({
     ...module,
     enabled: active.includes(module.identifier),
@@ -86,10 +89,9 @@ async function switchModule(module: Module, enabled: boolean) {
 }
 
 async function enableAll() {
-  const allModules = supportedModules.map(x => x.identifier);
   const active = get(activeModules);
-  const activatedModules = allModules.filter(m => !active.includes(m));
-  await update(allModules);
+  const activatedModules = SUPPORTED_MODULES.filter(m => !active.includes(m));
+  await update(SUPPORTED_MODULES);
 
   if (activatedModules.includes(Module.NFTS))
     fetch();
@@ -174,7 +176,7 @@ onMounted(async () => {
               :src="row.icon"
             />
           </AdaptiveWrapper>
-          <span> {{ row.name }}</span>
+          <span> {{ toSentenceCase(row.name) }}</span>
         </div>
       </template>
 

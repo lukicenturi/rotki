@@ -55,7 +55,7 @@ const dataWithInfo = computed(() => get(protocolCacheStatus).map((item) => {
     ...item,
     key: `${item.chain}#${item.protocol}`,
     protocolInfo: {
-      image: get(metadataLoading) ? null : `./assets/images/protocols/${protocolImage}`,
+      image: get(metadataLoading) ? null : protocolImage,
       name: protocolName,
     },
   };
