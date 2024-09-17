@@ -170,7 +170,7 @@ async function onConfirmDelete(): Promise<void> {
     if (!success)
       return;
 
-    emit('refresh', toEvmChainAndTxHash(event));
+    emit('refresh');
   }
 }
 
