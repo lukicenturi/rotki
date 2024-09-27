@@ -102,7 +102,7 @@ export const IgnoredAssetResponse = z.object({
 
 export type IgnoredAssetResponse = z.infer<typeof IgnoredAssetResponse>;
 
-export const EvmNativeToken = ['ETH'];
+export const EvmNativeToken = ['ETH', 'BTC'];
 
 export function isEvmNativeToken(asset: string): boolean {
   return EvmNativeToken.includes(asset);
