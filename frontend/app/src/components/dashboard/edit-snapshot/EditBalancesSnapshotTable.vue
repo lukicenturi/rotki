@@ -297,17 +297,13 @@ function save() {
   const val = props.modelValue;
   const timestampVal = get(timestamp);
 
-  const usdValueInBigNumber = bigNumberify(formVal.usdValue);
-  const convertedUsdValue
-    = get(currencySymbol) === CURRENCY_USD ? usdValueInBigNumber : usdValueInBigNumber.dividedBy(get(fiatExchangeRate));
-
   const balancesSnapshot = [...val.balancesSnapshot];
   const payload = {
     timestamp: timestampVal,
     category: formVal.category,
     assetIdentifier: formVal.assetIdentifier,
     amount: bigNumberify(formVal.amount),
-    usdValue: convertedUsdValue,
+    usdValue: bigNumberify(formVal.usdValue),
   };
 
   if (index !== null)
@@ -398,7 +394,10 @@ function confirmDelete() {
       <template #item.usdValue="{ row }">
         <AmountDisplay
           :value="row.usdValue"
+          :amount="row.amount"
+          :price-asset="row.assetIdentifier"
           fiat-currency="USD"
+          :timestamp="timestamp"
         />
       </template>
 
@@ -418,10 +417,14 @@ function confirmDelete() {
         <div class="text-caption">
           {{ t('common.total') }}:
         </div>
+
         <div class="font-bold text-h6 -mt-1">
           <AmountDisplay
             :value="total"
-            fiat-currency="USD"
+            :amount="total"
+            :price-asset="CURRENCY_USD"
+            :fiat-currency="CURRENCY_USD"
+            :timestamp="timestamp"
           />
         </div>
       </div>
@@ -467,6 +470,7 @@ function confirmDelete() {
         :form="form"
         :preview-location-balance="previewLocationBalance"
         :locations="indexToEdit !== null ? existingLocations : []"
+        :timestamp="timestamp"
         @update:form="updateForm($event)"
         @update:asset="checkAssetExist($event)"
       />

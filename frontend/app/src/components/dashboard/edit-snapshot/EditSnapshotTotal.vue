@@ -16,14 +16,21 @@ const emit = defineEmits<{
   (e: 'update:model-value', value: LocationDataSnapshot[]): void;
 }>();
 
-const { balancesSnapshot } = toRefs(props);
+const { balancesSnapshot, timestamp } = toRefs(props);
 const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
+const { historicPriceInCurrentCurrency, isPending, createKey } = useHistoricCachePriceStore();
 
 const total = ref<string>('');
 const { t } = useI18n();
 
-const { exchangeRate } = useBalancePricesStore();
-const fiatExchangeRate = computed<BigNumber>(() => get(exchangeRate(get(currencySymbol))) ?? One);
+const rate = computed<BigNumber>(() => {
+  const currency = get(currencySymbol);
+  if (currency === CURRENCY_USD)
+    return One;
+  return get(historicPriceInCurrentCurrency(CURRENCY_USD, get(timestamp)));
+});
+
+const fetchingRate = isPending(createKey(CURRENCY_USD, get(timestamp)));
 
 const assetTotal = computed<BigNumber>(() => {
   const numbers = get(balancesSnapshot).map((item: BalanceSnapshot) => {
@@ -31,17 +38,6 @@ const assetTotal = computed<BigNumber>(() => {
       return item.usdValue;
 
     return item.usdValue.negated();
-  });
-
-  return bigNumberSum(numbers);
-});
-
-const locationTotal = computed<BigNumber>(() => {
-  const numbers = props.modelValue.map((item: LocationDataSnapshot) => {
-    if (item.location === 'total')
-      return Zero;
-
-    return item.usdValue;
   });
 
   return bigNumberSum(numbers);
@@ -69,34 +65,19 @@ const numericTotal = computed<BigNumber>(() => {
 
   return get(currencySymbol) === CURRENCY_USD
     ? bigNumberify(value)
-    : bigNumberify(value).dividedBy(get(fiatExchangeRate));
+    : bigNumberify(value).dividedBy(get(rate));
 });
 
 const nftsExcludedTotal = computed<BigNumber>(() => get(numericTotal).minus(get(nftsTotal)));
 
-const suggestions = computed(() => {
-  const assetTotalValue = get(assetTotal);
-  const locationTotalValue = get(locationTotal);
-
-  if (assetTotalValue.minus(locationTotalValue).abs().lt(1e-8)) {
-    return {
-      total: assetTotalValue,
-    };
-  }
-  return {
-    asset: assetTotalValue,
-    location: locationTotalValue,
-  };
-});
-
-onBeforeMount(() => {
+watchImmediate(rate, (rate) => {
   const totalEntry = props.modelValue.find(item => item.location === 'total');
 
   if (totalEntry) {
     const convertedFiatValue
-      = get(currencySymbol) === CURRENCY_USD
-        ? totalEntry.usdValue.toFixed()
-        : totalEntry.usdValue.multipliedBy(get(fiatExchangeRate)).toFixed();
+        = get(currencySymbol) === CURRENCY_USD
+          ? totalEntry.usdValue.toFixed()
+          : totalEntry.usdValue.multipliedBy(get(rate)).toFixed();
 
     set(total, convertedFiatValue);
   }
@@ -112,9 +93,7 @@ function updateStep(step: number) {
 
 function setTotal(number?: BigNumber) {
   assert(number);
-  const convertedFiatValue
-    = get(currencySymbol) === CURRENCY_USD ? number.toFixed() : number.multipliedBy(get(fiatExchangeRate)).toFixed();
-
+  const convertedFiatValue = number.multipliedBy(get(rate)).toFixed();
   set(total, convertedFiatValue);
 }
 
@@ -146,16 +125,6 @@ const v$ = setValidation(
   },
   { $autoDirty: true },
 );
-
-const suggestionsLabel = computed(() => ({
-  total: t('dashboard.snapshot.edit.dialog.total.use_calculated_total'),
-  asset: t('dashboard.snapshot.edit.dialog.total.use_calculated_asset', {
-    length: get(balancesSnapshot).length,
-  }),
-  location: t('dashboard.snapshot.edit.dialog.total.use_calculated_location', {
-    length: props.modelValue.length,
-  }),
-}));
 </script>
 
 <template>
@@ -169,7 +138,21 @@ const suggestionsLabel = computed(() => ({
           v-model="total"
           variant="outlined"
           :error-messages="toMessages(v$.total)"
-        />
+          :disabled="fetchingRate"
+        >
+          <template
+            v-if="fetchingRate"
+            #append
+          >
+            <RuiProgress
+              circular
+              thickness="2"
+              variant="indeterminate"
+              color="primary"
+              size="16"
+            />
+          </template>
+        </AmountInput>
 
         <div class="text-rui-text-secondary text-caption">
           <i18n-t keypath="dashboard.snapshot.edit.dialog.total.warning">
@@ -183,34 +166,28 @@ const suggestionsLabel = computed(() => ({
         </div>
       </div>
       <div>
-        <div
-          v-for="(number, key) in suggestions"
-          :key="key"
-        >
+        <div>
           <RuiButton
             color="primary"
             class="mb-4 w-full"
-            @click="setTotal(number)"
+            @click="setTotal(assetTotal)"
           >
             <div class="flex flex-col items-center">
               <span>
-                {{ suggestionsLabel[key] }}
+                {{
+                  t('dashboard.snapshot.edit.dialog.total.use_calculated_asset', {
+                    length: get(balancesSnapshot).length,
+                  })
+                }}
               </span>
               <AmountDisplay
-                v-if="number"
                 class="text-2xl"
-                :value="number"
+                :value="assetTotal"
                 fiat-currency="USD"
+                :timestamp="timestamp"
               />
             </div>
           </RuiButton>
-
-          <div
-            v-if="key === 'location'"
-            class="text-rui-text-secondary text-caption"
-          >
-            {{ t('dashboard.snapshot.edit.dialog.total.hint') }}
-          </div>
         </div>
       </div>
     </div>
