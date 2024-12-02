@@ -28,13 +28,11 @@ function setActiveTab(hash: string) {
   });
 }
 
-watch(route, ({ hash }) => {
-  setActiveTab(hash);
-});
-
-onMounted(() => {
-  setActiveTab(route.hash);
-});
+watch([route, supportedChains], ([route]) => {
+  if (route && route.hash) {
+    setActiveTab(route.hash);
+  }
+}, { immediate: true });
 </script>
 
 <template>

@@ -7,8 +7,8 @@ const route = useRoute();
 const { getChainName } = useSupportedChains();
 
 const supportedChains = computed(() => {
-  const blockscoutKeys = get(keys)?.blockscout || {};
-  return Object.keys(blockscoutKeys).map((chain) => {
+  const etherscanApiKeys = get(keys)?.etherscan || {};
+  return Object.keys(etherscanApiKeys).map((chain) => {
     const id = transformCase(chain);
     return ({
       id,
@@ -28,13 +28,11 @@ function setActiveTab(hash: string) {
   });
 }
 
-watch(route, ({ hash }) => {
-  setActiveTab(hash);
-});
-
-onMounted(() => {
-  setActiveTab(route.hash);
-});
+watch([route, supportedChains], ([route]) => {
+  if (route && route.hash) {
+    setActiveTab(route.hash);
+  }
+}, { immediate: true });
 </script>
 
 <template>
