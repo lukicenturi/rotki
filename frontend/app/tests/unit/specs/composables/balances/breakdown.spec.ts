@@ -161,6 +161,7 @@ describe('composables::balances/breakdown', () => {
       USDC: {
         name: 'USDC',
         symbol: 'USDC',
+        mainAsset: 'USDC',
       },
     });
     const locationBreakdown = balancesBreakdown.locationBreakdown('kraken');
