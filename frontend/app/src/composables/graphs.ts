@@ -53,7 +53,7 @@ export function useGraph(canvasId: string): UseGraphReturn {
 
   const thirdColor = computed(() => get(usedTheme).primary);
 
-  const fontColor = computed(() => (get(isDark) ? white : 'rgba(0,0,0,.8)'));
+  const fontColor = computed(() => (get(isDark) ? 'rgba(255,255,255,.5)' : 'rgba(0,0,0,.7)'));
   const gridColor = computed(() => (get(isDark) ? '#555' : '#ddd'));
 
   return {
