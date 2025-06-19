@@ -199,4 +199,15 @@ export class WindowManager {
       }
     }, 2000) as unknown as number;
   }
+
+  sendOAuthCallback(accessToken: string): void {
+    try {
+      if (this.window?.webContents) {
+        this.window.webContents.send('oauth-callback', accessToken);
+      }
+    }
+    catch (error) {
+      this.logger.error('Failed to send OAuth callback:', error);
+    }
+  }
 }
