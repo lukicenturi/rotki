@@ -4,7 +4,7 @@ import { handleResponse, validWithSessionStatus } from '@/services/utils';
 
 interface GoogleCalendarStatus {
   authenticated: boolean;
-  user_email?: string;
+  userEmail?: string;
 }
 
 interface GoogleCalendarFlowStatus {
@@ -15,7 +15,7 @@ interface GoogleCalendarFlowStatus {
 interface GoogleCalendarAuthResult {
   success: boolean;
   message: string;
-  user_email?: string;
+  userEmail?: string;
 }
 
 interface GoogleCalendarSyncResult {

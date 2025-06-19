@@ -2364,7 +2364,6 @@
       "description": "Sync rotki calendar events (ENS expirations, CRV locks, airdrops, etc.) to your Google Calendar for notifications and reminders.",
       "disconnect": "Disconnect",
       "disconnect_failed": "Failed to disconnect from Google Calendar",
-      "disconnected": "Successfully disconnected from Google Calendar",
       "error": "Google Calendar Error",
       "no_events_to_sync": "No calendar events found in rotki to sync to Google Calendar.",
       "open_google_console": "Open Google Cloud Console",
@@ -2381,7 +2380,12 @@
       "sync_failed": "Failed to sync calendar events",
       "sync_info": "Your rotki calendar events will be automatically synced every 2 hours. You can also sync manually using the button below.",
       "sync_now": "Sync Now",
-      "title": "Google Calendar"
+      "title": "Google Calendar",
+      "token_required": "Please enter a valid access token",
+      "access_token": "Access Token",
+      "paste_token_instruction": "Copy the access token from the Google OAuth page and paste it below:",
+      "submit_token": "Submit Token",
+      "disconnected": "Successfully disconnected from Google Calendar"
     },
     "loopring": {
       "description": "Used to query balances in Loopring. This API key will only be able to query the account that generated this key.",

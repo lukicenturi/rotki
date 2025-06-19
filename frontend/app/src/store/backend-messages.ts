@@ -22,20 +22,14 @@ export const useBackendMessagesStore = defineStore('backendMessages', () => {
 
   const oauthCallbackHandlers = ref<Array<(accessToken: string) => void>>([]);
 
-  function registerOAuthCallbackHandler(handler: (accessToken: string) => void) {
-    console.log('Registering OAuth callback handler in store');
+  function registerOAuthCallbackHandler(handler: (accessToken: string) => void): void {
     oauthCallbackHandlers.value.push(handler);
-    console.log('Total handlers:', oauthCallbackHandlers.value.length);
   }
 
-  function unregisterOAuthCallbackHandler(handler: (accessToken: string) => void) {
-    console.log('Unregistering OAuth callback handler in store');
+  function unregisterOAuthCallbackHandler(handler: (accessToken: string) => void): void {
     const index = oauthCallbackHandlers.value.indexOf(handler);
     if (index !== -1) {
       oauthCallbackHandlers.value.splice(index, 1);
-      console.log('Handler removed, remaining handlers:', oauthCallbackHandlers.value.length);
-    } else {
-      console.log('Handler not found for removal');
     }
   }
 
@@ -55,6 +49,11 @@ export const useBackendMessagesStore = defineStore('backendMessages', () => {
           set(isWinVersionUnsupported, true);
         }
       },
+      onOAuthCallback: (accessToken: string) => {
+        oauthCallbackHandlers.value.forEach((handler) => {
+          handler(accessToken);
+        });
+      },
       onProcessDetected: (pids) => {
         set(
           startupErrorMessage,
@@ -67,15 +66,6 @@ export const useBackendMessagesStore = defineStore('backendMessages', () => {
         set(startupErrorMessage, '');
         startPromise(restartBackend());
       },
-      onOAuthCallback: (accessToken: string) => {
-        console.log('OAuth callback received in backend messages store:', accessToken);
-        console.log('Number of registered handlers:', oauthCallbackHandlers.value.length);
-        // Call all registered handlers
-        oauthCallbackHandlers.value.forEach((handler, index) => {
-          console.log(`Calling handler ${index}:`, handler);
-          handler(accessToken);
-        });
-      },
     });
 
     if (isDevelopment && get(logged))
@@ -85,8 +75,8 @@ export const useBackendMessagesStore = defineStore('backendMessages', () => {
   return {
     isMacOsVersionUnsupported,
     isWinVersionUnsupported,
-    startupErrorMessage,
     registerOAuthCallbackHandler,
+    startupErrorMessage,
     unregisterOAuthCallbackHandler,
   };
 });

@@ -7,6 +7,10 @@ import { useNotificationsStore } from '@/store/notifications';
 import { useGeneralSettingsStore } from '@/store/settings/general';
 import { logger } from '@/utils/logging';
 import { Severity } from '@rotki/common';
+import { get, set } from '@vueuse/core';
+import { storeToRefs } from 'pinia';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -19,12 +23,14 @@ const autoCreateReminders = ref(true);
 // Google Calendar integration
 const googleCalendarApi = useGoogleCalendarApi();
 const { notify } = useNotificationsStore();
-const { openUrl } = useInterop();
+const { isPackaged, openUrl } = useInterop();
 const { registerOAuthCallbackHandler, unregisterOAuthCallbackHandler } = useBackendMessagesStore();
 const isConnected = ref(false);
 const isSyncing = ref(false);
 const isAuthorizing = ref(false);
 const connectedUserEmail = ref<string>('');
+const manualToken = ref<string>('');
+const showTokenInput = ref(false);
 
 const { autoCreateCalendarReminders, autoDeleteCalendarEntries } = storeToRefs(useGeneralSettingsStore());
 
@@ -41,11 +47,12 @@ async function checkGoogleCalendarStatus() {
   try {
     const response = await googleCalendarApi.getStatus();
     set(isConnected, response.authenticated);
-    
+
     // Update the connected user email
-    if (response.authenticated && response.user_email) {
-      set(connectedUserEmail, response.user_email);
-    } else {
+    if (response.authenticated && response.userEmail) {
+      set(connectedUserEmail, response.userEmail);
+    }
+    else {
       set(connectedUserEmail, '');
     }
   }
@@ -57,9 +64,19 @@ async function checkGoogleCalendarStatus() {
 async function connectToGoogle() {
   set(isAuthorizing, true);
   try {
-    // Open the external OAuth flow
-    const oauthUrl = `${websiteUrl}/oauth/google?callbackUrl=rotki://oauth`;
-    await openUrl(oauthUrl);
+    // Determine mode based on environment
+    const mode = isPackaged ? 'app' : 'docker';
+    const oauthUrl = `${websiteUrl}/oauth/google?mode=${mode}`;
+
+    if (isPackaged) {
+      await openUrl(oauthUrl);
+    }
+    else {
+      // Docker mode - open OAuth page in new tab for manual token copy
+      window.open(oauthUrl, '_blank');
+      set(isAuthorizing, false); // Reset loading state immediately
+      set(showTokenInput, true); // Show manual token input
+    }
 
     notify({
       display: true,
@@ -83,25 +100,18 @@ async function handleOAuthCallback(accessToken: string) {
   try {
     const result = await googleCalendarApi.completeOAuth(accessToken);
 
+    // Debug logging to see what we get back
+    logger.info('OAuth complete result:', JSON.stringify(result, null, 2));
+
     if (result.success) {
       set(isConnected, true);
 
       // Store the connected user email
-      const userEmail = result.user_email || '';
+      const userEmail = result.userEmail || '';
       set(connectedUserEmail, userEmail);
 
       // Refresh the connection status to make sure it's up to date
       await checkGoogleCalendarStatus();
-
-      const connectedMessage = userEmail
-        ? `Successfully connected to Google Calendar as ${userEmail}`
-        : t('external_services.google_calendar.connected');
-      notify({
-        display: true,
-        message: connectedMessage,
-        severity: Severity.INFO,
-        title: t('external_services.google_calendar.success'),
-      });
     }
     else {
       logger.error('OAuth failed:', result);
@@ -168,17 +178,41 @@ async function syncCalendar() {
   }
 }
 
+async function submitManualToken() {
+  if (!get(manualToken).trim()) {
+    notify({
+      display: true,
+      message: t('external_services.google_calendar.token_required'),
+      severity: Severity.ERROR,
+      title: t('external_services.google_calendar.error'),
+    });
+    return;
+  }
+
+  set(isAuthorizing, true);
+  try {
+    await handleOAuthCallback(get(manualToken).trim());
+    set(manualToken, '');
+    set(showTokenInput, false);
+  }
+  catch {
+    // Error handling is done in handleOAuthCallback
+  }
+  finally {
+    set(isAuthorizing, false);
+  }
+}
+
+function cancelTokenInput() {
+  set(manualToken, '');
+  set(showTokenInput, false);
+}
+
 async function disconnect() {
   try {
     await googleCalendarApi.disconnect();
     set(isConnected, false);
-
-    notify({
-      display: true,
-      message: t('external_services.google_calendar.disconnected'),
-      severity: Severity.INFO,
-      title: t('external_services.google_calendar.success'),
-    });
+    set(connectedUserEmail, '');
   }
   catch (error: any) {
     notify({
@@ -290,6 +324,50 @@ onUnmounted(() => {
               </template>
               {{ t('external_services.google_calendar.connect_to_google') }}
             </RuiButton>
+
+            <!-- Manual Token Input for Docker Mode -->
+            <div
+              v-if="showTokenInput && !isPackaged"
+              class="space-y-3 border-t pt-3 mt-3"
+            >
+              <div class="text-body-2 text-rui-text-secondary">
+                {{ t('external_services.google_calendar.paste_token_instruction') }}
+              </div>
+              <RuiTextArea
+                v-model="manualToken"
+                :label="t('external_services.google_calendar.access_token')"
+                placeholder="ya29.a0AfH6..."
+                variant="outlined"
+                color="primary"
+                rows="4"
+                dense
+              />
+              <div class="flex gap-2">
+                <RuiButton
+                  color="primary"
+                  size="sm"
+                  :disabled="isAuthorizing || !manualToken.trim()"
+                  :loading="isAuthorizing"
+                  @click="submitManualToken()"
+                >
+                  <template #prepend>
+                    <RuiIcon
+                      name="lu-check"
+                      size="16"
+                    />
+                  </template>
+                  {{ t('external_services.google_calendar.submit_token') }}
+                </RuiButton>
+                <RuiButton
+                  variant="outlined"
+                  size="sm"
+                  :disabled="isAuthorizing"
+                  @click="cancelTokenInput()"
+                >
+                  {{ t('common.actions.cancel') }}
+                </RuiButton>
+              </div>
+            </div>
           </div>
 
           <div
