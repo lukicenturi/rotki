@@ -307,7 +307,7 @@ onUnmounted(() => {
             class="space-y-3"
           >
             <div class="text-body-2 text-rui-text-secondary">
-              {{ t('external_services.google_calendar.connect_description') }}
+              {{ t('external_services.google_calendar.description') }}
             </div>
             <RuiButton
               color="primary"
