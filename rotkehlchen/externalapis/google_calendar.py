@@ -274,13 +274,17 @@ class GoogleCalendarAPI:
             if credentials and credentials.valid:
                 import requests
                 headers = {'Authorization': f'Bearer {credentials.token}'}
-                response = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', headers=headers)
+                response = requests.get(
+                    'https://www.googleapis.com/oauth2/v2/userinfo',
+                    headers=headers,
+                    timeout=30,
+                )
 
                 if response.status_code == 200:
                     user_info = response.json()
                     return user_info.get('email')
-
-            return None
+            else:
+                return None
         except Exception as e:
             log.error(f'Failed to get connected user email: {e}')
             return None
@@ -402,15 +406,21 @@ class GoogleCalendarAPI:
         for entry in events:
             events_processed += 1
 
-            log.debug(f'Processing event: {entry.name}, timestamp: {entry.timestamp}, type: {type(entry.timestamp)}')
+            log.debug(
+                f'Processing event: {entry.name}, timestamp: {entry.timestamp}, '
+                f'type: {type(entry.timestamp)}',
+            )
 
             # Convert timestamp to datetime
             try:
                 # Check if timestamp is in milliseconds (common issue)
-                if isinstance(entry.timestamp, (int, float)) and entry.timestamp > 1e10:
+                if isinstance(entry.timestamp, int | float) and entry.timestamp > 1e10:
                     # Timestamp is likely in milliseconds, convert to seconds
                     timestamp_seconds = entry.timestamp / 1000
-                    log.debug(f'Converting milliseconds timestamp {entry.timestamp} to seconds {timestamp_seconds}')
+                    log.debug(
+                        f'Converting milliseconds timestamp {entry.timestamp} to seconds '
+                        f'{timestamp_seconds}',
+                    )
                 else:
                     timestamp_seconds = entry.timestamp
 
@@ -420,7 +430,9 @@ class GoogleCalendarAPI:
                 )
                 log.debug(f'Event date: {event_date}')
             except (ValueError, OSError) as e:
-                log.error(f'Failed to convert timestamp {entry.timestamp} for event {entry.name}: {e}')
+                log.error(
+                    f'Failed to convert timestamp {entry.timestamp} for event {entry.name}: {e}',
+                )
                 errors.append(f'Failed to convert timestamp for event "{entry.name}": {e}')
                 continue
 
@@ -521,16 +533,24 @@ class GoogleCalendarAPI:
 
             # Validate the access token by making a request to Google's userinfo endpoint
             headers = {'Authorization': f'Bearer {access_token}'}
-            response = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', headers=headers)
+            response = requests.get(
+                'https://www.googleapis.com/oauth2/v2/userinfo',
+                headers=headers,
+                timeout=30,
+            )
 
             if response.status_code != 200:
-                raise Exception(f'Invalid access token: {response.status_code} {response.text}')
+                msg = f'Invalid access token: {response.status_code} {response.text}'
+                raise RemoteError(msg)
 
             user_info = response.json()
             log.info(f'Access token validated for user: {user_info.get("email", "unknown")}')
 
             # Check what scopes the token actually has
-            token_info_response = requests.get(f'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={access_token}')
+            token_info_response = requests.get(
+                f'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token={access_token}',
+                timeout=30,
+            )
             if token_info_response.status_code == 200:
                 token_info = token_info_response.json()
                 actual_scopes = token_info.get('scope', '').split(' ')
@@ -538,8 +558,11 @@ class GoogleCalendarAPI:
 
                 required_scope = 'https://www.googleapis.com/auth/calendar'
                 if required_scope not in actual_scopes:
-                    raise Exception(f'Access token is missing required scope: {required_scope}. '
-                                  f'Token has scopes: {actual_scopes}')
+                    msg = (
+                        f'Access token is missing required scope: {required_scope}. '
+                        f'Token has scopes: {actual_scopes}'
+                    )
+                    raise RemoteError(msg)
             else:
                 log.warning(f'Could not verify token scopes: {token_info_response.status_code}')
 
@@ -559,7 +582,8 @@ class GoogleCalendarAPI:
             log.info(f'Credentials valid: {credentials.valid}')
 
             calendar_list = service.calendarList().list().execute()
-            log.debug(f'Calendar API test successful, found {len(calendar_list.get("items", []))} calendars')
+            calendar_count = len(calendar_list.get('items', []))
+            log.debug(f'Calendar API test successful, found {calendar_count} calendars')
 
             # Store the access token and user info for this session
             # Note: This is a simplified storage for external OAuth tokens
