@@ -4,6 +4,7 @@ import DynamicMessageDisplay from '@/components/dashboard/DynamicMessageDisplay.
 import NftBalanceTable from '@/components/dashboard/NftBalanceTable.vue';
 import OverallBalances from '@/components/dashboard/OverallBalances.vue';
 import PriceRefresh from '@/components/helper/PriceRefresh.vue';
+import EvmEventStatusBanner from '@/components/status/notifications/EvmEventStatusBanner.vue';
 import { useAggregatedBalances } from '@/composables/balances/aggregated';
 import { useDynamicMessages } from '@/composables/dynamic-messages';
 import { useModules } from '@/composables/session/modules';
@@ -47,6 +48,9 @@ const dismissedMessage = useSessionStorage('rotki.messages.dash.dismissed', fals
       class="!-mt-6 mb-4"
       :messages="activeDashboardMessages"
       @dismiss="dismissedMessage = true"
+    />
+    <EvmEventStatusBanner
+      class="!-mt-6 mb-4"
     />
     <div class="container">
       <div class="flex flex-wrap gap-6">

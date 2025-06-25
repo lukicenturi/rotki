@@ -3414,6 +3414,13 @@ class HistoricalPricesPerAssetResource(BaseMethodView):
         )
 
 
+class EvmEventStatusResource(BaseMethodView):
+
+    @require_loggedin_user()
+    def get(self) -> Response:
+        return self.rest_api.get_evm_event_status()
+
+
 class RefetchEvmTransactionsResource(BaseMethodView):
 
     def make_post_schema(self) -> RefetchEvmTransactionsSchema:

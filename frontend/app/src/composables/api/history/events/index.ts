@@ -35,6 +35,17 @@ import { omit } from 'es-toolkit';
 
 interface QueryExchangePayload { name: string; location: string }
 
+interface EvmEventStatusResponse {
+  shouldNotify: boolean;
+  outdatedThreshold: number;
+  chainsStatus: Record<string, {
+    lastQueriedTimestamps: Record<string, number | null>;
+    hasOutdatedEvents: boolean;
+    oldestTimestamp: number | null;
+  }>;
+  undecodedTransactions: Record<string, number>;
+}
+
 interface UseHistoryEventsApiReturn {
   fetchTransactionsTask: (payload: TransactionRequestPayload) => Promise<PendingTask>;
   deleteTransactions: (chain: string, txHash?: string) => Promise<boolean>;
@@ -57,6 +68,7 @@ interface UseHistoryEventsApiReturn {
   downloadHistoryEventsCSV: (filePath: string) => Promise<ActionStatus>;
   deleteStakeEvents: (entryType: string) => Promise<boolean>;
   pullAndRecodeEthBlockEventRequest: (payload: PullEthBlockEventPayload) => Promise<PendingTask>;
+  getEvmEventStatus: () => Promise<EvmEventStatusResponse>;
 }
 
 export function useHistoryEventsApi(): UseHistoryEventsApiReturn {
@@ -323,6 +335,14 @@ export function useHistoryEventsApi(): UseHistoryEventsApiReturn {
     return handleResponse(response);
   };
 
+  const getEvmEventStatus = async (): Promise<EvmEventStatusResponse> => {
+    const response = await api.instance.get<ActionResult<EvmEventStatusResponse>>('/blockchains/evm/events/status', {
+      validateStatus: validStatus,
+    });
+
+    return handleResponse(response);
+  };
+
   return {
     addHistoryEvent,
     addTransactionHash,
@@ -336,6 +356,7 @@ export function useHistoryEventsApi(): UseHistoryEventsApiReturn {
     fetchHistoryEvents,
     fetchTransactionsTask,
     getEventDetails,
+    getEvmEventStatus,
     getHistoryEventCounterpartiesData,
     getHistoryEventProductsData,
     getTransactionTypeMappings,

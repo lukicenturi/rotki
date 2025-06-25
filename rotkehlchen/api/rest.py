@@ -1767,6 +1767,10 @@ class RestAPI:
         result = self.rotkehlchen.get_history_query_status()
         return api_response(_wrap_in_ok_result(result), status_code=HTTPStatus.OK)
 
+    def get_evm_event_status(self) -> Response:
+        result = self.rotkehlchen.get_evm_event_status()
+        return api_response(_wrap_in_ok_result(result), status_code=HTTPStatus.OK)
+
     def query_periodic_data(self) -> Response:
         data = self.rotkehlchen.query_periodic_data()
         result = process_result(data)

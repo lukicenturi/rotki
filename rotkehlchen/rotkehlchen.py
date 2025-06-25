@@ -963,6 +963,130 @@ class Rotkehlchen:
 
         return {'processing_state': str(processing_state), 'total_progress': str(progress)}
 
+    def get_evm_event_status(self) -> dict[str, Any]:
+        """Get the status of EVM event queries and decoding for all accounts.
+        
+        Returns information about:
+        - Last query timestamps for each EVM chain/account combination
+        - Whether events are outdated (older than 1 hour)
+        - Whether there are undecoded transactions
+        - Whether users should be notified to refresh their event data
+        """
+        current_time = int(time.time())
+        one_hour_ago = current_time - 3600  # 1 hour in seconds
+        
+        result = {
+            'should_notify': False,
+            'outdated_threshold': one_hour_ago,
+            'chains_status': {},
+            'undecoded_transactions': {},
+        }
+        
+        # Get all EVM accounts
+        accounts = self.chains_aggregator.accounts
+        
+        # Check each EVM chain
+        for chain_id, chain_manager in [
+            ('ethereum', self.chains_aggregator.ethereum),
+            ('optimism', self.chains_aggregator.optimism),
+            ('polygon_pos', self.chains_aggregator.polygon_pos),
+            ('arbitrum_one', self.chains_aggregator.arbitrum_one),
+            ('base', self.chains_aggregator.base),
+            ('gnosis', self.chains_aggregator.gnosis),
+            ('scroll', self.chains_aggregator.scroll),
+            ('binance_sc', self.chains_aggregator.binance_sc),
+        ]:
+            if chain_manager is None:
+                continue
+                
+            chain_accounts = getattr(accounts, chain_id, None)
+            if not chain_accounts:
+                continue
+                
+            chain_status = {
+                'last_queried_timestamps': {},
+                'has_outdated_events': False,
+                'oldest_timestamp': None,
+            }
+            
+            # Check query timestamps for each account
+            for account in chain_accounts:
+                try:
+                    # Get last query range for different event types
+                    with self.data.db.conn.read_ctx() as cursor:
+                        # Check regular transactions
+                        tx_range = cursor.execute(
+                            'SELECT start_ts, end_ts FROM used_query_ranges WHERE name = ?',
+                            (f'{chain_id}_txs_{account}',)
+                        ).fetchone()
+                        
+                        # Check internal transactions
+                        internal_range = cursor.execute(
+                            'SELECT start_ts, end_ts FROM used_query_ranges WHERE name = ?',
+                            (f'{chain_id}_internaltxs_{account}',)
+                        ).fetchone()
+                        
+                        # Check token transactions
+                        token_range = cursor.execute(
+                            'SELECT start_ts, end_ts FROM used_query_ranges WHERE name = ?',
+                            (f'{chain_id}_tokentxs_{account}',)
+                        ).fetchone()
+                        
+                        # Find the most recent query timestamp
+                        timestamps = []
+                        if tx_range and tx_range[1]:
+                            timestamps.append(tx_range[1])
+                        if internal_range and internal_range[1]:
+                            timestamps.append(internal_range[1])
+                        if token_range and token_range[1]:
+                            timestamps.append(token_range[1])
+                        
+                        if timestamps:
+                            last_queried = max(timestamps)
+                            chain_status['last_queried_timestamps'][account] = last_queried
+                            
+                            # Check if it's outdated (older than 1 hour)
+                            if last_queried < one_hour_ago:
+                                chain_status['has_outdated_events'] = True
+                                result['should_notify'] = True
+                            
+                            # Track oldest timestamp
+                            if chain_status['oldest_timestamp'] is None or last_queried < chain_status['oldest_timestamp']:
+                                chain_status['oldest_timestamp'] = last_queried
+                        else:
+                            # No query data found - this means events haven't been queried at all
+                            chain_status['has_outdated_events'] = True
+                            result['should_notify'] = True
+                            chain_status['last_queried_timestamps'][account] = None
+                            
+                except Exception as e:
+                    log.error(f'Error checking query status for {chain_id} account {account}: {e}')
+                    continue
+            
+            # Check for undecoded transactions
+            try:
+                with self.data.db.conn.read_ctx() as cursor:
+                    # Get the chain's numeric ID for database queries
+                    chain_numeric_id = getattr(chain_manager.node_inquirer, 'chain_id', None)
+                    if chain_numeric_id:
+                        undecoded_count = cursor.execute(
+                            'SELECT COUNT(*) FROM evm_transactions WHERE chain_id = ? AND identifier NOT IN '
+                            '(SELECT tx_id FROM evm_tx_mappings WHERE value = ?)',
+                            (chain_numeric_id, 1)  # 1 = EVMTX_DECODED
+                        ).fetchone()[0]
+                        
+                        if undecoded_count > 0:
+                            result['undecoded_transactions'][chain_id] = undecoded_count
+                            result['should_notify'] = True
+                            
+            except Exception as e:
+                log.error(f'Error checking undecoded transactions for {chain_id}: {e}')
+            
+            if chain_status['last_queried_timestamps']:
+                result['chains_status'][chain_id] = chain_status
+        
+        return result
+
     def process_history(
             self,
             start_ts: Timestamp,

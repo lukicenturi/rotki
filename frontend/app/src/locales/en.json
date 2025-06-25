@@ -612,6 +612,12 @@
       },
       "title": "History Events Export"
     },
+    "evm_event_status": {
+      "banner_message_both": "Your {chains} event data is outdated and there are undecoded transactions that may affect your protocol balances.",
+      "banner_message_outdated": "Your {chains} event data is outdated and may be missing recent transactions that affect your protocol balances.",
+      "banner_message_undecoded": "You have undecoded transactions on {chains} that may affect your protocol balances.",
+      "refresh_events_link": "Go to History Events to refresh"
+    },
     "ignore": {
       "error": {
         "description": "Failed to ignore the selected actions: {error}",
