@@ -112,3 +112,11 @@ export const ProcessSkippedHistoryEventsResponse = z.object({
 });
 
 export type ProcessSkippedHistoryEventsResponse = z.infer<typeof ProcessSkippedHistoryEventsResponse>;
+
+export const EvmTransactionStatus = z.object({
+  hasEvmAccounts: z.boolean(),
+  lastQueriedTs: z.number(),
+  undecodedTxCount: z.number(),
+});
+
+export type EvmTransactionStatus = z.infer<typeof EvmTransactionStatus>;

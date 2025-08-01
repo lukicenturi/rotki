@@ -4,7 +4,7 @@ import { useHistoryEventsApi } from '@/composables/api/history/events';
 import { useSupportedChains } from '@/composables/info/chains';
 import { useNotificationsStore } from '@/store/notifications';
 import { useTaskStore } from '@/store/tasks';
-import { TransactionChainType } from '@/types/history/events';
+import { type EvmTransactionStatus, TransactionChainType } from '@/types/history/events';
 import { TaskType } from '@/types/task-type';
 import { logger } from '@/utils/logging';
 
@@ -12,7 +12,7 @@ export const useHistoryStore = defineStore('history', () => {
   const associatedLocations = ref<string[]>([]);
   const undecodedTransactionsStatus = ref<Record<string, EvmUnDecodedTransactionsData>>({});
   const protocolCacheUpdateStatus = ref<Record<string, ProtocolCacheUpdatesData>>({});
-  const evmTransactionStatus = ref<{ lastQueriedTs: number; pendingDecode: boolean }>();
+  const evmTransactionStatus = ref<EvmTransactionStatus>();
 
   const receivingProtocolCacheStatus = ref<boolean>(false);
 
