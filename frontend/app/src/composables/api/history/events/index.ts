@@ -16,6 +16,7 @@ import {
 } from '@/services/utils';
 import {
   type AddTransactionHashPayload,
+  type EvmTransactionStatus,
   HistoryEventDetail,
   type PullEthBlockEventPayload,
   type PullTransactionPayload,
@@ -36,11 +37,6 @@ import { downloadFileByUrl } from '@/utils/download';
 import { getFilename } from '@/utils/file';
 
 interface QueryExchangePayload { name: string; location: string }
-
-interface EvmTransactionStatus {
-  lastQueriedTs: number;
-  pendingDecode: boolean;
-}
 
 interface UseHistoryEventsApiReturn {
   fetchTransactionsTask: (payload: TransactionRequestPayload) => Promise<PendingTask>;

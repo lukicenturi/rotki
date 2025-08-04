@@ -68,7 +68,7 @@ const showMessage = computed<boolean>(() => {
   const { lastDismissedTs } = get(queryStatus);
   const dismissedRecently = Date.now() - lastDismissedTs < DISMISS_THRESHOLD_MS;
   const status = get(transactionStatus);
-  return !dismissedRecently && isDefined(status) && !get(processing);
+  return !dismissedRecently && isDefined(status) && status.hasEvmAccounts && !get(processing);
 });
 
 const isNeverQueried = computed<boolean>(() => {
@@ -145,7 +145,7 @@ onMounted(async () => {
         </template>
         <template v-else>
           <i18n-t
-            v-if="transactionStatus && !transactionStatus.pendingDecode"
+            v-if="transactionStatus && !transactionStatus.undecodedTxCount"
             keypath="dashboard.evm_query_indicator.last_queried"
           >
             <template #time>
