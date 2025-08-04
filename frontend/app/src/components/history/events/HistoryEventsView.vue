@@ -37,6 +37,7 @@ import { useHistoryEvents } from '@/composables/history/events';
 import { useHistoryEventMappings } from '@/composables/history/events/mapping';
 import { useHistoryTransactions } from '@/composables/history/events/tx';
 import { useHistoryTransactionDecoding } from '@/composables/history/events/tx/decoding';
+import { useAccountChangeRefresh } from '@/composables/history/events/tx/use-account-change-refresh';
 import { usePaginationFilters } from '@/composables/use-pagination-filter';
 import { useBlockchainAccountsStore } from '@/modules/accounts/use-blockchain-accounts-store';
 import HistoryEventsTable from '@/modules/history/events/components/HistoryEventsTable.vue';
@@ -131,6 +132,7 @@ const { decodingStatus } = storeToRefs(useHistoryStore());
 const { getAccountByAddress } = useBlockchainAccountsStore();
 const { fetchHistoryEvents } = useHistoryEvents();
 const { refreshTransactions } = useHistoryTransactions();
+const { watchForNewAccounts } = useAccountChangeRefresh();
 const {
   fetchUndecodedTransactionsStatus,
   pullAndRecodeEthBlockEvents,
@@ -444,6 +446,24 @@ watchImmediate(route, async (route) => {
 watch(anyEventsDecoding, async (isLoading, wasLoading) => {
   if (!isLoading && wasLoading)
     await fetchDataAndLocations();
+});
+
+// Watch for newly added accounts and refresh their transactions
+watchForNewAccounts(async (newAccounts) => {
+  const entryTypesVal = get(entryTypes) || [];
+  const disableEvmEvents = entryTypesVal.length > 0 && !entryTypesVal.includes(HistoryEventEntryType.EVM_EVENT);
+
+  await refreshTransactions({
+    chains: get(onlyChains),
+    disableEvmEvents,
+    payload: {
+      accounts: newAccounts,
+    },
+    userInitiated: false,
+  });
+
+  // Fetch data after refreshing transactions for new accounts
+  startPromise(fetchDataAndLocations());
 });
 
 watch([filters, usedAccounts], ([filters, usedAccounts], [oldFilters, oldAccounts]) => {
