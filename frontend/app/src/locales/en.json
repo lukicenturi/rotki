@@ -4354,6 +4354,11 @@
     "location_data_snapshot_suggested": "Suggested filename: location_data_snapshot_import.csv",
     "title": "Import snapshot manually"
   },
+  "sponsorship": {
+    "sponsor": "Sponsor our next release!",
+    "sponsored_by": "Sponsored by:",
+    "version": "Version {version}"
+  },
   "solana_token_migration": {
     "hint": "You can find more information about migrating Solana tokens in our {0}.",
     "release_notes": "release notes"

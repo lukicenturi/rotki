@@ -75,10 +75,7 @@ const steps = [
         />
       </div>
       <footer :class="$style.container__footer">
-        <AccountManagementFooterText
-          #default="{ copyright }"
-          class="lg:hidden"
-        >
+        <AccountManagementFooterText #default="{ copyright }">
           {{ copyright }}
         </AccountManagementFooterText>
         <div class="ml-4">
@@ -87,35 +84,22 @@ const steps = [
       </footer>
     </div>
   </section>
-  <AccountManagementAside class="hidden lg:flex justify-between">
-    <div class="p-12">
-      <div class="mb-10">
-        <RotkiLogo
-          size="2"
-          unique-key="1"
-          text
-        />
-      </div>
-      <div>
-        <RuiStepper
-          custom
-          orientation="vertical"
-          :step="step"
-          :steps="steps"
-        />
-      </div>
+  <AccountManagementAside>
+    <div class="mb-10">
+      <RotkiLogo
+        size="2"
+        unique-key="1"
+        text
+      />
     </div>
-    <AccountManagementFooterText
-      #default="{ copyright }"
-      class="flex items-center justify-between flex-wrap p-10"
-    >
-      <span>
-        {{ appVersion }}
-      </span>
-      <span>
-        {{ copyright }}
-      </span>
-    </AccountManagementFooterText>
+    <div>
+      <RuiStepper
+        custom
+        orientation="vertical"
+        :step="step"
+        :steps="steps"
+      />
+    </div>
   </AccountManagementAside>
 </template>
 
@@ -128,7 +112,7 @@ const steps = [
   @apply h-full grow flex flex-col;
 
   &__footer {
-    @apply p-6 lg:p-8 flex items-center justify-between lg:justify-end;
+    @apply p-6 lg:p-8 flex items-center justify-between;
   }
 }
 
