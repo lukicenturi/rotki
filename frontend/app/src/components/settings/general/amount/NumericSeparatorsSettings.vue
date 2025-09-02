@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useVuelidate from '@vuelidate/core';
-import { helpers, not, numeric, required, sameAs } from '@vuelidate/validators';
+import { helpers, not, numeric, sameAs } from '@vuelidate/validators';
 import SettingsOption from '@/components/settings/controls/SettingsOption.vue';
 import { useValidation } from '@/composables/validation';
 import { useFrontendSettingsStore } from '@/store/settings/frontend';
@@ -13,28 +13,31 @@ const { decimalSeparator: decimals, thousandSeparator: thousands } = storeToRefs
 
 const { t } = useI18n({ useScope: 'global' });
 
+// Custom validator that allows spaces but not empty strings
+const notEmpty = (value: any) => value?.length > 0;
+
 const rules = {
   decimalSeparator: {
     notANumber: helpers.withMessage(
       t('general_settings.decimal_separator.validation.cannot_be_numeric_character'),
       not(numeric),
     ),
+    notEmpty: helpers.withMessage(t('general_settings.decimal_separator.validation.empty'), notEmpty),
     notTheSame: helpers.withMessage(
       t('general_settings.decimal_separator.validation.cannot_be_the_same'),
       not(sameAs(thousandSeparator)),
     ),
-    required: helpers.withMessage(t('general_settings.decimal_separator.validation.empty'), required),
   },
   thousandSeparator: {
     notANumber: helpers.withMessage(
       t('general_settings.thousand_separator.validation.cannot_be_numeric_character'),
       not(numeric),
     ),
+    notEmpty: helpers.withMessage(t('general_settings.thousand_separator.validation.empty'), notEmpty),
     notTheSame: helpers.withMessage(
       t('general_settings.thousand_separator.validation.cannot_be_the_same'),
       not(sameAs(decimalSeparator)),
     ),
-    required: helpers.withMessage(t('general_settings.thousand_separator.validation.empty'), required),
   },
 };
 
@@ -82,7 +85,6 @@ onMounted(() => {
       v-model="thousandSeparator"
       variant="outlined"
       color="primary"
-      maxlength="1"
       data-cy="thousand-separator-input"
       :label="t('general_settings.amount.label.thousand_separator')"
       type="text"
@@ -103,7 +105,6 @@ onMounted(() => {
       v-model="decimalSeparator"
       variant="outlined"
       color="primary"
-      maxlength="1"
       data-cy="decimal-separator-input"
       :label="t('general_settings.amount.label.decimal_separator')"
       type="text"
