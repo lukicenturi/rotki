@@ -7,26 +7,39 @@ export function parseToken(oAuthUrl: string): OAuthResult {
 
     if (callbackUrl.pathname === '/success') {
       const accessToken = callbackUrl.searchParams.get('access_token');
-      const refreshToken = callbackUrl.searchParams.get('refresh_token');
-      if (accessToken && refreshToken) {
+      if (accessToken) {
+        const refreshToken = callbackUrl.searchParams.get('refresh_token') ?? undefined;
+        const service = callbackUrl.searchParams.get('service') ?? 'google';
+        const expiresInRaw = callbackUrl.searchParams.get('expires_in');
+        const tokenType = callbackUrl.searchParams.get('token_type') ?? undefined;
+        const clientId = callbackUrl.searchParams.get('client_id') ?? undefined;
+        const expiresIn = expiresInRaw ? Number.parseInt(expiresInRaw, 10) : undefined;
         return {
           success: true,
+          service,
           accessToken,
           refreshToken,
+          expiresIn: Number.isNaN(expiresIn) ? undefined : expiresIn,
+          tokenType,
+          clientId,
         };
       }
       else {
+        const service = callbackUrl.searchParams.get('service') ?? 'unknown';
         return {
           success: false,
-          error: new Error('Failed to parse OAuth callback URL. missing access_token or refresh_token'),
+          service,
+          error: new Error('Failed to parse OAuth callback URL. missing access_token'),
         };
       }
     }
     else if (callbackUrl.pathname === '/failure') {
       const errorMessage = callbackUrl.searchParams.get('error');
       if (errorMessage) {
+        const service = callbackUrl.searchParams.get('service') ?? 'unknown';
         return {
           success: false,
+          service,
           error: new Error(errorMessage),
         };
       }
@@ -35,11 +48,13 @@ export function parseToken(oAuthUrl: string): OAuthResult {
   catch (parseError: any) {
     return {
       success: false,
+      service: 'unknown',
       error: new Error(`Failed to parse OAuth callback URL: ${parseError.message}`),
     };
   }
   return {
     success: false,
+    service: 'unknown',
     error: new Error(`Invalid path in OAuth callback URL: ${oAuthUrl}`),
   };
 }

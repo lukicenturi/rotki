@@ -65,12 +65,17 @@ export interface TrayUpdate {
 
 export interface OAuthSuccess {
   readonly success: true;
+  readonly service: string;
   readonly accessToken: string;
-  readonly refreshToken: string;
+  readonly refreshToken?: string;
+  readonly expiresIn?: number;
+  readonly tokenType?: string;
+  readonly clientId?: string;
 }
 
 export interface OAuthFailure {
   readonly success: false;
+  readonly service?: string;
   readonly error: Error;
 }
 

@@ -191,7 +191,7 @@ from rotkehlchen.exchanges.utils import query_binance_exchange_pairs
 from rotkehlchen.externalapis.github import Github
 from rotkehlchen.externalapis.gnosispay import init_gnosis_pay
 from rotkehlchen.externalapis.google_calendar import GoogleCalendarAPI
-from rotkehlchen.externalapis.monerium import init_monerium
+from rotkehlchen.externalapis.monerium import Monerium, init_monerium
 from rotkehlchen.fval import FVal
 from rotkehlchen.globaldb.asset_updates.manager import ASSETS_VERSION_KEY
 from rotkehlchen.globaldb.assets_management import export_assets_from_file, import_assets_from_file
@@ -5455,6 +5455,43 @@ class RestAPI:
         try:
             google_calendar = GoogleCalendarAPI(self.rotkehlchen.data.db)
             result = google_calendar.complete_oauth_with_token(access_token, refresh_token)
+            return api_response(_wrap_in_ok_result(result))
+        except Exception as e:
+            return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_REQUEST)
+
+    def get_monerium_status(self) -> Response:
+        try:
+            monerium = Monerium(self.rotkehlchen.data.db)
+            status = monerium.get_oauth_status()
+            return api_response(_wrap_in_ok_result(status))
+        except Exception as e:
+            return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_REQUEST)
+
+    def complete_monerium_oauth(
+            self,
+            access_token: str,
+            refresh_token: str,
+            expires_in: int,
+            client_id: str,
+            token_type: str | None = None,
+    ) -> Response:
+        try:
+            monerium = Monerium(self.rotkehlchen.data.db)
+            result = monerium.complete_oauth(
+                access_token=access_token,
+                refresh_token=refresh_token,
+                expires_in=int(expires_in),
+                client_id=client_id,
+                token_type=token_type or 'Bearer',
+            )
+            return api_response(_wrap_in_ok_result(result))
+        except Exception as e:
+            return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_REQUEST)
+
+    def disconnect_monerium(self) -> Response:
+        try:
+            monerium = Monerium(self.rotkehlchen.data.db)
+            result = monerium.disconnect()
             return api_response(_wrap_in_ok_result(result))
         except Exception as e:
             return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_REQUEST)

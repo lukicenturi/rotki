@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import gevent
@@ -16,7 +17,8 @@ from rotkehlchen.history.events.structures.evm_event import EvmEvent
 from rotkehlchen.history.events.structures.types import HistoryEventSubType, HistoryEventType
 from rotkehlchen.tests.utils.api import api_url_for, assert_proper_response
 from rotkehlchen.tests.utils.mock import MockResponse
-from rotkehlchen.types import ExternalService, Location, TimestampMS, deserialize_evm_tx_hash
+from rotkehlchen.types import Location, TimestampMS, deserialize_evm_tx_hash
+from rotkehlchen.utils.misc import ts_now
 
 
 def mock_monerium_and_run_periodic_task(database, contents):
@@ -207,9 +209,20 @@ def test_query_info_on_redecode_request(rotkehlchen_api_server: APIServer):
     )
     with database.user_write() as write_cursor:
         write_cursor.execute(  # not using the fixture since it has issues with the api
-            'INSERT OR REPLACE INTO external_service_credentials(name, api_key, api_secret) '
-            'VALUES(?, ?, ?)',
-            (ExternalService.MONERIUM.name.lower(), 'mockuser', 'mockpassword'),
+            'INSERT OR REPLACE INTO key_value_cache (name, value) VALUES (?, ?)',
+            (
+                'monerium_oauth_credentials',
+                json.dumps({
+                    'access_token': 'mock-access-token',
+                    'refresh_token': 'mock-refresh-token',
+                    'expires_at': ts_now() + 3600,
+                    'client_id': 'mock-client-id',
+                    'token_type': 'Bearer',
+                    'user_email': 'mock@monerium.com',
+                    'default_profile_id': 'profile-id',
+                    'profiles': [],
+                }),
+            ),
         )
 
     def add_event(self, *args, **kwargs):  # pylint: disable=unused-argument

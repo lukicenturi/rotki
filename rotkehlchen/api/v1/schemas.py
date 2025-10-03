@@ -1614,23 +1614,16 @@ class ExternalServiceSchema(Schema):
             data: dict[str, Any],
             **_kwargs: Any,
     ) -> None:
-        if data.get('api_key') is None:
-            if data['name'] != ExternalService.MONERIUM:
-                raise ValidationError(
-                    message=f'an api key is needed for {data["name"].name.lower()}',
-                    field_name='api_key',
-                )
-
-        elif None not in (data.get('username'), data.get('password')):
+        if data['name'] == ExternalService.MONERIUM:
             raise ValidationError(
-                message='username and password is only given for monerium',
-                field_name='username',
+                message='Monerium credentials must be managed via the dedicated OAuth endpoint',
+                field_name='name',
             )
 
-        if data['name'] == ExternalService.MONERIUM and None in (data.get('username'), data.get('password')):  # noqa: E501
+        if data.get('api_key') is None:
             raise ValidationError(
-                message='monerium needs a username and password',
-                field_name='username',
+                message=f'an api key is needed for {data["name"].name.lower()}',
+                field_name='api_key',
             )
 
     @post_load
