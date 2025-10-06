@@ -1004,6 +1004,12 @@ class DBHandler:
                 'DELETE FROM external_service_credentials WHERE name=?;',
                 [(service.name.lower(),) for service in services],
             )
+            # Also delete Monerium OAuth credentials if Monerium is in the services list
+            if ExternalService.MONERIUM in services:
+                cursor.execute(
+                    'DELETE FROM key_value_cache WHERE name=?',
+                    ('monerium_oauth_credentials',),
+                )
 
     def get_all_external_service_credentials(self) -> list[ExternalServiceApiCredentials]:
         """Returns a list with all the external service credentials saved in the DB"""
