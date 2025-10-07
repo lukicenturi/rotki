@@ -234,13 +234,6 @@ onUnmounted(() => {
         <RuiAlert type="success">
           {{ t('external_services.monerium.connected_as', { email: connectedEmail || t('external_services.monerium.unknown_email') }) }}
         </RuiAlert>
-
-        <div
-          v-if="status?.defaultProfileId"
-          class="text-sm text-rui-text-secondary"
-        >
-          {{ t('external_services.monerium.connected_profile', { profile: status.defaultProfileId }) }}
-        </div>
       </div>
 
       <div v-else>
@@ -253,10 +246,6 @@ onUnmounted(() => {
         v-if="showTokenInput"
         class="flex flex-col gap-3"
       >
-        <p class="text-sm text-rui-text-secondary">
-          {{ t('external_services.monerium.manual_instructions', { clientId: defaultClientId ?? 'N/A' }) }}
-        </p>
-
         <RuiTextField
           v-model.trim="manualAccessToken"
           :label="t('external_services.monerium.access_token')"
