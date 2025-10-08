@@ -33,7 +33,6 @@ interface UseMoneriumOAuthApiReturn {
     refreshToken: string,
     expiresIn: number,
     clientId: string,
-    tokenType: string,
   ) => Promise<MoneriumAuthResult>;
   disconnect: () => Promise<{ success: boolean }>;
 }

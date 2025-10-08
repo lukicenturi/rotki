@@ -16,7 +16,7 @@ import { logger } from '@/utils/logging';
 const { t } = useI18n({ useScope: 'global' });
 
 const websiteUrl = import.meta.env.VITE_ROTKI_WEBSITE_URL as string | undefined;
-const defaultClientId = (import.meta.env.VITE_MONERIUM_CLIENT_ID as string | undefined) ?? '53ac5f39-a038-11f0-882b-4a4d188cc07d';
+const defaultClientId = import.meta.env.VITE_MONERIUM_CLIENT_ID as string | undefined;
 
 const isAuthorizing = ref(false);
 const showTokenInput = ref(false);
@@ -57,7 +57,7 @@ async function handleOAuthCallback(oAuthResult: OAuthResult): Promise<void> {
       return;
     }
 
-    const { accessToken, clientId, expiresIn, refreshToken, tokenType } = oAuthResult;
+    const { accessToken, clientId, expiresIn, refreshToken } = oAuthResult;
     if (!accessToken || !refreshToken) {
       notifyOAuthError(new Error(t('external_services.monerium.token_required')));
       return;
@@ -75,7 +75,6 @@ async function handleOAuthCallback(oAuthResult: OAuthResult): Promise<void> {
       refreshToken,
       expiresIn ?? 3600,
       resolvedClientId,
-      tokenType ?? 'Bearer',
     );
 
     moneriumStore.setStatus({
