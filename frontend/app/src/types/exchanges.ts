@@ -8,7 +8,7 @@ export const KrakenAccountType = z.enum(['starter', 'intermediate', 'pro']);
 
 export type KrakenAccountType = z.infer<typeof KrakenAccountType>;
 
-export const OkxLocation = z.enum(['GLOBAL', 'EEA', 'US']);
+export const OkxLocation = z.enum(['global', 'eea', 'us']);
 
 export type OkxLocation = z.infer<typeof OkxLocation>;
 
