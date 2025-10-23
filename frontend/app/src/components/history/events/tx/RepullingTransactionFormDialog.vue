@@ -53,6 +53,79 @@ function defaults(): RepullingTransactionPayload {
   };
 }
 
+function resetForm(): void {
+  set(formData, defaults());
+  set(accountType, 'blockchain');
+}
+
+async function handleSubmissionError(
+  error: any,
+  data: RepullingTransactionPayload,
+  formRef: InstanceType<typeof RepullingTransactionForm> | null,
+): Promise<void> {
+  let message: string | Record<string, string[] | string> = error.message;
+
+  if (error instanceof ApiValidationError)
+    message = error.getValidationErrors(data);
+
+  if (typeof message === 'string') {
+    setMessage({
+      description: message,
+    });
+  }
+  else {
+    set(errorMessages, message);
+    await formRef?.validate();
+  }
+}
+
+function getAffectedChains(chain: string | undefined): string[] {
+  if (chain === 'evm' || !chain) {
+    return get(allTxChainsInfo).map(chain => chain.id);
+  }
+
+  const chainId = matchChain(chain);
+  assert(chainId);
+  return [chainId];
+}
+
+async function handleExchangeSubmission(
+  data: RepullingTransactionPayload,
+  formRef: InstanceType<typeof RepullingTransactionForm> | null,
+): Promise<void> {
+  const exchange = formRef?.getExchangeData();
+  const exchangePayload: RepullingExchangeEventsPayload = {
+    fromTimestamp: data.fromTimestamp,
+    location: exchange?.location || '',
+    name: exchange?.name || '',
+    toTimestamp: data.toTimestamp,
+  };
+
+  const newEventsDetected = await repullingExchangeEvents(exchangePayload);
+  if (newEventsDetected && exchange) {
+    emit('refresh-exchange-events', [exchange]);
+    logger.debug('New exchange events detected');
+  }
+}
+
+async function handleBlockchainSubmission(data: RepullingTransactionPayload): Promise<void> {
+  const chain = data.chain;
+  const usedChain = chain && chain !== 'evm' ? chain : undefined;
+  const blockchainPayload: RepullingTransactionPayload = {
+    address: data.address || undefined,
+    chain: usedChain,
+    fromTimestamp: data.fromTimestamp,
+    toTimestamp: data.toTimestamp,
+  };
+
+  const newTransactionsDetected = await repullingTransactions(blockchainPayload);
+  if (newTransactionsDetected) {
+    const chains = getAffectedChains(chain);
+    emit('refresh', chains);
+    logger.debug(`New transactions detected ${chains.join(', ')}`);
+  }
+}
+
 async function submit(): Promise<void> {
   const formRef = get(form);
   const valid = await formRef?.validate();
@@ -66,65 +139,15 @@ async function submit(): Promise<void> {
     set(submitting, true);
     set(modelValue, false);
 
-    if (type === 'exchange') {
-      const exchange = formRef?.getExchangeData();
-      const exchangePayload: RepullingExchangeEventsPayload = {
-        fromTimestamp: data.fromTimestamp,
-        location: exchange?.location || '',
-        name: exchange?.name || '',
-        toTimestamp: data.toTimestamp,
-      };
+    if (type === 'exchange')
+      await handleExchangeSubmission(data, formRef);
+    else
+      await handleBlockchainSubmission(data);
 
-      const newEventsDetected = await repullingExchangeEvents(exchangePayload);
-      if (newEventsDetected && exchange) {
-        emit('refresh-exchange-events', [exchange]);
-        logger.debug('New exchange events detected');
-      }
-    }
-    else {
-      const chain = data.chain;
-      const usedChain = chain && chain !== 'evm' ? chain : undefined;
-      const blockchainPayload = {
-        address: data.address || undefined,
-        chain: usedChain,
-        fromTimestamp: data.fromTimestamp,
-        toTimestamp: data.toTimestamp,
-      };
-
-      const newTransactionsDetected = await repullingTransactions(blockchainPayload);
-      if (newTransactionsDetected) {
-        let chains: string[];
-        if (chain === 'evm' || !chain) {
-          chains = get(allTxChainsInfo).map(chain => chain.id);
-        }
-        else {
-          const chainId = matchChain(chain);
-          assert(chainId);
-          chains = [chainId];
-        }
-
-        emit('refresh', chains);
-        logger.debug(`New transactions detected ${chains.join(', ')}`);
-      }
-    }
-
-    set(formData, defaults());
-    set(accountType, 'blockchain');
+    resetForm();
   }
   catch (error: any) {
-    let message = error.message;
-    if (error instanceof ApiValidationError)
-      message = error.getValidationErrors(data);
-
-    if (typeof message === 'string') {
-      setMessage({
-        description: message,
-      });
-    }
-    else {
-      set(errorMessages, message);
-      await formRef?.validate();
-    }
+    await handleSubmissionError(error, data, formRef);
   }
   finally {
     set(submitting, false);

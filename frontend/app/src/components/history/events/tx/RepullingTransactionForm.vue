@@ -97,7 +97,6 @@ const accounts = computed<BlockchainAccount<AddressData>[]>({
 });
 
 const isBlockchainType = computed<boolean>(() => get(accountType) === 'blockchain');
-const isExchangeType = computed<boolean>(() => get(accountType) === 'exchange');
 
 const rules = computed(() => {
   if (get(isBlockchainType)) {
@@ -201,42 +200,39 @@ defineExpose({
       />
     </div>
 
-    <div
-      v-if="isExchangeType"
+    <RuiAutoComplete
+      v-else
+      v-model="exchange"
+      :options="connectedExchanges"
+      :label="t('transactions.repulling.exchange')"
+      variant="outlined"
+      auto-select-first
+      :item-height="48"
+      :error-messages="toMessages(v$.exchange)"
     >
-      <RuiAutoComplete
-        v-model="exchange"
-        :options="connectedExchanges"
-        :label="t('transactions.repulling.exchange')"
-        variant="outlined"
-        auto-select-first
-        :item-height="48"
-        :error-messages="toMessages(v$.exchange)"
-      >
-        <template #selection="{ item }">
-          <div class="flex items-center gap-2">
-            <LocationDisplay
-              horizontal
-              icon
-              :open-details="false"
-              :identifier="item.location"
-            />
-            {{ item.name }}
-          </div>
-        </template>
-        <template #item="{ item }">
-          <div class="flex items-center gap-2">
-            <LocationDisplay
-              icon
-              horizontal
-              :open-details="false"
-              :identifier="item.location"
-            />
-            {{ item.name }}
-          </div>
-        </template>
-      </RuiAutoComplete>
-    </div>
+      <template #selection="{ item }">
+        <div class="flex items-center gap-2">
+          <LocationDisplay
+            horizontal
+            icon
+            :open-details="false"
+            :identifier="item.location"
+          />
+          {{ item.name }}
+        </div>
+      </template>
+      <template #item="{ item }">
+        <div class="flex items-center gap-2">
+          <LocationDisplay
+            icon
+            horizontal
+            :open-details="false"
+            :identifier="item.location"
+          />
+          {{ item.name }}
+        </div>
+      </template>
+    </RuiAutoComplete>
 
     <div class="w-full flex gap-2">
       <div class="flex-1">
