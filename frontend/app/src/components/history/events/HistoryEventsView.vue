@@ -181,9 +181,10 @@ watch(processing, async (isLoading, wasLoading) => {
     await actions.fetch.dataAndLocations();
 });
 
-onMounted(async () => {
+// Wait until route doesn't changed anymore
+watchDebounced(route, async () => {
   await actions.refresh.all();
-});
+}, { debounce: 500, immediate: true });
 </script>
 
 <template>
