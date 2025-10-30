@@ -32,7 +32,7 @@ interface QueryConfig {
 
 const queryConfigs = computed<Record<OnlineHistoryEventsQueryType, QueryConfig>>(() => {
   const gnosisPayEnabled = !!get(apiKey('gnosis_pay'));
-  const moneriumEnabled = !!get(moneriumAuthenticated);
+  const moneriumEnabled = get(moneriumAuthenticated);
 
   return {
     [OnlineHistoryEventsQueryType.GNOSIS_PAY]: {
