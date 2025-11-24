@@ -532,16 +532,17 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
                 )
                 continue
 
+            main_currency = CachedSettings().main_currency
             try:
-                usd_price = Inquirer.find_usd_price(asset)
+                price = Inquirer.find_price(from_asset=asset, to_asset=main_currency)
             except RemoteError as e:
                 log.error(
                     f'Error processing {self.name} balance entry due to inability to '
-                    f'query USD price: {e!s}. Skipping balance entry',
+                    f'query price: {e!s}. Skipping balance entry',
                 )
                 continue
 
-            balances[asset] += Balance(amount=amount, usd_value=amount * usd_price)
+            balances[asset] += Balance(amount=amount, value=amount * price)
 
         return balances
 
@@ -666,18 +667,19 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
                     )
                     continue
 
+                main_currency = CachedSettings().main_currency
                 try:
-                    usd_price = Inquirer.find_usd_price(asset)
+                    price = Inquirer.find_price(from_asset=asset, to_asset=main_currency)
                 except RemoteError as e:
                     log.error(
                         f'Error processing {self.name} balance entry due to inability to '
-                        f'query USD price: {e!s}. Skipping balance entry',
+                        f'query price: {e!s}. Skipping balance entry',
                     )
                     continue
 
                 balances[asset] += Balance(
                     amount=amount,
-                    usd_value=amount * usd_price,
+                    value=amount * price,
                 )
 
         return balances
@@ -893,6 +895,7 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
         - RemoteError
         """
         futures_response = self.api_query_dict('sapi', 'futures/loan/wallet')
+        main_currency = CachedSettings().main_currency
         try:
             cross_collaterals = futures_response['crossCollaterals']
             for entry in cross_collaterals:
@@ -922,17 +925,17 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
                     continue
 
                 try:
-                    usd_price = Inquirer.find_usd_price(asset)
+                    price = Inquirer.find_price(from_asset=asset, to_asset=main_currency)
                 except RemoteError as e:
                     log.error(
                         f'Error processing {self.name} balance entry due to inability to '
-                        f'query USD price: {e!s}. Skipping balance entry',
+                        f'query price: {e!s}. Skipping balance entry',
                     )
                     continue
 
                 balances[asset] += Balance(
                     amount=amount,
-                    usd_value=amount * usd_price,
+                    value=amount * price,
                 )
 
         except KeyError as e:
@@ -970,6 +973,7 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
             )
             return balances
 
+        main_currency = CachedSettings().main_currency
         try:
             for entry in response:
                 amount = deserialize_fval(entry['balance'])
@@ -998,17 +1002,17 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
                     continue
 
                 try:
-                    usd_price = Inquirer.find_usd_price(asset)
+                    price = Inquirer.find_price(from_asset=asset, to_asset=main_currency)
                 except RemoteError as e:
                     log.error(
                         f'Error processing {self.name} balance entry due to inability to '
-                        f'query USD price: {e!s}. Skipping margined futures balance entry',
+                        f'query price: {e!s}. Skipping margined futures balance entry',
                     )
                     continue
 
                 balances[asset] += Balance(
                     amount=amount,
-                    usd_value=amount * usd_price,
+                    value=amount * price,
                 )
 
         except KeyError as e:
@@ -1028,6 +1032,7 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
         May raise:
         - RemoteError
         """
+        main_currency = CachedSettings().main_currency
 
         def process_pool_asset(asset_name: str, asset_amount: FVal) -> None:
             if asset_amount == ZERO:
@@ -1055,17 +1060,17 @@ class Binance(ExchangeInterface, ExchangeWithExtras, SignatureGeneratorMixin):
                 return None
 
             try:
-                usd_price = Inquirer.find_usd_price(asset)
+                price = Inquirer.find_price(from_asset=asset, to_asset=main_currency)
             except RemoteError as e:
                 log.error(
                     f'Error processing {self.name} balance entry due to inability to '
-                    f'query USD price: {e!s}. Skipping {self.name} pool balance entry',
+                    f'query price: {e!s}. Skipping {self.name} pool balance entry',
                 )
                 return None
 
             balances[asset] += Balance(
                 amount=asset_amount,
-                usd_value=asset_amount * usd_price,
+                value=asset_amount * price,
             )
             return None
 
