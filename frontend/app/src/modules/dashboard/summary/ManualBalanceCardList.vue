@@ -5,7 +5,6 @@ import AmountDisplay from '@/components/display/amount/AmountDisplay.vue';
 import LocationDisplay from '@/components/history/LocationDisplay.vue';
 import { useLocations } from '@/composables/locations';
 import { Routes } from '@/router/routes';
-import { useGeneralSettingsStore } from '@/store/settings/general';
 
 const props = defineProps<{
   name: string;
@@ -16,7 +15,6 @@ const manualBalancesRoute = Routes.BALANCES_MANUAL;
 
 const { name } = toRefs(props);
 
-const { currencySymbol } = storeToRefs(useGeneralSettingsStore());
 const { locationData } = useLocations();
 
 const location = locationData(name);
@@ -42,7 +40,7 @@ const location = locationData(name);
         {{ location?.name || toCapitalCase(name) }}
         <AmountDisplay
           show-currency="symbol"
-          :fiat-currency="currencySymbol"
+          force-currency
           :value="amount"
           class="font-medium"
         />

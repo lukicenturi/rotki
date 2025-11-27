@@ -84,6 +84,7 @@ async function refresh() {
 function edit(balance: ManualBalanceWithPrice) {
   emit('edit', {
     ...omit(balance, [
+      'value',
       'usdValue',
       'usdPrice',
       'assetIsMissing',
@@ -212,6 +213,7 @@ watchDebounced(
       class="lg:[&_table]:w-full"
     >
       <template #item.label="{ row }">
+        {{ row }}
         <div
           class="font-medium !pb-0 text-truncate min-w-[8rem] max-w-[16rem]"
           :title="row.label"
@@ -265,8 +267,8 @@ watchDebounced(
           :amount="row.amount"
           :price-asset="row.asset"
           :price-of-asset="row.usdPrice"
-          fiat-currency="USD"
-          :value="row.usdValue"
+          force-currency
+          :value="row.value"
         />
         <template v-else>
           -

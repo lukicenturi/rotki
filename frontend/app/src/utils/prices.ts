@@ -1,8 +1,12 @@
+import type { BigNumber } from '@rotki/common';
+import type { MaybeRef } from '@vueuse/core';
+import type { ComputedRef } from 'vue';
 import type { AssetBalances } from '@/types/balances';
 import type {
   AssetProtocolBalances,
   BlockchainAssetBalances,
 } from '@/types/blockchain/balances';
+import type { ManualBalanceWithValue } from '@/types/manual-balances';
 import type { AssetPrices } from '@/types/prices';
 
 export function updateBalancesPrices(balances: AssetProtocolBalances, prices: AssetPrices): AssetProtocolBalances {
@@ -100,4 +104,18 @@ export function updateBlockchainAssetBalances(
     result[chain] = chainResult;
   }
   return result;
+}
+
+export function updateManualBalancePrices(data: ManualBalanceWithValue[], prices: AssetPrices, assetPriceInCurrentCurrency: (asset: MaybeRef<string>) => ComputedRef<BigNumber>): ManualBalanceWithValue[] {
+  return data.map((item) => {
+    const assetPrice = prices[item.asset];
+    if (!assetPrice)
+      return item;
+
+    return {
+      ...item,
+      usdValue: item.amount.times(assetPrice.usdPrice ?? assetPrice.value),
+      value: item.amount.times(get(assetPriceInCurrentCurrency(item.asset))),
+    };
+  });
 }
