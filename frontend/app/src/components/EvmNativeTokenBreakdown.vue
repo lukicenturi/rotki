@@ -138,6 +138,7 @@ function getAssets(location: string): AssetBalance[] {
         amount: entry.amount,
         asset,
         usdValue: entry.usdValue,
+        value: entry.value,
       });
     }
   }

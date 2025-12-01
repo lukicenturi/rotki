@@ -4,7 +4,7 @@ import { bigNumberify, NumericString } from '../numbers';
 export const Balance = z.object({
   amount: NumericString,
   usdValue: NumericString,
-  value: NumericString.default(bigNumberify(0)),
+  value: NumericString.optional().default(bigNumberify(0)),
 });
 
 export type Balance = z.infer<typeof Balance>;

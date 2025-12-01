@@ -20,12 +20,14 @@ export const useBalancesStore = defineStore('balances', () => {
 
   const { assetPriceInCurrentCurrency } = usePriceUtils();
 
+  const getAssetPriceInCurrentCurrency = (asset: string): BigNumber | undefined => get(assetPriceInCurrentCurrency(asset));
+
   const updatePrices = (prices: MaybeRef<AssetPrices>): void => {
     const latestPrices = get(prices);
-    set(blockchainBalances, updateBlockchainAssetBalances(get(blockchainBalances), latestPrices));
+    set(blockchainBalances, updateBlockchainAssetBalances(get(blockchainBalances), latestPrices, getAssetPriceInCurrentCurrency));
 
     const exchanges = { ...get(exchangeBalances) };
-    for (const exchange in exchanges) exchanges[exchange] = updateExchangeBalancesPrices(exchanges[exchange], latestPrices);
+    for (const exchange in exchanges) exchanges[exchange] = updateExchangeBalancesPrices(exchanges[exchange], latestPrices, getAssetPriceInCurrentCurrency);
 
     set(exchangeBalances, exchanges);
 

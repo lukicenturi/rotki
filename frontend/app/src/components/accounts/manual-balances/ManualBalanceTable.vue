@@ -213,7 +213,6 @@ watchDebounced(
       class="lg:[&_table]:w-full"
     >
       <template #item.label="{ row }">
-        {{ row }}
         <div
           class="font-medium !pb-0 text-truncate min-w-[8rem] max-w-[16rem]"
           :title="row.label"
