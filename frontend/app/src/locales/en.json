@@ -3818,6 +3818,10 @@
     "reminder": {
       "open_calendar": "Open Calendar"
     },
+    "service_rate_limited": {
+      "message": "{service} is rate limited until {until}. Affected endpoints:\n{endpoints}",
+      "title": "{service} Rate Limited"
+    },
     "snapshot_failed": {
       "message": "Could not save the balance snapshot at {location}. {error}",
       "title": "Balance Snapshot failed"

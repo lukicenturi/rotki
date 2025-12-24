@@ -152,23 +152,13 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
     else {
       const notification = dataList[notificationIndex];
-      let date = new Date();
-      let display = newData.display ?? false;
-
-      const currentTime = date.getTime();
-      const group = groupToFind ?? '';
-      const lastTime = get(lastDisplay)[group] ?? 0;
-
-      if (currentTime - lastTime < NOTIFICATION_COOLDOWN_MS) {
-        date = notification.date;
-        display = false;
-      }
 
       const newNotification: NotificationData = {
         ...notification,
         action: newData.action,
-        date,
-        display,
+        date: new Date(),
+        display: false,
+        extras: newData.extras,
         groupCount: newData.groupCount,
         message: newData.message,
         priority: newData.priority,

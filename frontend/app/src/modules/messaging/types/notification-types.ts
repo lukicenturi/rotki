@@ -26,6 +26,14 @@ export const MissingApiKey = z.object({
 
 export type MissingApiKey = z.infer<typeof MissingApiKey>;
 
+export const ServiceRateLimitedData = z.object({
+  endpoint: z.string(),
+  service: z.string(),
+  until: z.number(),
+});
+
+export type ServiceRateLimitedData = z.infer<typeof ServiceRateLimitedData>;
+
 export const SolanaTokensMigrationData = z.object({
   identifiers: z.array(z.string()),
 });

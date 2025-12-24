@@ -4,6 +4,7 @@ import { createGnosisPaySessionHandler } from '../handlers/gnosis-pay-session';
 import { createLegacyHandler } from '../handlers/legacy';
 import { createMissingApiKeyHandler } from '../handlers/missing-api-key';
 import { createPremiumStatusHandler } from '../handlers/premium-status';
+import { createServiceRateLimitedHandler } from '../handlers/service-rate-limited';
 import { createSnapshotErrorHandler } from '../handlers/snapshot-error';
 import { createSolanaTokensHandler } from '../handlers/solana-tokens-migration';
 import { SocketMessageType } from '../types/base';
@@ -22,6 +23,7 @@ export function createNotificationRegistry(
     [SocketMessageType.LEGACY]: createLegacyHandler(t),
     [SocketMessageType.MISSING_API_KEY]: missingApiKeyHandler,
     [SocketMessageType.PREMIUM_STATUS_UPDATE]: createPremiumStatusHandler(t),
+    [SocketMessageType.SERVICE_RATE_LIMITED]: createServiceRateLimitedHandler(t),
     [SocketMessageType.SOLANA_TOKENS_MIGRATION]: createSolanaTokensHandler(t, router),
   };
 }

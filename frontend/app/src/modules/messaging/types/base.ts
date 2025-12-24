@@ -31,6 +31,7 @@ export const SocketMessageType = {
   PREMIUM_STATUS_UPDATE: 'premium_status_update',
   PROGRESS_UPDATES: 'progress_updates',
   REFRESH_BALANCES: 'refresh_balances',
+  SERVICE_RATE_LIMITED: 'service_rate_limited',
   SOLANA_TOKENS_MIGRATION: 'solana_tokens_migration',
   TRANSACTION_STATUS: 'transaction_status',
 } as const;

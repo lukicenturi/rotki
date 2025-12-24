@@ -13,6 +13,7 @@ import {
   BinancePairsMissingData,
   GnosisPaySessionKeyExpiredData,
   MissingApiKey,
+  ServiceRateLimitedData,
   SolanaTokensMigrationData,
 } from './types/notification-types';
 import { DatabaseUploadProgress, DbUploadResult, PremiumStatusUpdateData } from './types/shared-types';
@@ -125,6 +126,11 @@ const DatabaseUploadProgressMessage = z.object({
   type: z.literal(SocketMessageType.DATABASE_UPLOAD_PROGRESS),
 });
 
+const ServiceRateLimitedMessage = z.object({
+  data: ServiceRateLimitedData,
+  type: z.literal(SocketMessageType.SERVICE_RATE_LIMITED),
+});
+
 export const WebsocketMessage = z.discriminatedUnion('type', [
   LegacyWebsocketMessage,
   BalancesSnapshotErrorMessage,
@@ -146,6 +152,7 @@ export const WebsocketMessage = z.discriminatedUnion('type', [
   SolanaTokensMigrationMessage,
   BinancePairsMissingMessage,
   DatabaseUploadProgressMessage,
+  ServiceRateLimitedMessage,
 ]);
 
 export type WebsocketMessage = z.infer<typeof WebsocketMessage>;

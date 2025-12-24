@@ -8,6 +8,7 @@ import gevent
 import requests
 from gevent.lock import Semaphore
 
+from rotkehlchen.api.websockets.typedefs import WSMessageType
 from rotkehlchen.chain.ethereum.modules.eth2.structures import ValidatorID
 from rotkehlchen.chain.ethereum.modules.eth2.utils import calculate_query_chunks
 from rotkehlchen.constants.timing import DAY_IN_SECONDS
@@ -35,7 +36,6 @@ from rotkehlchen.user_messages import MessagesAggregator
 from rotkehlchen.utils.misc import (
     from_wei,
     set_user_agent,
-    timestamp_to_iso8601,
     ts_now,
     ts_sec_to_ms,
 )
@@ -80,14 +80,19 @@ class BeaconChain(ExternalServiceWithRecommendedApiKey):
         - RemoteError due to problems querying beaconcha.in API
         """
         if self.is_rate_limited():
-            log.error(
+            log.debug(
                 f'Beaconcha.in is rate limited until {self.ratelimited_until} when processing '
                 f'{module=} {endpoint=} {encoded_args=} with {data=}',
             )
-            raise RemoteError(
-                'Beaconcha.in is rate limited until '
-                f'{timestamp_to_iso8601(self.ratelimited_until)}. Check logs for more details',
+            self.msg_aggregator.add_message(
+                message_type=WSMessageType.SERVICE_RATE_LIMITED,
+                data={
+                    'service': 'beaconcha.in',
+                    'endpoint': f'{module}/{endpoint}' if endpoint else module,
+                    'until': self.ratelimited_until,
+                },
             )
+            return []  # Return empty result, WS message is the only notification
 
         if endpoint is None:  # for now only validator data
             query_str = f'{self.url}{module}'
@@ -130,17 +135,24 @@ class BeaconChain(ExternalServiceWithRecommendedApiKey):
                 month_rate_limit = response.headers.get('x-ratelimit-limit-month', 'unknown')
                 user_month_rate_limit = response.headers.get('x-ratelimit-remaining-month', 'unknown')  # noqa: E501
                 if times == 0:
-                    msg = (
+                    log.debug(
                         f'Beaconchain API request {response.url} failed '
                         f'with HTTP status code {response.status_code} and text '
-                        f'{response.text} after {retries_num} retries'
-                    )
-                    log.debug(
-                        f'{msg} minute limit: {user_minute_rate_limit}/{minute_rate_limit}, '
+                        f'{response.text} after {retries_num} retries. '
+                        f'minute limit: {user_minute_rate_limit}/{minute_rate_limit}, '
                         f'daily limit: {user_daily_rate_limit}/{daily_rate_limit}, '
                         f'monthly limit: {user_month_rate_limit}/{month_rate_limit}',
                     )
-                    raise RemoteError(msg)
+                    self.ratelimited_until = Timestamp(ts_now() + MAX_WAIT_SECS)
+                    self.msg_aggregator.add_message(
+                        message_type=WSMessageType.SERVICE_RATE_LIMITED,
+                        data={
+                            'service': 'beaconcha.in',
+                            'endpoint': f'{module}/{endpoint}' if endpoint else module,
+                            'until': self.ratelimited_until,
+                        },
+                    )
+                    return []  # Return empty result, WS message is the only notification
 
                 retry_after = response.headers.get('retry-after', None)
                 if retry_after:
@@ -157,7 +169,15 @@ class BeaconChain(ExternalServiceWithRecommendedApiKey):
                             f'monthly limit: {user_month_rate_limit}/{month_rate_limit}',
                         )
                         self.ratelimited_until = Timestamp(ts_now() + retry_after_secs)
-                        raise RemoteError(msg)
+                        self.msg_aggregator.add_message(
+                            message_type=WSMessageType.SERVICE_RATE_LIMITED,
+                            data={
+                                'service': 'beaconcha.in',
+                                'endpoint': f'{module}/{endpoint}' if endpoint else module,
+                                'until': self.ratelimited_until,
+                            },
+                        )
+                        return []  # Return empty result, WS message is the only notification
                     # else
                     sleep_seconds = retry_after_secs
                 else:
