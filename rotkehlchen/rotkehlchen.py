@@ -75,6 +75,7 @@ from rotkehlchen.errors.misc import (
     InputError,
     RemoteError,
     SystemPermissionError,
+    TagConstraintError,
 )
 from rotkehlchen.exchanges.manager import ExchangeManager
 from rotkehlchen.externalapis.alchemy import Alchemy
@@ -769,28 +770,34 @@ class Rotkehlchen:
         list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
         list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
         list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
-        list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
+        list[ChecksumEvmAddress],
     ]:
-        """Adds each account for all evm addresses
+        """Adds each account for all evm addresses.
 
-        Counting ethereum mainnet as the main chain we check if the account is a contract
-        in mainnet. If not we check if there is any transactions/activity in that chain for
-        the address and if yes we add it too.
+        Smart contracts are allowed on all chains. If an address is a contract on any chain,
+        it will be tracked on all chains and the 'Contract' system tag will be applied.
         If it's already added in a chain we just ignore that chain.
 
-        Returns four lists:
+        Returns five lists:
         - list address, chain tuples for all newly added addresses.
         - list address, chain tuples for all addresses already tracked.
         - list address, chain tuples for all addresses that failed to be added.
         - list address, chain tuples for all addresses that have no activity in their chain.
-        - list address, chain tuples for all addresses that are contracts except those
-        identified as SAFE contracts.
+        - list of addresses that are contracts on at least one chain.
 
         May raise:
         - TagConstraintError if any of the given account data contain unknown tags.
         - RemoteError if an external service such as Etherscan is queried and
           there is a problem with its query.
         """
+        from rotkehlchen.chain.accounts import BlockchainAccountData
+        from rotkehlchen.constants.misc import (
+            CONTRACT_TAG_BACKGROUND_COLOR,
+            CONTRACT_TAG_DESCRIPTION,
+            CONTRACT_TAG_FOREGROUND_COLOR,
+            CONTRACT_TAG_NAME,
+        )
+
         account_data_map: dict[ChecksumEvmAddress, SingleBlockchainAccountData[ChecksumEvmAddress]] = {x.address: x for x in account_data}  # noqa: E501
         with self.data.db.conn.read_ctx() as cursor:
             self.data.db.ensure_tags_exist(
@@ -805,14 +812,40 @@ class Rotkehlchen:
             existed_accounts,
             failed_accounts,
             no_activity_accounts,
-            evm_contract_addresses,
+            contract_addresses,
         ) = self.chains_aggregator.add_accounts_to_all_evm(accounts=[entry.address for entry in account_data])  # noqa: E501
+
+        contract_addresses_set = set(contract_addresses)
         with self.data.db.user_write() as write_cursor:
+            # Ensure the Contract tag exists before using it
+            if len(contract_addresses_set) > 0:
+                try:
+                    self.data.db.add_tag(
+                        write_cursor=write_cursor,
+                        name=CONTRACT_TAG_NAME,
+                        description=CONTRACT_TAG_DESCRIPTION,
+                        background_color=CONTRACT_TAG_BACKGROUND_COLOR,
+                        foreground_color=CONTRACT_TAG_FOREGROUND_COLOR,
+                    )
+                except TagConstraintError:
+                    pass  # Tag already exists, which is fine
+
             for chain, address in added_accounts:
                 account_data_entry = account_data_map[address]
+                tags = list(account_data_entry.tags) if account_data_entry.tags else []
+
+                # Auto-add Contract tag if this address is a contract
+                if address in contract_addresses_set and CONTRACT_TAG_NAME not in tags:
+                    tags.append(CONTRACT_TAG_NAME)
+
                 self.data.db.add_blockchain_accounts(
                     write_cursor=write_cursor,
-                    account_data=[account_data_entry.to_blockchain_account_data(chain)],
+                    account_data=[BlockchainAccountData(
+                        chain=chain,
+                        address=address,
+                        label=account_data_entry.label,
+                        tags=tags if tags else None,
+                    )],
                 )
 
         return (
@@ -820,7 +853,7 @@ class Rotkehlchen:
             existed_accounts,
             failed_accounts,
             no_activity_accounts,
-            evm_contract_addresses,
+            contract_addresses,
         )
 
     @overload

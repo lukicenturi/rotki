@@ -2027,12 +2027,15 @@ class RestAPI:
             ('failed', failed_accounts),
             ('existed', existed_accounts),
             ('no_activity', no_activity_accounts),
-            ('evm_contracts', evm_contract_addresses),
         ):
             for chain, address in list_of_accounts:
                 result_dicts[response_key][address].append(chain.serialize())
                 if len(result_dicts[response_key][address]) == len(SUPPORTED_EVM_EVMLIKE_CHAINS):
                     result_dicts[response_key][address] = [all_key]
+
+        # evm_contract_addresses is now just a list of addresses (not tuples)
+        # that are contracts on at least one chain
+        result_dicts['evm_contracts'] = {address: [all_key] for address in evm_contract_addresses}
 
         return _wrap_in_ok_result(result_dicts)
 

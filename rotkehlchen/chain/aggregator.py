@@ -1148,17 +1148,19 @@ class ChainsAggregator(CacheableMixIn, LockableQueryMixIn):
             list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
             list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
             list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
-            list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]],
+            list[ChecksumEvmAddress],
     ]:
-        """Adds each account for all evm chain if it is not a contract in ethereum mainnet.
+        """Adds each account for all evm chains.
 
-        Returns four lists:
+        Smart contracts are now allowed on all chains. If an address is a contract on any chain,
+        it will be tracked on all chains (treated as EOA on chains where not deployed).
+
+        Returns five lists:
         - list address, chain tuples for all newly added addresses.
         - list address, chain tuples for all addresses already tracked.
         - list address, chain tuples for all addresses that failed to be added.
         - list address, chain tuples for all addresses that have no activity in their chain.
-        - list address, chain tuples for all addresses that are contracts except those
-        identified as SAFE contracts.
+        - list of addresses that are contracts on at least one chain (for tagging purposes).
 
         May raise:
         - RemoteError if an external service such as etherscan is queried and there
@@ -1168,36 +1170,41 @@ class ChainsAggregator(CacheableMixIn, LockableQueryMixIn):
         failed_accounts: list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]] = []
         existed_accounts: list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]] = []
         no_activity_accounts: list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]] = []  # noqa: E501
-        evm_contract_addresses: list[tuple[SUPPORTED_EVM_EVMLIKE_CHAINS_TYPE, ChecksumEvmAddress]] = []  # noqa: E501
+        contract_addresses: list[ChecksumEvmAddress] = []
 
         for account in accounts:
             existed_accounts += [(chain, account) for chain in SUPPORTED_EVM_EVMLIKE_CHAINS if account in self.accounts.get(chain)]  # noqa: E501
-            # Distinguish between contracts and EOAs
             chains_to_check = [x for x in SUPPORTED_EVM_EVMLIKE_CHAINS if account not in self.accounts.get(x)]  # noqa: E501
-            chains_with_valid_addresses = []
-            for chain in chains_to_check:
-                if self.get_chain_manager(chain).is_safe_proxy_or_eoa(address=account):  # type: ignore  # mypy doesn't detect this as SUPPORTED_EVM_EVMLIKE_CHAINS
-                    chains_with_valid_addresses.append(chain)
-                else:
-                    evm_contract_addresses.append((chain, account))
 
+            # Check if this address is a contract on any chain (for tagging purposes)
+            is_contract_anywhere = False
+            for chain in chains_to_check:
+                chain_manager = self.get_chain_manager(chain)
+                if hasattr(chain_manager, 'node_inquirer') and chain_manager.node_inquirer.is_contract(address=account):  # type: ignore  # noqa: E501
+                    is_contract_anywhere = True
+                    break  # No need to check other chains once we find it's a contract
+
+            if is_contract_anywhere:
+                contract_addresses.append(account)
+
+            # Add to all chains (no Safe-only filter)
             new_accounts, new_failed_accounts, had_activity = self.check_chains_and_add_accounts(
                 account=account,
-                chains=chains_with_valid_addresses,
+                chains=chains_to_check,
             )
 
             if had_activity is True:
                 added_accounts += new_accounts
                 failed_accounts += new_failed_accounts
-            elif had_activity is False and len(chains_with_valid_addresses) != 0:
-                no_activity_accounts += [(chain, account) for chain in chains_with_valid_addresses]
+            elif had_activity is False and len(chains_to_check) != 0:
+                no_activity_accounts += [(chain, account) for chain in chains_to_check]
 
         return (
             added_accounts,
             existed_accounts,
             failed_accounts,
             no_activity_accounts,
-            evm_contract_addresses,
+            contract_addresses,
         )
 
     def detect_evm_accounts(
@@ -1210,9 +1217,8 @@ class ChainsAggregator(CacheableMixIn, LockableQueryMixIn):
         If chains is given then detection only happens for those given chains.
         Otherwise for all evm chains.
 
-        1. Iterates through already added addresses
-        2. For each address verify that is an EOA or a safe and check which chains it's already in
-        3. Get the rest of the chains, and check activity. If active in any of them it tracks the
+        1. Iterates through already added addresses and check which chains each is already in
+        2. Get the rest of the chains, and check activity. If active in any of them it tracks the
         address for that chain.
 
         Returns a list of tuples of (chain, address) for the freshly detected accounts.
@@ -1230,10 +1236,8 @@ class ChainsAggregator(CacheableMixIn, LockableQueryMixIn):
             if progress_handler is not None:
                 progress_handler.new_step(f'Checking {account} EVM chain activity')
 
+            # Check all chains the account is not already in (no Safe-only filter)
             chains_to_check = list(all_evm_chains - set(account_chains))
-            for chain in list(chains_to_check):
-                if not self.get_chain_manager(chain).is_safe_proxy_or_eoa(address=account):  # type: ignore  # mypy doesn't detect this as SUPPORTED_EVM_EVMLIKE_CHAINS
-                    chains_to_check.remove(chain)
 
             if len(chains_to_check) == 0:
                 continue

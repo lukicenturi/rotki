@@ -630,6 +630,9 @@ def setup_evm_addresses_activity_mock(
     def mock_is_safe_or_eoa(address: ChecksumEvmAddress):
         return address not in eth_contract_addresses
 
+    def mock_is_contract(address: ChecksumEvmAddress):
+        return address in eth_contract_addresses
+
     def mock_avax_get_tx_count(account):
         if account in avalanche_addresses:
             return 1
@@ -680,6 +683,11 @@ def setup_evm_addresses_activity_mock(
             manager.node_inquirer,
             'is_safe_proxy_or_eoa',
             side_effect=mock_is_safe_or_eoa,
+        ))
+        stack.enter_context(patch.object(
+            manager.node_inquirer,
+            'is_contract',
+            side_effect=mock_is_contract,
         ))
 
         indexers = [manager.node_inquirer.etherscan, manager.node_inquirer.routescan]

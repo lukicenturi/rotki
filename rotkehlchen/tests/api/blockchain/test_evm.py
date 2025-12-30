@@ -317,9 +317,14 @@ def test_add_multievm_accounts(rotkehlchen_api_server: 'APIServer') -> None:
 
     result = assert_proper_sync_response_with_result(response)
 
+    # With smart contract wallet improvements, contracts are now allowed on all chains.
+    # The contract_account is now added to chains where it has activity (ethereum),
+    # and appears in no_activity for other chains. evm_contracts lists contract addresses
+    # that were successfully added (for informational/tagging purposes).
     assert result == {
         'added': {
             '0x9531C059098e3d194fF87FebB587aB07B30B1306': ['all'],
+            '0x9008D19f58AAbD9eD0D60971565AA8510560ab41': ['eth'],  # Contract now added
         },
         'failed': {
             '0xc37b40ABdB939635068d3c5f13E7faF686F03B65': [
@@ -345,19 +350,20 @@ def test_add_multievm_accounts(rotkehlchen_api_server: 'APIServer') -> None:
                 'binance_sc',
                 'zksync_lite',
             ],
-            '0x9008D19f58AAbD9eD0D60971565AA8510560ab41': ['avax', 'zksync_lite'],
-        },
-        'evm_contracts': {
             '0x9008D19f58AAbD9eD0D60971565AA8510560ab41': [
-                'eth',
                 'optimism',
+                'avax',
                 'polygon_pos',
                 'arbitrum_one',
                 'base',
                 'gnosis',
                 'scroll',
                 'binance_sc',
+                'zksync_lite',
             ],
+        },
+        'evm_contracts': {
+            '0x9008D19f58AAbD9eD0D60971565AA8510560ab41': ['all'],  # Contract address tagged
         },
     }
 
@@ -374,9 +380,13 @@ def test_add_multievm_accounts(rotkehlchen_api_server: 'APIServer') -> None:
         blockchain='ETH',
     ))
     result = assert_proper_sync_response_with_result(response)
-    assert result == [
+    # Contract account is now added to ETH with the Contract tag
+    expected_eth_accounts = [
         {'address': common_account, 'label': label, 'tags': ['metamask']},
+        {'address': contract_account, 'label': None, 'tags': ['Contract']},
     ]
+    assert sorted(result, key=operator.itemgetter('address')) == sorted(expected_eth_accounts, key=operator.itemgetter('address'))  # noqa: E501
+
     response = requests.get(api_url_for(
         rotkehlchen_api_server,
         'blockchainsaccountsresource',

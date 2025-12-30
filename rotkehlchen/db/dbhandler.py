@@ -3126,8 +3126,15 @@ class DBHandler:
 
         Raises:
         - TagConstraintError: If the tag name to edit does not exist in the DB
+          or if trying to rename a reserved system tag
         - InputError: If no field to edit was given.
         """
+        from rotkehlchen.constants.misc import RESERVED_TAGS
+        # Check if trying to rename a reserved tag
+        if name.lower() in {t.lower() for t in RESERVED_TAGS}:
+            if new_name is not None and new_name.lower() != name.lower():
+                raise TagConstraintError(f'Cannot rename reserved system tag "{name}"')
+
         if new_name == name:
             new_name = None
 
@@ -3205,7 +3212,12 @@ class DBHandler:
 
         Raises:
         - TagConstraintError: If the tag name to delete does not exist in the DB
+          or if the tag is a reserved system tag
         """
+        from rotkehlchen.constants.misc import RESERVED_TAGS
+        if name.lower() in {t.lower() for t in RESERVED_TAGS}:
+            raise TagConstraintError(f'Cannot delete reserved system tag "{name}"')
+
         # Delete the tag mappings for all affected accounts
         write_cursor.execute(
             'DELETE FROM tag_mappings WHERE '

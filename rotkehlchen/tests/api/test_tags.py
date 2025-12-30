@@ -849,3 +849,104 @@ def test_editing_chain_type_tags(rotkehlchen_api_server: 'APIServer') -> None:
         assert result[0]['address'] == TEST_ADDRESS
         assert result[0]['tags'] == ['tag_validators']
         assert result[0]['label'] == 'validators'
+
+
+def test_reserved_tag_protection(rotkehlchen_api_server: 'APIServer') -> None:
+    """Test that reserved system tags (like 'Contract') cannot be deleted or renamed"""
+    from rotkehlchen.constants.misc import (
+        CONTRACT_TAG_BACKGROUND_COLOR,
+        CONTRACT_TAG_DESCRIPTION,
+        CONTRACT_TAG_FOREGROUND_COLOR,
+        CONTRACT_TAG_NAME,
+    )
+    rotki = rotkehlchen_api_server.rest_api.rotkehlchen
+
+    # First, manually create the Contract tag (simulating what happens when a contract is added)
+    with rotki.data.db.user_write() as cursor:
+        rotki.data.db.add_tag(
+            write_cursor=cursor,
+            name=CONTRACT_TAG_NAME,
+            description=CONTRACT_TAG_DESCRIPTION,
+            background_color=HexColorCode(CONTRACT_TAG_BACKGROUND_COLOR),
+            foreground_color=HexColorCode(CONTRACT_TAG_FOREGROUND_COLOR),
+        )
+
+    # Verify the tag exists
+    response = requests.get(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ),
+    )
+    assert_proper_response(response)
+    data = response.json()
+    assert CONTRACT_TAG_NAME in data['result']
+
+    # Try to delete the Contract tag - should fail
+    response = requests.delete(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ), json={'name': CONTRACT_TAG_NAME},
+    )
+    assert_error_response(
+        response=response,
+        contained_in_msg=f'Cannot delete reserved system tag "{CONTRACT_TAG_NAME}"',
+        status_code=HTTPStatus.CONFLICT,
+    )
+
+    # Try to delete with different case - should still fail
+    response = requests.delete(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ), json={'name': 'contract'},
+    )
+    assert_error_response(
+        response=response,
+        contained_in_msg='Cannot delete reserved system tag "contract"',
+        status_code=HTTPStatus.CONFLICT,
+    )
+
+    # Try to rename the Contract tag - should fail
+    response = requests.patch(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ), json={
+            'name': CONTRACT_TAG_NAME,
+            'new_name': 'SmartContract',
+        },
+    )
+    assert_error_response(
+        response=response,
+        contained_in_msg=f'Cannot rename reserved system tag "{CONTRACT_TAG_NAME}"',
+        status_code=HTTPStatus.CONFLICT,
+    )
+
+    # Editing colors/description of Contract tag should be allowed
+    response = requests.patch(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ), json={
+            'name': CONTRACT_TAG_NAME,
+            'description': 'Updated description',
+            'background_color': 'FF0000',
+        },
+    )
+    assert_proper_response(response)
+    data = response.json()
+    assert data['result'][CONTRACT_TAG_NAME]['description'] == 'Updated description'
+    assert data['result'][CONTRACT_TAG_NAME]['background_color'] == 'FF0000'
+
+    # The tag should still exist
+    response = requests.get(
+        api_url_for(
+            rotkehlchen_api_server,
+            'tagsresource',
+        ),
+    )
+    assert_proper_response(response)
+    data = response.json()
+    assert CONTRACT_TAG_NAME in data['result']
