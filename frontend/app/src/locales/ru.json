@@ -782,6 +782,7 @@
         "no_address_or_chain_transaction": "Не удалось повторно получить транзакции"
       },
       "success": {
+        "action": "See pulled transactions",
         "description": "{length} транзакций получено повторно",
         "no_tx_description": "Нет транзакций для повторного получения"
       },

@@ -7,7 +7,7 @@ import type {
   RepullingTransactionResponse,
 } from '@/types/history/events';
 import type { TaskMeta } from '@/types/task';
-import { Severity, toHumanReadable } from '@rotki/common';
+import { type NotificationAction, Severity, toHumanReadable } from '@rotki/common';
 import { useHistoryEventsApi } from '@/composables/api/history/events';
 import { useRefreshTransactions } from '@/composables/history/events/tx/use-refresh-transactions';
 import { displayDateFormatter } from '@/data/date-formatter';
@@ -21,6 +21,7 @@ import { logger } from '@/utils/logging';
 
 export const useHistoryTransactions = createSharedComposable(() => {
   const { t } = useI18n({ useScope: 'global' });
+  const router = useRouter();
   const { notify } = useNotificationsStore();
   const {
     addTransactionHash: addTransactionHashCaller,
@@ -90,8 +91,24 @@ export const useHistoryTransactions = createSharedComposable(() => {
 
     try {
       const { result } = await awaitTask<RepullingTransactionResponse, TaskMeta>(taskId, taskType, taskMeta, true);
-      const { newTransactionsCount } = result;
+      const { newTransactions, newTransactionsCount } = result;
+
+      let action: NotificationAction | undefined;
+      if (newTransactionsCount > 0) {
+        const allTxHashes = Object.values(newTransactions).flat();
+        action = {
+          action: async (): Promise<void> => {
+            await router.push({
+              path: '/history',
+              query: { txRefs: allTxHashes },
+            });
+          },
+          label: t('actions.repulling_transaction.success.action'),
+        };
+      }
+
       notify({
+        action,
         display: true,
         message: newTransactionsCount ? t('actions.repulling_transaction.success.description', { length: newTransactionsCount }) : t('actions.repulling_transaction.success.no_tx_description'),
         severity: Severity.INFO,

@@ -782,6 +782,7 @@
         "no_address_or_chain_transaction": "Failed to re-pull transactions"
       },
       "success": {
+        "action": "See pulled transactions",
         "description": "{length} transactions re-pulled",
         "no_tx_description": "No transactions re-pulled"
       },
