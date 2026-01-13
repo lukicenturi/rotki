@@ -38,8 +38,11 @@ defineSlots<{
 
 const { matchers, matches } = toRefs(props);
 
+const MAX_CHIPS_PER_KEY = 3;
+
 const input = ref();
 const selection = ref<Suggestion[]>([]);
+const expandedGroupKey = ref<string>();
 
 const search = ref('');
 const selectedSuggestion = ref(0);
@@ -65,6 +68,74 @@ const selectedMatcher = computed(() => {
 });
 
 const usedKeys = computed(() => get(selection).map(entry => entry.key));
+
+const groupedKeysCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {};
+  for (const item of get(selection)) {
+    counts[item.key] = (counts[item.key] || 0) + 1;
+  }
+  return counts;
+});
+
+const groupedKeys = computed<Set<string>>(() => {
+  const result = new Set<string>();
+  const counts = get(groupedKeysCounts);
+  for (const [key, count] of Object.entries(counts)) {
+    if (count > MAX_CHIPS_PER_KEY)
+      result.add(key);
+  }
+  return result;
+});
+
+function isKeyGrouped(key: string): boolean {
+  return get(groupedKeys).has(key);
+}
+
+function getGroupedItemsForKey(key: string): Suggestion[] {
+  return get(selection).filter(item => item.key === key);
+}
+
+type ChipDisplayType = 'normal' | 'grouped' | 'hidden';
+
+function getChipDisplayType(item: Suggestion): ChipDisplayType {
+  if (!isKeyGrouped(item.key))
+    return 'normal';
+
+  const items = getGroupedItemsForKey(item.key);
+  if (items[0] === item)
+    return 'grouped';
+
+  return 'hidden';
+}
+
+function getGroupedOverflowCount(key: string): number {
+  const total = get(groupedKeysCounts)[key] || 0;
+  return total - 1; // Subtract 1 because we show the first item
+}
+
+function getItemKey(item: Suggestion): string {
+  return item.key;
+}
+
+function toggleGroupMenu(key: string): void {
+  if (get(expandedGroupKey) === key) {
+    set(expandedGroupKey, undefined);
+  }
+  else {
+    set(expandedGroupKey, key);
+  }
+}
+
+function removeGroupedItem(item: Suggestion): void {
+  const newSelection = get(selection).filter(s => s !== item);
+  updateMatches(newSelection);
+}
+
+function removeAllItemsForKey(key: string): void {
+  const newSelection = get(selection).filter(s => s.key !== key);
+  updateMatches(newSelection);
+  set(expandedGroupKey, undefined);
+}
 
 const suggestionBeingEdited = ref<Suggestion>();
 const shaking = ref<boolean>(false);
@@ -461,6 +532,7 @@ const { t } = useI18n({ useScope: 'global' });
           ref="input"
           v-model:search-input="search"
           :model-value="selection"
+          class="[&_[class*=value]_div.flex:has(.hidden)]:hidden"
           :class="{
             '[&_input:not(.edit-input)]:hidden': !!suggestionBeingEdited,
             'animate-shake': shaking,
@@ -483,7 +555,9 @@ const { t } = useI18n({ useScope: 'global' });
           @keydown.down.prevent="moveSuggestion(false)"
         >
           <template #selection="{ item, chipAttrs }">
+            <!-- Normal chip for non-grouped items -->
             <RuiChip
+              v-if="getChipDisplayType(item) === 'normal'"
               tile
               size="sm"
               class="font-medium !py-0"
@@ -500,6 +574,75 @@ const { t } = useI18n({ useScope: 'global' });
                 @update:search="updateEditSuggestionSearch($event)"
               />
             </RuiChip>
+
+            <!-- Grouped chip with menu for grouped items (only first item) -->
+            <RuiMenu
+              v-else-if="getChipDisplayType(item) === 'grouped'"
+              :model-value="expandedGroupKey === getItemKey(item)"
+              menu-class="max-w-[20rem]"
+              @update:model-value="expandedGroupKey = $event ? getItemKey(item) : undefined"
+            >
+              <template #activator="{ attrs }">
+                <RuiChip
+                  tile
+                  size="sm"
+                  class="font-medium !py-0"
+                  content-class="flex items-center gap-1"
+                  clickable
+                  v-bind="attrs"
+                  @click.stop="clickItem(item)"
+                >
+                  <SuggestedItem
+                    chip
+                    :edit-mode="isSuggestionBeingEdited(item)"
+                    :suggestion="item"
+                    @cancel-edit="cancelEditSuggestion($event)"
+                    @update:search="updateEditSuggestionSearch($event)"
+                  />
+                  <span
+                    class="text-xs px-1.5 py-0.5 rounded bg-rui-primary text-white cursor-pointer"
+                    @click.stop="toggleGroupMenu(getItemKey(item))"
+                  >
+                    {{ getGroupedOverflowCount(getItemKey(item)) }}+
+                  </span>
+                  <RuiButton
+                    variant="text"
+                    type="button"
+                    icon
+                    size="sm"
+                    class="-mr-1 !p-0.5 opacity-50 hover:opacity-80 transition-opacity"
+                    @click.stop="removeAllItemsForKey(getItemKey(item))"
+                  >
+                    <RuiIcon
+                      name="lu-circle-x"
+                      size="16"
+                    />
+                  </RuiButton>
+                </RuiChip>
+              </template>
+              <div class="flex flex-wrap gap-1 p-2">
+                <RuiChip
+                  v-for="(groupedItem, index) in getGroupedItemsForKey(getItemKey(item))"
+                  :key="index"
+                  tile
+                  size="sm"
+                  class="font-medium !py-0"
+                  closeable
+                  @click:close="removeGroupedItem(groupedItem)"
+                >
+                  <SuggestedItem
+                    chip
+                    :suggestion="groupedItem"
+                  />
+                </RuiChip>
+              </div>
+            </RuiMenu>
+
+            <!-- Hidden items (other items in grouped keys) -->
+            <div
+              v-else
+              class="hidden"
+            />
           </template>
           <template #no-data>
             <FilterDropdown
