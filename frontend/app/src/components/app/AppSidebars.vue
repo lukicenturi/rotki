@@ -5,16 +5,13 @@ import PinnedSidebar from '@/components/PinnedSidebar.vue';
 import NotificationSidebar from '@/components/status/notifications/NotificationSidebar.vue';
 import { useAreaVisibilityStore } from '@/store/session/visibility';
 
-const { showAbout, showHelpBar, showNotesSidebar, showNotificationBar, showPinned }
+const { showHelpBar, showNotesSidebar, showNotificationBar, showPinned }
   = storeToRefs(useAreaVisibilityStore());
 </script>
 
 <template>
-  <NotificationSidebar v-model="showNotificationBar" />
-  <PinnedSidebar v-model="showPinned" />
-  <UserNotesSidebar v-model="showNotesSidebar" />
-  <HelpSidebar
-    v-model="showHelpBar"
-    @about="showAbout = true"
-  />
+  <NotificationSidebar v-if="showNotificationBar" />
+  <PinnedSidebar v-if="showPinned" />
+  <UserNotesSidebar v-if="showNotesSidebar" />
+  <HelpSidebar v-if="showHelpBar" />
 </template>

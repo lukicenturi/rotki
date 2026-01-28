@@ -24,6 +24,7 @@ watchImmediate(isXlAndDown, (isXlAndDown) => {
 
 <template>
   <RuiNavigationDrawer
+    v-if="showDrawer"
     v-model="showDrawer"
     width="300"
     :content-class="{

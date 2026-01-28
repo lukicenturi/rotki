@@ -6,12 +6,9 @@ import { useReportIssue } from '@/composables/report-issue';
 import { useNotificationsStore } from '@/store/notifications';
 import { downloadFileByTextContent } from '@/utils/download';
 import { IndexedDb } from '@/utils/indexed-db';
+import { useAreaVisibilityStore } from '@/store/session/visibility.ts';
 
-const display = defineModel<boolean>({ required: true });
-
-const emit = defineEmits<{
-  about: [];
-}>();
+const { showAbout, showHelpBar: display } = storeToRefs(useAreaVisibilityStore());
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -60,8 +57,8 @@ const entries: Entry[] = [
 ];
 
 function openAbout(): void {
+  set(showAbout, true);
   set(display, false);
-  emit('about');
 }
 
 async function downloadBrowserLog(): Promise<void> {

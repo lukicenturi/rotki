@@ -3,8 +3,9 @@ import UserNotesList from '@/components/notes/UserNotesList.vue';
 import { useNotesCount } from '@/composables/notes/use-notes-count';
 import { useAppRoutes } from '@/router/routes';
 import { NoteLocation } from '@/types/notes';
+import { useAreaVisibilityStore } from '@/store/session/visibility.ts';
 
-const display = defineModel<boolean>({ required: true });
+const { showNotesSidebar: display } = storeToRefs(useAreaVisibilityStore());
 
 const [DefineCountBadge, ReuseCountBadge] = createReusableTemplate<{ count: number }>();
 

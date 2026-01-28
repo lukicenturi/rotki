@@ -7,8 +7,9 @@ import { Routes } from '@/router/routes';
 import { useConfirmStore } from '@/store/confirm';
 import { useNotificationsStore } from '@/store/notifications';
 import { useTaskStore } from '@/store/tasks';
+import { useAreaVisibilityStore } from '@/store/session/visibility.ts';
 
-const display = defineModel<boolean>({ required: true });
+const { showNotificationBar: display } = storeToRefs(useAreaVisibilityStore());
 
 enum TabCategory {
   VIEW_ALL = 'view_all',
