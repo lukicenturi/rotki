@@ -43,6 +43,7 @@ interface UseHistoryEventsFiltersReturn {
   duplicateHandlingStatus: ComputedRef<DuplicateHandlingStatus | undefined>;
   locationLabels: Ref<string[]>;
   groupIdentifiers: ComputedRef<string[] | undefined>;
+  unmatchedMovementGroups: ComputedRef<string[] | undefined>;
   fetchData: () => Promise<void>;
   filters: ComputedRef<Filters>;
   groupLoading: Ref<boolean>;
@@ -101,6 +102,15 @@ export function useHistoryEventsFilters(
     return ids.includes(',') ? ids.split(',') : [ids];
   });
 
+  const unmatchedMovementGroupsFromQuery = computed<string[] | undefined>(() => {
+    const { unmatchedMovementGroups } = get(route).query;
+    if (!unmatchedMovementGroups)
+      return undefined;
+
+    const ids = unmatchedMovementGroups as string;
+    return ids.includes(',') ? ids.split(',') : [ids];
+  });
+
   const duplicateHandlingStatusFromQuery = computed<DuplicateHandlingStatus | undefined>(() => {
     const { duplicateHandlingStatus } = get(route).query;
     if (duplicateHandlingStatus === DuplicateHandlingStatus.AUTO_FIX)
@@ -149,7 +159,7 @@ export function useHistoryEventsFilters(
       const stateMarkers = get(toggles, 'stateMarkers');
       return {
         excludeIgnoredAssets: !get(toggles, 'showIgnoredAssets'),
-        groupIdentifiers: get(groupIdentifiersFromQuery),
+        groupIdentifiers: get(groupIdentifiersFromQuery) ?? get(unmatchedMovementGroupsFromQuery),
         identifiers: get(identifiersFromQuery),
         ...(stateMarkers.length > 0 ? { stateMarkers } : {}),
       };
@@ -172,28 +182,30 @@ export function useHistoryEventsFilters(
         set(locationLabels, locationLabelsParsed);
 
       const stateMarkersParam = query.stateMarkers;
-      if (stateMarkersParam && typeof stateMarkersParam === 'string') {
-        set(toggles, {
-          ...get(toggles),
-          stateMarkers: stateMarkersParam.split(',').filter(isValidHistoryEventState),
-        });
-      }
+      set(toggles, {
+        ...get(toggles),
+        stateMarkers: stateMarkersParam && typeof stateMarkersParam === 'string'
+          ? stateMarkersParam.split(',').filter(isValidHistoryEventState)
+          : [],
+      });
     },
     persistFilter: computed(() => ({
       enabled: true,
-      excludeKeys: ['identifiers', 'groupIdentifiers', 'duplicateHandlingStatus'],
+      excludeKeys: ['identifiers', 'groupIdentifiers', 'duplicateHandlingStatus', 'unmatchedMovementGroups'],
       tableId: TableId.HISTORY,
       transientKeys: ['txRefs'],
     })),
     queryParamsOnly: computed(() => {
       const duplicateHandlingStatusValue = get(duplicateHandlingStatusFromQuery);
       const groupIdentifiersValue = get(groupIdentifiersFromQuery);
+      const unmatchedMovementGroupsValue = get(unmatchedMovementGroupsFromQuery);
 
       const stateMarkersValue = get(toggles, 'stateMarkers');
       return {
         duplicateHandlingStatus: duplicateHandlingStatusValue,
         groupIdentifiers: groupIdentifiersValue?.join(','),
         locationLabels: get(usedLocationLabels),
+        unmatchedMovementGroups: unmatchedMovementGroupsValue?.join(','),
         ...(stateMarkersValue.length > 0 ? { stateMarkers: stateMarkersValue.join(',') } : {}),
       };
     }),
@@ -287,6 +299,7 @@ export function useHistoryEventsFilters(
     groups,
     highlightedIdentifiers,
     identifiers: identifiersFromQuery,
+    unmatchedMovementGroups: unmatchedMovementGroupsFromQuery,
     includes,
     locationLabels,
     locationOverview,

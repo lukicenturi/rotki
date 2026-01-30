@@ -13,6 +13,7 @@ import CardTitle from '@/components/typography/CardTitle.vue';
 import { HISTORY_EVENT_ACTIONS, type HistoryEventAction } from '@/composables/history/events/types';
 import { useHistoryEventsActions } from '@/composables/history/events/use-history-events-actions';
 import { useHistoryEventsFilters } from '@/composables/history/events/use-history-events-filters';
+import { useUnmatchedAssetMovements } from '@/composables/history/events/use-unmatched-asset-movements';
 import HistoryEventsTable from '@/modules/history/events/components/HistoryEventsTable.vue';
 import { useHistoryEventsDeletion } from '@/modules/history/events/composables/use-history-events-deletion';
 import { useHistoryEventsSelectionActions } from '@/modules/history/events/composables/use-history-events-selection-actions';
@@ -111,6 +112,7 @@ const {
   pagination,
   setPage,
   sort,
+  unmatchedMovementGroups,
 } = useHistoryEventsFilters(
   {
     entryTypes,
@@ -164,6 +166,16 @@ const {
   selectionMode,
 });
 
+const queryToDialogMap: Record<string, DialogShowOptions> = {
+  openDecodingStatusDialog: { type: DIALOG_TYPES.DECODING_STATUS },
+  openMatchAssetMovementsDialog: { type: DIALOG_TYPES.MATCH_ASSET_MOVEMENTS },
+};
+
+const { unmatchedMovements: allUnmatchedMovements, autoMatchLoading, refreshUnmatchedAssetMovements } = useUnmatchedAssetMovements();
+
+const debouncedProcessing = refDebounced(processing, 200);
+const backgroundLoading = logicOr(debouncedProcessing, autoMatchLoading);
+
 // Handle updating available event IDs from the table
 function handleUpdateEventIds({ eventIds, groupedEvents, rawEvents }: { eventIds: number[]; groupedEvents: Record<string, HistoryEventRow[]>; rawEvents?: HistoryEventRow[] }): void {
   // Create mock event entries with just the identifiers
@@ -176,15 +188,62 @@ function handleUpdateEventIds({ eventIds, groupedEvents, rawEvents }: { eventIds
   set(originalGroups, rawEvents || get(groups).data);
 }
 
+function openMatchAssetMovementsDialog(): void {
+  const query = { ...route.query };
+  if (query.unmatchedMovementGroups) {
+    delete query.unmatchedMovementGroups;
+    router.replace({ query });
+  }
+  get(dialogContainer)?.show({ type: DIALOG_TYPES.MATCH_ASSET_MOVEMENTS });
+}
+
+function handleFindMatch(groupIdentifier: string): void {
+  const movement = get(allUnmatchedMovements).find(m => m.groupIdentifier === groupIdentifier);
+  if (!movement)
+    return;
+
+  get(dialogContainer)?.showPotentialMatches(movement);
+}
+
+function updateUnmatchedMovementGroupsQuery(): void {
+  const currentQuery = route.query.unmatchedMovementGroups as string | undefined;
+  if (!currentQuery)
+    return;
+
+  const urlGroups = currentQuery.split(',');
+  const validGroups = get(allUnmatchedMovements).map(m => m.groupIdentifier);
+  const remaining = urlGroups.filter(id => validGroups.includes(id));
+
+  const query = { ...route.query };
+  if (remaining.length > 0) {
+    query.unmatchedMovementGroups = remaining.join(',');
+  }
+  else {
+    delete query.unmatchedMovementGroups;
+  }
+  router.replace({ query });
+}
+
+async function handleMovementChanged(): Promise<void> {
+  await refreshUnmatchedAssetMovements();
+  updateUnmatchedMovementGroupsQuery();
+  await actions.fetch.dataAndLocations();
+}
+
 // Set total matching count from groups
 watchImmediate(groups, (newGroups) => {
   selectionMode.setTotalMatchingCount(newGroups.found);
 });
 
-const queryToDialogMap: Record<string, DialogShowOptions> = {
-  openDecodingStatusDialog: { type: DIALOG_TYPES.DECODING_STATUS },
-  openMatchAssetMovementsDialog: { type: DIALOG_TYPES.MATCH_ASSET_MOVEMENTS },
-};
+watch(backgroundLoading, async (isLoading, wasLoading) => {
+  if (!isLoading && wasLoading)
+    await actions.fetch.dataAndLocations();
+});
+
+// Wait until the route doesn't change anymore to give time for the persisted filter to be set.
+watchDebounced(route, async () => {
+  await actions.refresh.all();
+}, { debounce: 500, immediate: true, once: true });
 
 watchImmediate(route, async ({ query }) => {
   const dialogOptions = Object.keys(queryToDialogMap).find(key => query[key]);
@@ -195,22 +254,6 @@ watchImmediate(route, async ({ query }) => {
   get(dialogContainer)?.show(queryToDialogMap[dialogOptions]);
   await router.replace({ query: {} });
 });
-
-const debouncedProcessing = refDebounced(processing, 200);
-
-watch(debouncedProcessing, async (isLoading, wasLoading) => {
-  if (!isLoading && wasLoading)
-    await actions.fetch.dataAndLocations();
-});
-
-// Wait until the route doesn't change anymore to give time for the persisted filter to be set.
-watchDebounced(route, async () => {
-  await actions.refresh.all();
-}, { debounce: 500, immediate: true, once: true });
-
-function openMatchAssetMovementsDialog(): void {
-  get(dialogContainer)?.show({ type: DIALOG_TYPES.MATCH_ASSET_MOVEMENTS });
-}
 </script>
 
 <template>
@@ -282,6 +325,7 @@ function openMatchAssetMovementsDialog(): void {
           <HistoryEventsFiltersChips
             :group-identifiers="groupIdentifiers"
             :duplicate-handling-status="duplicateHandlingStatus"
+            :unmatched-movement-groups="unmatchedMovementGroups"
             @refresh="actions.fetch.dataAndLocations()"
           />
 
@@ -297,11 +341,14 @@ function openMatchAssetMovementsDialog(): void {
             :selection="selectionMode"
             :match-exact-events="toggles.matchExactEvents"
             :duplicate-handling-status="duplicateHandlingStatus"
+            :is-unmatched-movement="!!unmatchedMovementGroups?.length"
             @show:dialog="dialogContainer?.show($event)"
             @refresh="actions.fetch.dataAndRedecode($event)"
             @refresh:block-event="actions.redecode.blocks($event)"
             @set-page="setPage($event)"
             @update-event-ids="handleUpdateEventIds($event)"
+            @find-match="handleFindMatch($event)"
+            @ignore-movement="handleMovementChanged()"
           />
         </RuiCard>
 
@@ -315,6 +362,7 @@ function openMatchAssetMovementsDialog(): void {
           :event-handlers="actions.dialogHandlers"
           :selected-event-ids="selectedEventIds"
           @accounting-rule-refresh="handleAccountingRuleRefresh()"
+          @movement-matched="handleMovementChanged()"
         />
       </div>
     </TablePageLayout>

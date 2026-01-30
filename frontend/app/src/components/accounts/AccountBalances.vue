@@ -76,6 +76,7 @@ const {
 // Computed
 const isSolana = computed<boolean>(() => get(category) === 'solana');
 const showSelectionToggle = computed<boolean>(() => get(isEvm) || get(isSolana));
+const anyExpansion = computed<boolean>(() => get(accounts).data.some(item => item.expansion));
 
 function getChains(row: BlockchainAccountGroupWithBalance): string[] {
   const chains = row.chains;
@@ -115,7 +116,7 @@ defineExpose({
         :selected-count="selectedAssets?.length"
         :selection-mode="selectionMode"
         :show-selection-toggle="showSelectionToggle"
-        :disabled="accounts.data.length === 0"
+        :disabled="accounts.data.length === 0 || !anyExpansion"
         @clear-selection="selectedAssets = []"
         @ignore="handleIgnoreSelected($event)"
         @mark-spam="handleMarkSelectedAsSpam()"

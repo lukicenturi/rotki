@@ -179,6 +179,7 @@ export const useUnmatchedAssetMovements = createSharedComposable((): UseUnmatche
       );
 
       await refreshUnmatchedAssetMovements(true);
+      signalEventsModified();
     }
     catch (error: any) {
       logger.error('Failed to trigger auto match:', error);

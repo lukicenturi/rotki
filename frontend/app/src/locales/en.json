@@ -1266,8 +1266,12 @@
       "select": "Select",
       "select_match_title": "Select Matching Event",
       "selected": "Selected",
+      "show_in_events": "Show in History Events",
       "time_range_hours": "Time range (hours)",
       "title": "Match Asset Movements"
+    },
+    "chips": {
+      "viewing_unmatched": "Showing unmatched asset movements"
     },
     "fiat_hint": {
       "label": "Fiat",

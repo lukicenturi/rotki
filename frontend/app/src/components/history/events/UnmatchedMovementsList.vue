@@ -1,18 +1,16 @@
 <script setup lang="ts">
-import type { BigNumber } from '@rotki/common';
 import type { DataTableColumn } from '@rotki/ui-library';
 import type { UnmatchedAssetMovement } from '@/composables/history/events/use-unmatched-asset-movements';
-import type { HistoryEventCollectionRow, HistoryEventEntryWithMeta } from '@/types/history/events/schemas';
+import type { HistoryEventCollectionRow, HistoryEventEntry, HistoryEventEntryWithMeta } from '@/types/history/events/schemas';
 import DateDisplay from '@/components/display/DateDisplay.vue';
-import AssetDetails from '@/components/helper/AssetDetails.vue';
 import BadgeDisplay from '@/components/history/BadgeDisplay.vue';
+import HistoryEventAsset from '@/components/history/events/HistoryEventAsset.vue';
 import LocationDisplay from '@/components/history/LocationDisplay.vue';
-import { ValueDisplay } from '@/modules/amount-display/components';
+import { Routes } from '@/router/routes';
 
 interface UnmatchedMovementRow {
   groupIdentifier: string;
-  asset: string;
-  amount: BigNumber;
+  entry: HistoryEventEntry;
   eventType: string;
   isFiat: boolean;
   location: string;
@@ -30,12 +28,28 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  close: [];
   ignore: [movement: UnmatchedAssetMovement];
   restore: [movement: UnmatchedAssetMovement];
   select: [movement: UnmatchedAssetMovement];
 }>();
 
 const { t } = useI18n({ useScope: 'global' });
+const router = useRouter();
+
+const groupIdentifiersList = computed<string[]>(() =>
+  props.movements.map(movement => movement.groupIdentifier),
+);
+
+function showInHistoryEvents(): void {
+  emit('close');
+  router.push({
+    path: Routes.HISTORY_EVENTS.toString(),
+    query: {
+      unmatchedMovementGroups: get(groupIdentifiersList).join(','),
+    },
+  });
+}
 
 const columns = computed<DataTableColumn<UnmatchedMovementRow>[]>(() => [
   {
@@ -50,11 +64,6 @@ const columns = computed<DataTableColumn<UnmatchedMovementRow>[]>(() => [
   {
     key: 'eventType',
     label: t('common.type'),
-  },
-  {
-    align: 'end',
-    key: 'amount',
-    label: t('common.amount'),
   },
   {
     key: 'asset',
@@ -72,10 +81,10 @@ function getEventEntry(row: HistoryEventCollectionRow): HistoryEventEntryWithMet
 
 const rows = computed<UnmatchedMovementRow[]>(() =>
   props.movements.map((movement) => {
-    const entry = getEventEntry(movement.events).entry;
+    const { entry, ...meta } = getEventEntry(movement.events);
+    const eventEntry = { ...entry, ...meta };
     return {
-      amount: entry.amount,
-      asset: entry.asset,
+      entry: eventEntry,
       eventType: entry.eventType,
       groupIdentifier: movement.groupIdentifier,
       isFiat: movement.isFiat,
@@ -95,12 +104,28 @@ const emptyDescription = computed<string>(() =>
 
 <template>
   <div>
-    <p
-      v-if="!showRestore"
-      class="text-body-2 text-rui-text-secondary mb-4"
-    >
-      {{ t('asset_movement_matching.dialog.description') }}
-    </p>
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <p
+        v-if="!showRestore"
+        class="text-body-2 text-rui-text-secondary"
+      >
+        {{ t('asset_movement_matching.dialog.description') }}
+      </p>
+      <RuiButton
+        v-if="!showRestore && movements.length > 0"
+        variant="outlined"
+        color="primary"
+        @click="showInHistoryEvents()"
+      >
+        <template #prepend>
+          <RuiIcon
+            name="lu-external-link"
+            size="14"
+          />
+        </template>
+        {{ t('asset_movement_matching.dialog.show_in_events') }}
+      </RuiButton>
+    </div>
 
     <RuiDataTable
       v-model="selected"
@@ -116,7 +141,7 @@ const emptyDescription = computed<string>(() =>
     >
       <template #item.asset="{ row }">
         <div class="flex items-center gap-2">
-          <AssetDetails :asset="row.asset" />
+          <HistoryEventAsset :event="row.entry" />
           <RuiTooltip
             v-if="row.isFiat"
             :open-delay="400"
@@ -134,9 +159,6 @@ const emptyDescription = computed<string>(() =>
             {{ t('asset_movement_matching.fiat_hint.tooltip') }}
           </RuiTooltip>
         </div>
-      </template>
-      <template #item.amount="{ row }">
-        <ValueDisplay :value="row.amount" />
       </template>
       <template #item.eventType="{ row }">
         <BadgeDisplay>

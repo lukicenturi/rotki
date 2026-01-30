@@ -13,6 +13,7 @@ import type {
   SolanaSwapEvent,
   StandaloneEditableEvents,
 } from '@/types/history/events/schemas';
+import { useAssetMovementMatchingApi } from '@/composables/api/history/events/asset-movement-matching';
 import { useCustomizedEventDuplicates } from '@/composables/history/events/use-customized-event-duplicates';
 import { type DuplicateHandlingStatus, DuplicateHandlingStatus as DuplicateStatus } from '@/composables/history/events/use-history-events-filters';
 import { useReportIssue } from '@/composables/report-issue';
@@ -37,6 +38,7 @@ const props = defineProps<{
   event: HistoryEventEntry;
   loading: boolean;
   duplicateHandlingStatus?: DuplicateHandlingStatus;
+  isUnmatchedMovement?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -46,6 +48,8 @@ const emit = defineEmits<{
   'redecode-with-options': [event: PullEventPayload];
   'delete-tx': [data: LocationAndTxRef];
   'fix-duplicate': [];
+  'find-match': [];
+  'ignore-movement': [];
 }>();
 
 const {
@@ -54,9 +58,12 @@ const {
 } = useHistoryEventsStatus();
 
 const { fixDuplicates, fixLoading } = useCustomizedEventDuplicates();
+const { matchAssetMovements } = useAssetMovementMatchingApi();
 const { show } = useConfirmStore();
 
-const { duplicateHandlingStatus, event } = toRefs(props);
+const { duplicateHandlingStatus, event, isUnmatchedMovement } = toRefs(props);
+
+const ignoreMovementLoading = ref<boolean>(false);
 
 const isAutoFixable = computed<boolean>(() => get(duplicateHandlingStatus) === DuplicateStatus.AUTO_FIX);
 
@@ -190,6 +197,30 @@ function confirmFixDuplicate(): void {
     title: t('customized_event_duplicates.actions.fix_single'),
   }, async () => fixDuplicateEvent());
 }
+
+async function ignoreMovement(): Promise<void> {
+  const identifier = get(event).identifier;
+  set(ignoreMovementLoading, true);
+  try {
+    await matchAssetMovements(identifier);
+    emit('ignore-movement');
+  }
+  finally {
+    set(ignoreMovementLoading, false);
+  }
+}
+
+function confirmIgnoreMovement(): void {
+  show({
+    message: t('asset_movement_matching.dialog.ignore_tooltip'),
+    primaryAction: t('common.actions.confirm'),
+    title: t('asset_movement_matching.dialog.ignore'),
+  }, async () => ignoreMovement());
+}
+
+function findMatch(): void {
+  emit('find-match');
+}
 </script>
 
 <template>
@@ -210,6 +241,25 @@ function confirmFixDuplicate(): void {
       </template>
       {{ t('customized_event_duplicates.actions.fix') }}
     </RuiButton>
+    <template v-if="isUnmatchedMovement">
+      <RuiButton
+        size="sm"
+        color="primary"
+        class="mr-2"
+        @click="findMatch()"
+      >
+        {{ t('asset_movement_matching.dialog.find_match') }}
+      </RuiButton>
+      <RuiButton
+        size="sm"
+        variant="outlined"
+        class="mr-2"
+        :loading="ignoreMovementLoading"
+        @click="confirmIgnoreMovement()"
+      >
+        {{ t('asset_movement_matching.dialog.ignore') }}
+      </RuiButton>
+    </template>
     <RuiMenu
       v-model="showMenu"
       menu-class="max-w-[15rem]"

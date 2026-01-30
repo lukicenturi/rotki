@@ -38,6 +38,7 @@ const props = defineProps<{
   selection?: UseHistoryEventsSelectionModeReturn;
   matchExactEvents?: boolean;
   duplicateHandlingStatus?: DuplicateHandlingStatus;
+  isUnmatchedMovement?: boolean;
 }>();
 
 const emit = defineEmits<HistoryEventsTableEmits>();
@@ -217,12 +218,15 @@ useRememberTableSorting<HistoryEventEntry>(TableId.HISTORY, sort, cols);
           :event="row"
           :loading="eventsLoading"
           :duplicate-handling-status="duplicateHandlingStatus"
+          :is-unmatched-movement="isUnmatchedMovement"
           @add-event="addEvent($event, row);"
           @toggle-ignore="toggle($event)"
           @redecode="redecode($event, row.groupIdentifier)"
           @redecode-with-options="redecodeWithOptions($event, row.groupIdentifier)"
           @delete-tx="confirmTxAndEventsDelete($event)"
           @fix-duplicate="emit('refresh')"
+          @ignore-movement="emit('ignore-movement')"
+          @find-match="emit('find-match', row.groupIdentifier)"
         />
       </div>
     </template>

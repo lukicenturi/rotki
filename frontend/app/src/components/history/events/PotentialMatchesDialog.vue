@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { HistoryEventCollectionRow, HistoryEventEntryWithMeta } from '@/types/history/events/schemas';
-import { type BigNumber, bigNumberify } from '@rotki/common';
+import type { HistoryEventCollectionRow, HistoryEventEntry, HistoryEventEntryWithMeta } from '@/types/history/events/schemas';
+import { bigNumberify } from '@rotki/common';
 import PotentialMatchesList from '@/components/history/events/PotentialMatchesList.vue';
 import CardTitle from '@/components/typography/CardTitle.vue';
 import { useHistoryEventsApi } from '@/composables/api/history/events';
@@ -13,14 +13,7 @@ import { useGeneralSettingsStore } from '@/store/settings/general';
 
 export interface PotentialMatchRow {
   identifier: number;
-  asset: string;
-  amount: BigNumber;
-  location: string;
-  locationLabel?: string;
-  timestamp: number;
-  txRef?: string;
-  eventType: string;
-  eventSubtype: string;
+  entry: HistoryEventEntry;
   isCloseMatch: boolean;
 }
 
@@ -71,20 +64,12 @@ function getEventEntry(row: HistoryEventCollectionRow): HistoryEventEntryWithMet
 }
 
 function transformToMatchRow(row: HistoryEventCollectionRow, isCloseMatch: boolean): PotentialMatchRow {
-  const eventData = getEventEntry(row);
-  const entry = eventData.entry;
-
+  const { entry, ...meta } = getEventEntry(row);
+  const eventEntry = { ...entry, ...meta };
   return {
-    amount: entry.amount,
-    asset: entry.asset,
-    eventSubtype: entry.eventSubtype,
-    eventType: entry.eventType,
-    identifier: entry.identifier,
+    entry: eventEntry,
+    identifier: eventEntry.identifier,
     isCloseMatch,
-    location: entry.location,
-    locationLabel: entry.locationLabel ?? undefined,
-    timestamp: entry.timestamp,
-    txRef: 'txRef' in entry ? entry.txRef : undefined,
   };
 }
 
@@ -123,8 +108,8 @@ async function searchPotentialMatches(): Promise<void> {
     // Reorder matches to follow the order of allIdentifiers from backend
     const identifierOrderMap = new Map(allIdentifiers.map((id, index) => [id, index]));
     matches.sort((a, b) => {
-      const orderA = identifierOrderMap.get(a.identifier) ?? Number.MAX_SAFE_INTEGER;
-      const orderB = identifierOrderMap.get(b.identifier) ?? Number.MAX_SAFE_INTEGER;
+      const orderA = identifierOrderMap.get(a.entry.identifier) ?? Number.MAX_SAFE_INTEGER;
+      const orderB = identifierOrderMap.get(b.entry.identifier) ?? Number.MAX_SAFE_INTEGER;
       return orderA - orderB;
     });
 
@@ -186,6 +171,7 @@ watch(modelValue, async (isOpen) => {
   <RuiDialog
     v-model="modelValue"
     max-width="1000"
+    :z-index="10000"
   >
     <RuiCard content-class="max-h-[calc(100vh-210px)]">
       <template #custom-header>

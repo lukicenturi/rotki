@@ -27,6 +27,8 @@ export interface HistoryEventsTableEmits {
   'refresh': [payload?: PullLocationTransactionPayload];
   'refresh:block-event': [payload: PullEthBlockEventPayload];
   'update-event-ids': [payload: { eventIds: number[]; groupedEvents: Record<string, HistoryEventRow[]>; rawEvents?: HistoryEventRow[] }];
+  'find-match': [groupIdentifier: string];
+  'ignore-movement': [];
 }
 
 export type HistoryEventsTableEmitFn = <K extends keyof HistoryEventsTableEmits>(

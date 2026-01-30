@@ -6,6 +6,7 @@ import { useConfirmStore } from '@/store/confirm';
 const props = defineProps<{
   groupIdentifiers?: string[];
   duplicateHandlingStatus?: DuplicateHandlingStatus;
+  unmatchedMovementGroups?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -23,7 +24,7 @@ const {
   manualReviewGroupIds,
 } = useCustomizedEventDuplicates();
 
-const { duplicateHandlingStatus, groupIdentifiers } = toRefs(props);
+const { duplicateHandlingStatus, groupIdentifiers, unmatchedMovementGroups } = toRefs(props);
 
 const isAutoFixable = computed<boolean>(() => get(duplicateHandlingStatus) === DuplicateStatus.AUTO_FIX);
 
@@ -104,6 +105,17 @@ function removeDuplicateEventsParam(): void {
   router.push({ query });
 }
 
+const hasUnmatchedMovementGroups = computed<boolean>(() => {
+  const groups = get(unmatchedMovementGroups);
+  return !!groups && groups.length > 0;
+});
+
+function removeUnmatchedMovementGroupsParam(): void {
+  const query = { ...route.query };
+  delete query.unmatchedMovementGroups;
+  router.push({ query });
+}
+
 async function fixDuplicateEvent(): Promise<void> {
   const ids = get(groupIdentifiers);
   if (!ids || ids.length === 0)
@@ -175,6 +187,21 @@ function refreshDuplicateView(): void {
     </template>
     {{ t('historical_balances.negative_balances.view_event_tooltip') }}
   </RuiTooltip>
+
+  <div
+    v-if="hasUnmatchedMovementGroups"
+    class="mb-4"
+  >
+    <RuiChip
+      closeable
+      color="warning"
+      size="sm"
+      variant="outlined"
+      @click:close="removeUnmatchedMovementGroupsParam()"
+    >
+      {{ t('asset_movement_matching.chips.viewing_unmatched') }}
+    </RuiChip>
+  </div>
 
   <div
     v-if="hasGroupIdentifiers"
