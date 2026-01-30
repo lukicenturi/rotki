@@ -4753,7 +4753,7 @@ class FindPossibleMatchesSchema(Schema):
 
 
 class UnlinkMatchedAssetMovementSchema(Schema):
-    asset_movement = fields.Integer(required=True)
+    identifier = fields.Integer(required=True)
 
 
 class TriggerTaskSchema(AsyncQueryArgumentSchema):

@@ -3724,10 +3724,8 @@ class MatchAssetMovementsResource(BaseMethodView):
 
     @require_loggedin_user()
     @use_kwargs(delete_schema, location='json')
-    def delete(self, asset_movement: int) -> Response:
-        return self.rest_api.unlink_matched_asset_movements(
-            asset_movement_identifier=asset_movement,
-        )
+    def delete(self, identifier: int) -> Response:
+        return self.rest_api.unlink_matched_asset_movements(identifier=identifier)
 
 
 class CustomizedEventDuplicatesResource(BaseMethodView):
