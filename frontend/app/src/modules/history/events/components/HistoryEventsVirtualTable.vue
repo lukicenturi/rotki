@@ -182,6 +182,14 @@ function hasHiddenIgnoredAssets(groupId: string): boolean {
 function isShowingIgnoredAssets(groupId: string): boolean {
   return get(groupsShowingIgnoredAssets).has(groupId);
 }
+
+function unlinkGroup(groupId: string): void {
+  const events = getGroupEvents(groupId);
+  const event = events.find(item => item.eventSubtype !== 'fee' && !!item.actualGroupIdentifier);
+  if (event) {
+    confirmUnlink({ identifier: event.identifier });
+  }
+}
 </script>
 
 <template>
@@ -355,6 +363,7 @@ function isShowingIgnoredAssets(groupId: string): boolean {
             v-else-if="row.type === 'matched-movement-collapse'"
             :event-count="row.eventCount"
             label-type="movement"
+            @unlink-event="unlinkGroup(row.groupId)"
             @collapse="toggleMovementExpanded(row.movementKey)"
           />
 

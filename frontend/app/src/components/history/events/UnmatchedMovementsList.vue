@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { BigNumber } from '@rotki/common';
 import type { DataTableColumn } from '@rotki/ui-library';
 import type { UnmatchedAssetMovement } from '@/composables/history/events/use-unmatched-asset-movements';
-import type { HistoryEventCollectionRow, HistoryEventEntryWithMeta } from '@/types/history/events/schemas';
+import type {
+  HistoryEventCollectionRow,
+  HistoryEventEntry,
+  HistoryEventEntryWithMeta,
+} from '@/types/history/events/schemas';
 import DateDisplay from '@/components/display/DateDisplay.vue';
-import AssetDetails from '@/components/helper/AssetDetails.vue';
 import BadgeDisplay from '@/components/history/BadgeDisplay.vue';
+import HistoryEventAsset from '@/components/history/events/HistoryEventAsset.vue';
 import LocationDisplay from '@/components/history/LocationDisplay.vue';
-import { ValueDisplay } from '@/modules/amount-display/components';
 
 interface UnmatchedMovementRow {
   groupIdentifier: string;
-  asset: string;
-  amount: BigNumber;
+  entry: HistoryEventEntry;
   eventType: string;
   isFiat: boolean;
   location: string;
@@ -30,6 +31,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  close: [];
   ignore: [movement: UnmatchedAssetMovement];
   restore: [movement: UnmatchedAssetMovement];
   select: [movement: UnmatchedAssetMovement];
@@ -52,11 +54,6 @@ const columns = computed<DataTableColumn<UnmatchedMovementRow>[]>(() => [
     label: t('common.type'),
   },
   {
-    align: 'end',
-    key: 'amount',
-    label: t('common.amount'),
-  },
-  {
     key: 'asset',
     label: t('common.asset'),
   },
@@ -72,10 +69,10 @@ function getEventEntry(row: HistoryEventCollectionRow): HistoryEventEntryWithMet
 
 const rows = computed<UnmatchedMovementRow[]>(() =>
   props.movements.map((movement) => {
-    const entry = getEventEntry(movement.events).entry;
+    const { entry, ...meta } = getEventEntry(movement.events);
+    const eventEntry = { ...entry, ...meta };
     return {
-      amount: entry.amount,
-      asset: entry.asset,
+      entry: eventEntry,
       eventType: entry.eventType,
       groupIdentifier: movement.groupIdentifier,
       isFiat: movement.isFiat,
@@ -116,7 +113,7 @@ const emptyDescription = computed<string>(() =>
     >
       <template #item.asset="{ row }">
         <div class="flex items-center gap-2">
-          <AssetDetails :asset="row.asset" />
+          <HistoryEventAsset :event="row.entry" />
           <RuiTooltip
             v-if="row.isFiat"
             :open-delay="400"
@@ -134,9 +131,6 @@ const emptyDescription = computed<string>(() =>
             {{ t('asset_movement_matching.fiat_hint.tooltip') }}
           </RuiTooltip>
         </div>
-      </template>
-      <template #item.amount="{ row }">
-        <ValueDisplay :value="row.amount" />
       </template>
       <template #item.eventType="{ row }">
         <BadgeDisplay>

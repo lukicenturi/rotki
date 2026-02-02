@@ -183,7 +183,7 @@ const compactNotes = computed<string | undefined>(() => {
       @edit-event="emit('edit-event', $event)"
       @delete-event="emit('delete-event', $event)"
       @show:missing-rule-action="emit('show:missing-rule-action', $event)"
-      @unlink-event="emit('unlink-event', { groupIdentifier: primaryEvent.groupIdentifier })"
+      @unlink-event="emit('unlink-event', { identifier: primaryEvent.identifier })"
     />
   </div>
 </template>

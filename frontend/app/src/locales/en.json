@@ -5548,7 +5548,6 @@
         }
       },
       "unlink_error": "Failed to unlink asset movement",
-      "unlink_no_asset_movement": "No asset movement event found in this group",
       "view": {
         "load_more": "Load more events ({length})"
       }
