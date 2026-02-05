@@ -92,7 +92,6 @@ function removeIdentifierParam(): void {
 
 function removeNegativeBalanceParam(): void {
   const query = { ...route.query };
-  delete query.negativeBalanceGroup;
   delete query.negativeBalanceEvent;
   router.push({ query });
 }
@@ -157,7 +156,7 @@ function refreshDuplicateView(): void {
     </div>
 
     <RuiTooltip
-      v-if="route.query.negativeBalanceGroup"
+      v-if="route.query.negativeBalanceEvent"
       class="mb-4"
       :popper="{ placement: 'bottom' }"
       :open-delay="400"

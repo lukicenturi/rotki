@@ -1,4 +1,4 @@
-import type { DataTableSortData, TablePaginationData } from '@rotki/ui-library';
+import type { ContextColorsType, DataTableSortData, TablePaginationData } from '@rotki/ui-library';
 import type { ComputedRef, Ref } from 'vue';
 import type { HistoryEventsToggles } from '@/components/history/events/dialog-types';
 import type { HistoryEventRequestPayload } from '@/modules/history/events/request-types';
@@ -17,6 +17,8 @@ import {
   isEvmEventType,
   isOnlineHistoryEventType,
 } from '@/utils/history/events';
+
+export { useHistoryEventNavigationConsumer } from '@/composables/history/events/use-history-event-navigation';
 
 type Period = { fromTimestamp?: string; toTimestamp?: string } | { fromTimestamp?: number; toTimestamp?: number };
 
@@ -40,7 +42,13 @@ interface HistoryEventsFiltersOptions {
   validators: Ref<number[] | undefined>;
 }
 
-export type HighlightType = 'warning' | 'success';
+export type HighlightType = ContextColorsType;
+
+export const HIGHLIGHT_CLASSES: Partial<Record<HighlightType, string>> = {
+  error: '!bg-rui-error/15',
+  success: '!bg-rui-success/15',
+  warning: '!bg-rui-warning/15',
+};
 
 interface UseHistoryEventsFiltersReturn {
   duplicateHandlingStatus: ComputedRef<DuplicateHandlingStatus | undefined>;
@@ -271,7 +279,7 @@ export function useHistoryEventsFilters(
     if (highlightedIdentifier)
       types[highlightedIdentifier.toString()] = 'warning';
     if (negativeBalanceEvent)
-      types[negativeBalanceEvent.toString()] = 'warning';
+      types[negativeBalanceEvent.toString()] = 'error';
     if (highlightedPotentialMatch)
       types[highlightedPotentialMatch.toString()] = 'success';
 

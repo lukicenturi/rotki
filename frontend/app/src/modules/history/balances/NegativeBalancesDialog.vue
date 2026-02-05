@@ -4,6 +4,7 @@ import type { NegativeBalanceDetectedData } from '@/modules/messaging/types/stat
 import DateDisplay from '@/components/display/DateDisplay.vue';
 import AssetDetails from '@/components/helper/AssetDetails.vue';
 import CardTitle from '@/components/typography/CardTitle.vue';
+import { useHistoryEventNavigation } from '@/composables/history/events/use-history-event-navigation';
 import { AssetAmountDisplay } from '@/modules/amount-display/components';
 import { Routes } from '@/router/routes';
 
@@ -15,6 +16,7 @@ const props = defineProps<{
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
+const { requestNavigation } = useHistoryEventNavigation();
 
 const lastRunTs = computed<number | undefined>(() => {
   const balances = props.negativeBalances;
@@ -39,24 +41,11 @@ const headers = computed<DataTableColumn<NegativeBalanceDetectedData>[]>(() => [
 ]);
 
 async function navigateToEvent(row: NegativeBalanceDetectedData): Promise<void> {
-  const { bucket } = row;
-  const query: Record<string, string> = {
-    asset: bucket.asset,
-    location: bucket.location,
-    negativeBalanceEvent: row.eventIdentifier.toString(),
-    negativeBalanceGroup: row.groupIdentifier,
-  };
-
-  if (bucket.protocol)
-    query.counterparties = bucket.protocol;
-
-  if (bucket.locationLabel)
-    query.locationLabels = bucket.locationLabel;
-
   set(modelValue, false);
-  await router.push({
-    path: `${Routes.HISTORY_EVENTS}`,
-    query,
+  await router.push({ path: `${Routes.HISTORY_EVENTS}` });
+  requestNavigation({
+    groupIdentifier: row.groupIdentifier,
+    negativeBalanceEvent: row.eventIdentifier,
   });
 }
 </script>
