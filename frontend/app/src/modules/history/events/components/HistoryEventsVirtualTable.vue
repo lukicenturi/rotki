@@ -19,6 +19,7 @@ import HistoryEventsMatchedMovementItem from './HistoryEventsMatchedMovementItem
 import HistoryEventsSwapCollapseRow from './HistoryEventsSwapCollapseRow.vue';
 import HistoryEventsSwapItem from './HistoryEventsSwapItem.vue';
 import HistoryEventsVirtualHeader from './HistoryEventsVirtualHeader.vue';
+import { logger } from '@/utils/logging.ts';
 
 const sort = defineModel<DataTableSortData<HistoryEventEntry>>('sort', { required: true });
 const pagination = defineModel<TablePaginationData>('pagination', { required: true });
@@ -190,11 +191,12 @@ function isShowingIgnoredAssets(groupId: string): boolean {
 function unlinkGroup(groupId: string): void {
   const events = getGroupEvents(groupId);
   const event = events.find(item => item.eventSubtype !== 'fee' && !!item.actualGroupIdentifier);
+  console.log(events);
   if (event) {
     confirmUnlink({ identifier: event.identifier });
   }
   else {
-    console.warn(`No unlinkable event found for group ${groupId}`);
+    logger.warn(`No unlinkable event found for group ${groupId}`);
   }
 }
 </script>
