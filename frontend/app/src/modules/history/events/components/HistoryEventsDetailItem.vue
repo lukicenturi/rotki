@@ -122,7 +122,6 @@ const isCard = computed<boolean>(() => props.variant === 'card');
         :index="index"
         :events="allEvents"
         class="shrink-0"
-        :class="{ 'opacity-50': !hasMissingRule }"
         @edit-event="emit('edit-event', $event)"
         @delete-event="emit('delete-event', $event)"
         @show:missing-rule-action="emit('show:missing-rule-action', $event)"
@@ -133,7 +132,7 @@ const isCard = computed<boolean>(() => props.variant === 'card');
   <!-- Row Layout -->
   <div
     v-else
-    class="h-[72px] flex items-center gap-4 border-b border-default px-4 pl-8 group/row contain-content"
+    class="h-[72px] flex items-center gap-4 border-b border-default px-4 pl-6 group/row contain-content"
     :class="[
       { 'opacity-50': hiddenEvent },
       highlight && getHighlightClass(highlightType),
@@ -153,12 +152,12 @@ const isCard = computed<boolean>(() => props.variant === 'card');
       :chain="chain"
       :group-location-label="groupLocationLabel"
       :highlight="highlight"
-      class="w-44 xl:w-52 shrink-0"
+      class="w-56 shrink-0"
     />
 
     <HistoryEventAsset
       :event="event"
-      class="w-60 shrink-0"
+      class="w-56 xl:w-60 shrink-0"
       @refresh="emit('refresh')"
     />
 

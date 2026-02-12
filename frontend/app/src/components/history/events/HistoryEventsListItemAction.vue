@@ -25,6 +25,7 @@ const props = defineProps<{
   events: HistoryEventEntry[];
   canUnlink?: boolean;
   collapsed?: boolean;
+  collapseAction?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -35,6 +36,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n({ useScope: 'global' });
+
+const COLLAPSE_ACTION_CLASSES = 'w-0 group-hover/row:w-auto 2xl:!w-24 2xl:opacity-0 2xl:group-hover/row:opacity-100 2xl:focus-within:opacity-100';
 
 const { item } = toRefs(props);
 
@@ -88,10 +91,19 @@ function deleteEvent(item: HistoryEventEntry) {
 </script>
 
 <template>
-  <div class="flex items-center gap-1 justify-end">
+  <div
+    class="flex items-center gap-1 justify-end"
+    :class="{
+      'transition-opacity overflow-hidden 2xl:overflow-visible': collapseAction,
+      [COLLAPSE_ACTION_CLASSES]: collapseAction && !hasMissingRule,
+    }"
+  >
     <!-- Edit/Delete/Other actions - hidden on default when missing rule, visible on hover -->
     <RowActions
-      :class="{ 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity': hasMissingRule }"
+      :class="{
+        'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity': hasMissingRule && !collapseAction,
+        [COLLAPSE_ACTION_CLASSES]: hasMissingRule && collapseAction,
+      }"
       align="end"
       :delete-tooltip="t('transactions.events.actions.delete')"
       :edit-tooltip="t('transactions.events.actions.edit')"

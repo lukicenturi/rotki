@@ -37,7 +37,6 @@ const {
   chain,
   compactNotes,
   counterparty,
-  hasMissingRule,
   isCheckboxDisabled,
   isMultiReceive,
   isMultiSpend,
@@ -167,7 +166,6 @@ const isCard = computed<boolean>(() => props.variant === 'card');
         :index="0"
         :events="allEvents"
         class="shrink-0"
-        :class="{ 'opacity-50': !hasMissingRule }"
         @edit-event="emit('edit-event', $event)"
         @delete-event="emit('delete-event', $event)"
         @show:missing-rule-action="emit('show:missing-rule-action', $event)"
@@ -178,7 +176,7 @@ const isCard = computed<boolean>(() => props.variant === 'card');
   <!-- Row Layout -->
   <div
     v-else
-    class="h-[72px] flex items-center gap-4 border-b border-default px-4 pl-8 group/row relative contain-content"
+    class="h-[72px] flex items-center gap-4 border-b border-default px-4 pl-6 group/row relative contain-content"
     :class="{ 'opacity-50': primaryEvent.ignoredInAccounting }"
   >
     <RuiCheckbox
@@ -213,11 +211,11 @@ const isCard = computed<boolean>(() => props.variant === 'card');
         :highlight="highlight"
         icon="lu-arrow-right-left"
         hide-state-chips
-        class="w-44 xl:w-52 shrink-0 self-center"
+        class="w-56 shrink-0 self-center"
       />
     </div>
 
-    <div class="relative w-60 shrink-0">
+    <div class="relative w-56 xl:w-60 shrink-0">
       <HistoryEventAsset
         v-if="spendEvent"
         :event="spendEvent"
@@ -244,6 +242,7 @@ const isCard = computed<boolean>(() => props.variant === 'card');
         <HistoryEventAsset
           v-if="receiveEvent"
           :event="receiveEvent"
+          class="w-56 xl:w-60"
           @refresh="emit('refresh')"
         />
         <span
@@ -268,8 +267,8 @@ const isCard = computed<boolean>(() => props.variant === 'card');
       :item="primaryEvent"
       :index="0"
       :events="allEvents"
-      class="w-24 shrink-0 self-center transition-opacity"
-      :class="{ 'opacity-0 group-hover/row:opacity-100 focus-within:opacity-100': !hasMissingRule }"
+      collapse-action
+      class="shrink-0 self-center"
       @edit-event="emit('edit-event', $event)"
       @delete-event="emit('delete-event', $event)"
       @show:missing-rule-action="emit('show:missing-rule-action', $event)"
