@@ -10,6 +10,7 @@ import { isEqual } from 'es-toolkit';
 import { type Filters, type Matcher, useHistoryEventFilter } from '@/composables/filters/events';
 import { useHistoryEvents } from '@/composables/history/events';
 import { isValidHistoryEventState } from '@/composables/history/events/mapping/state';
+import { type HistoryEventNavigationRequest, useHistoryEventNavigation } from '@/composables/history/events/use-history-event-navigation';
 import { usePaginationFilters } from '@/composables/use-pagination-filter';
 import { TableId } from '@/modules/table/use-remember-table-sorting';
 import { RouterLocationLabelsSchema } from '@/types/route';
@@ -104,6 +105,7 @@ export function useHistoryEventsFilters(
   const route = useRoute();
   const router = useRouter();
   const { fetchHistoryEvents } = useHistoryEvents();
+  const { lastTargetGroupIdentifier, requestNavigation } = useHistoryEventNavigation();
 
   const fetchHistoryEventsTagged = async (
     payload: MaybeRef<HistoryEventRequestPayload>,
@@ -341,6 +343,31 @@ export function useHistoryEventsFilters(
       }));
     }
   }, { debounce: 100 });
+
+  // Re-navigate to highlighted event when rows per page changes
+  watch(() => get(pagination).limit, (newLimit, oldLimit) => {
+    if (!oldLimit || newLimit === oldLimit)
+      return;
+
+    const groupId = get(lastTargetGroupIdentifier);
+    if (!groupId)
+      return;
+
+    const { highlightedAssetMovement, highlightedPotentialMatch, highlightedNegativeBalanceEvent } = get(route).query;
+    if (!(highlightedAssetMovement || highlightedPotentialMatch || highlightedNegativeBalanceEvent))
+      return;
+
+    const request: HistoryEventNavigationRequest = { targetGroupIdentifier: groupId };
+
+    if (highlightedAssetMovement)
+      request.highlightedAssetMovement = Number(highlightedAssetMovement);
+    if (highlightedPotentialMatch)
+      request.highlightedPotentialMatch = Number(highlightedPotentialMatch);
+    if (highlightedNegativeBalanceEvent)
+      request.highlightedNegativeBalanceEvent = Number(highlightedNegativeBalanceEvent);
+
+    requestNavigation(request);
+  });
 
   return {
     duplicateHandlingStatus: duplicateHandlingStatusFromQuery,

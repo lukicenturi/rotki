@@ -117,6 +117,19 @@ describe('use-history-event-navigation', () => {
 
       expect(mockRouterPush).not.toHaveBeenCalled();
     });
+
+    it('should store lastTargetGroupIdentifier on requestNavigation', async () => {
+      const { useHistoryEventNavigation } = await importFresh();
+      const { lastTargetGroupIdentifier, requestNavigation } = scope.run(() => useHistoryEventNavigation())!;
+
+      expect(get(lastTargetGroupIdentifier)).toBeUndefined();
+
+      requestNavigation({ targetGroupIdentifier: 'group-1', highlightedAssetMovement: 42 });
+      expect(get(lastTargetGroupIdentifier)).toBe('group-1');
+
+      requestNavigation({ targetGroupIdentifier: 'group-2' });
+      expect(get(lastTargetGroupIdentifier)).toBe('group-2');
+    });
   });
 
   describe('useHistoryEventNavigationConsumer', () => {
@@ -421,11 +434,11 @@ describe('use-history-event-navigation', () => {
         expect(mockRouterPush).toHaveBeenCalledWith({
           force: true,
           path: '/history/events',
-          query: {
+          query: expect.objectContaining({
             highlightedNegativeBalanceEvent: '500',
             limit: '10',
             page: '2',
-          },
+          }),
         });
       });
 

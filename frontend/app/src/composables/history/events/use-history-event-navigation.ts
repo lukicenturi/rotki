@@ -19,12 +19,14 @@ export interface HistoryEventNavigationRequest {
 const historyEventsPath = Routes.HISTORY_EVENTS.toString();
 const pendingNavigation = ref<HistoryEventNavigationRequest>();
 const isNavigating = ref<boolean>(false);
+const lastTargetGroupIdentifier = ref<string>();
 
 export const useHistoryEventNavigation = createSharedComposable(() => {
   const router = useRouter();
   const route = useRoute();
 
   function requestNavigation(request: HistoryEventNavigationRequest): void {
+    set(lastTargetGroupIdentifier, request.targetGroupIdentifier);
     set(isNavigating, true);
     set(pendingNavigation, request);
 
@@ -40,7 +42,7 @@ export const useHistoryEventNavigation = createSharedComposable(() => {
     set(isNavigating, false);
   }
 
-  return { consumeNavigation, isNavigating, pendingNavigation, requestNavigation };
+  return { consumeNavigation, isNavigating, lastTargetGroupIdentifier, pendingNavigation, requestNavigation };
 });
 
 /**
@@ -85,24 +87,26 @@ export function useHistoryEventNavigationConsumer(pagination: ComputedRef<TableP
       const limit = get(pagination).limit;
       const page = Math.floor(position / limit) + 1;
 
-      const query: Record<string, string> = {
-        limit: limit.toString(),
-        page: page.toString(),
-      };
+      const highlightQuery: Record<string, string> = {};
 
       if (request.highlightedAssetMovement)
-        query.highlightedAssetMovement = request.highlightedAssetMovement.toString();
+        highlightQuery.highlightedAssetMovement = request.highlightedAssetMovement.toString();
 
       if (request.highlightedPotentialMatch)
-        query.highlightedPotentialMatch = request.highlightedPotentialMatch.toString();
+        highlightQuery.highlightedPotentialMatch = request.highlightedPotentialMatch.toString();
 
       if (request.highlightedNegativeBalanceEvent)
-        query.highlightedNegativeBalanceEvent = request.highlightedNegativeBalanceEvent.toString();
+        highlightQuery.highlightedNegativeBalanceEvent = request.highlightedNegativeBalanceEvent.toString();
 
       await router.push({
         force: true,
         path: historyEventsPath,
-        query,
+        query: {
+          ...get(route).query,
+          ...highlightQuery,
+          limit: limit.toString(),
+          page: page.toString(),
+        },
       });
     }
     catch (error: any) {
