@@ -10,6 +10,7 @@ import { isEqual } from 'es-toolkit';
 import { type Filters, type Matcher, useHistoryEventFilter } from '@/composables/filters/events';
 import { useHistoryEvents } from '@/composables/history/events';
 import { isValidHistoryEventState } from '@/composables/history/events/mapping/state';
+import { useHistoryEventNavigation } from '@/composables/history/events/use-history-event-navigation';
 import { usePaginationFilters } from '@/composables/use-pagination-filter';
 import { TableId } from '@/modules/table/use-remember-table-sorting';
 import { RouterLocationLabelsSchema } from '@/types/route';
@@ -101,9 +102,10 @@ export function useHistoryEventsFilters(
 
   const GROUPS_CANCEL_TAG = 'history-events-groups';
 
-  const route = useRoute();
   const router = useRouter();
+  const route = useRoute();
   const { fetchHistoryEvents } = useHistoryEvents();
+  const { findHighlightPage } = useHistoryEventNavigation();
 
   const fetchHistoryEventsTagged = async (
     payload: MaybeRef<HistoryEventRequestPayload>,
@@ -326,6 +328,33 @@ export function useHistoryEventsFilters(
     set(locationLabels, labels);
   }
 
+  /**
+   * Calculate position of highlighted event within current filters and set the page directly.
+   * This avoids a duplicate fetch by setting the page before the pagination system's debounced fetch fires.
+   * The filter watcher fires at 100ms debounce while the pagination fetch fires at 200ms debounce,
+   * so if the position API responds quickly, setPage() resets the debounce and only one fetch occurs.
+   */
+  let navigationGeneration = 0;
+
+  async function navigateToHighlightPosition(): Promise<void> {
+    const generation = ++navigationGeneration;
+    const page = await findHighlightPage(get(pageParams), get(pagination).limit);
+
+    if (generation !== navigationGeneration)
+      return;
+
+    if (page >= 1) {
+      setPage(page);
+      return;
+    }
+
+    // Clear highlights from route if they exist but events were not found in filtered results
+    const { highlightedAssetMovement, highlightedNegativeBalanceEvent, highlightedPotentialMatch, ...remainingQuery } = get(route).query;
+    if (highlightedAssetMovement || highlightedPotentialMatch || highlightedNegativeBalanceEvent)
+      await router.replace({ query: remainingQuery });
+  }
+
+  // Re-navigate highlights when filters or accounts change
   watchDebounced([filters, locationLabels], ([filters, locationLabels], [oldFilters, oldLocationLabels]) => {
     const filterChanged = !isEqual(filters, oldFilters);
     const accountsChanged = !isEqual(locationLabels, oldLocationLabels);
@@ -333,14 +362,16 @@ export function useHistoryEventsFilters(
     if (!(filterChanged || accountsChanged))
       return;
 
-    // Clear highlight when non-pagination filters change
-    const { highlightedAssetMovement, highlightedNegativeBalanceEvent, highlightedPotentialMatch, ...remainingQuery } = get(route).query;
-    if (highlightedAssetMovement || highlightedPotentialMatch || highlightedNegativeBalanceEvent) {
-      startPromise(router.replace({
-        query: remainingQuery,
-      }));
-    }
+    startPromise(navigateToHighlightPosition());
   }, { debounce: 100 });
+
+  // Re-navigate highlights when rows per page changes
+  watch(() => get(pagination).limit, (newLimit, oldLimit) => {
+    if (!oldLimit || newLimit === oldLimit)
+      return;
+
+    startPromise(navigateToHighlightPosition());
+  });
 
   return {
     duplicateHandlingStatus: duplicateHandlingStatusFromQuery,

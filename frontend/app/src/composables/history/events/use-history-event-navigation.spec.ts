@@ -5,6 +5,7 @@ import flushPromises from 'flush-promises';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockRouterPush = vi.fn().mockResolvedValue(undefined);
+const mockRouterReplace = vi.fn().mockResolvedValue(undefined);
 const mockGetHistoryEventGroupPosition = vi.fn();
 const mockNotify = vi.fn();
 
@@ -35,7 +36,7 @@ let mockRoute: Ref<{ path: string; query: Record<string, unknown> }>;
 function setupMockRoute(path: string = '/history/events', query: Record<string, unknown> = {}): void {
   mockRoute = ref({ path, query });
   useRouteMock.mockReturnValue(mockRoute);
-  useRouterMock.mockReturnValue({ currentRoute: mockRoute, push: mockRouterPush });
+  useRouterMock.mockReturnValue({ currentRoute: mockRoute, push: mockRouterPush, replace: mockRouterReplace });
 }
 
 describe('use-history-event-navigation', () => {
@@ -117,6 +118,163 @@ describe('use-history-event-navigation', () => {
 
       expect(mockRouterPush).not.toHaveBeenCalled();
     });
+
+    it('should set and clear highlight targets', async () => {
+      const { useHistoryEventNavigation } = await importFresh();
+      const { clearAllHighlightTargets, clearHighlightTarget, highlightTargets, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+      setHighlightTarget('assetMovement', { groupIdentifier: 'group-1', identifier: 100 });
+      setHighlightTarget('potentialMatch', { groupIdentifier: 'group-2', identifier: 200 });
+
+      expect(get(highlightTargets)).toEqual({
+        assetMovement: { groupIdentifier: 'group-1', identifier: 100 },
+        potentialMatch: { groupIdentifier: 'group-2', identifier: 200 },
+      });
+
+      clearHighlightTarget('potentialMatch');
+      expect(get(highlightTargets)).toEqual({
+        assetMovement: { groupIdentifier: 'group-1', identifier: 100 },
+      });
+
+      clearAllHighlightTargets();
+      expect(get(highlightTargets)).toEqual({});
+    });
+
+    it('should build fallback chain from highlight targets via renavigateHighlights', async () => {
+      setupMockRoute('/history/events', {
+        highlightedAssetMovement: '100',
+        highlightedPotentialMatch: '200',
+      });
+
+      const { useHistoryEventNavigation } = await importFresh();
+      const { pendingNavigation, renavigateHighlights, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+      setHighlightTarget('assetMovement', { groupIdentifier: 'group-yellow', identifier: 100 });
+      setHighlightTarget('potentialMatch', { groupIdentifier: 'group-green', identifier: 200 });
+
+      renavigateHighlights();
+
+      const request = get(pendingNavigation);
+      expect(request).toBeDefined();
+      // Green (potential match) should be the primary
+      expect(request?.targetGroupIdentifier).toBe('group-green');
+      expect(request?.highlightedPotentialMatch).toBe(200);
+      expect(request?.preserveFilters).toBe(true);
+      // Yellow (asset movement) should be in fallbacks
+      expect(request?.fallbacks).toHaveLength(1);
+      expect(request?.fallbacks?.[0].targetGroupIdentifier).toBe('group-yellow');
+      expect(request?.fallbacks?.[0].highlightedAssetMovement).toBe(100);
+    });
+
+    it('should not renavigate when no highlight targets match route query', async () => {
+      setupMockRoute('/history/events', {});
+
+      const { useHistoryEventNavigation } = await importFresh();
+      const { pendingNavigation, renavigateHighlights, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+      setHighlightTarget('assetMovement', { groupIdentifier: 'group-1', identifier: 100 });
+      renavigateHighlights();
+
+      // No matching query params, so no navigation should be triggered
+      expect(get(pendingNavigation)).toBeUndefined();
+    });
+
+    describe('findHighlightPage', () => {
+      it('should return correct page when event is found', async () => {
+        setupMockRoute('/history/events', { highlightedAssetMovement: '100' });
+        mockGetHistoryEventGroupPosition.mockResolvedValue(25);
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+        setHighlightTarget('assetMovement', { groupIdentifier: 'group-1', identifier: 100 });
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(3); // position 25, limit 10 → page 3
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-1', {});
+      });
+
+      it('should return -1 when no highlights are active', async () => {
+        setupMockRoute('/history/events', {});
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage } = scope.run(() => useHistoryEventNavigation())!;
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(-1);
+        expect(mockGetHistoryEventGroupPosition).not.toHaveBeenCalled();
+      });
+
+      it('should try candidates in priority order (green > yellow > red)', async () => {
+        setupMockRoute('/history/events', {
+          highlightedAssetMovement: '100',
+          highlightedNegativeBalanceEvent: '300',
+          highlightedPotentialMatch: '200',
+        });
+        // Green found at position 5
+        mockGetHistoryEventGroupPosition.mockResolvedValueOnce(5);
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+        setHighlightTarget('potentialMatch', { groupIdentifier: 'group-green', identifier: 200 });
+        setHighlightTarget('assetMovement', { groupIdentifier: 'group-yellow', identifier: 100 });
+        setHighlightTarget('negativeBalance', { groupIdentifier: 'group-red', identifier: 300 });
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(1); // position 5, limit 10 → page 1
+
+        // Only the green candidate should have been checked (found immediately)
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledTimes(1);
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-green', {});
+      });
+
+      it('should fall back to next candidate when position is -1', async () => {
+        setupMockRoute('/history/events', {
+          highlightedAssetMovement: '100',
+          highlightedPotentialMatch: '200',
+        });
+        // Green not found, yellow found at position 15
+        mockGetHistoryEventGroupPosition.mockResolvedValueOnce(-1);
+        mockGetHistoryEventGroupPosition.mockResolvedValueOnce(15);
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+        setHighlightTarget('potentialMatch', { groupIdentifier: 'group-green', identifier: 200 });
+        setHighlightTarget('assetMovement', { groupIdentifier: 'group-yellow', identifier: 100 });
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(2); // position 15, limit 10 → page 2
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledTimes(2);
+      });
+
+      it('should return -1 when all candidates fail', async () => {
+        setupMockRoute('/history/events', { highlightedAssetMovement: '100' });
+        mockGetHistoryEventGroupPosition.mockResolvedValue(-1);
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+        setHighlightTarget('assetMovement', { groupIdentifier: 'group-1', identifier: 100 });
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(-1);
+      });
+
+      it('should return -1 when API throws error', async () => {
+        setupMockRoute('/history/events', { highlightedAssetMovement: '100' });
+        mockGetHistoryEventGroupPosition.mockRejectedValue(new Error('API error'));
+
+        const { useHistoryEventNavigation } = await importFresh();
+        const { findHighlightPage, setHighlightTarget } = scope.run(() => useHistoryEventNavigation())!;
+
+        setHighlightTarget('assetMovement', { groupIdentifier: 'group-1', identifier: 100 });
+
+        const page = await findHighlightPage({} as any, 10);
+        expect(page).toBe(-1);
+      });
+    });
   });
 
   describe('useHistoryEventNavigationConsumer', () => {
@@ -152,7 +310,7 @@ describe('use-history-event-navigation', () => {
 
         await flushPromises();
 
-        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-1');
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-1', undefined);
         expect(mockRouterPush).toHaveBeenCalledWith({
           force: true,
           path: '/history/events',
@@ -398,6 +556,137 @@ describe('use-history-event-navigation', () => {
         expect(mockGetHistoryEventGroupPosition).not.toHaveBeenCalled();
         expect(mockRouterPush).not.toHaveBeenCalled();
       });
+
+      it('should try fallback when position is -1', async () => {
+        // First call returns -1 (not found), second call returns position 5
+        mockGetHistoryEventGroupPosition.mockResolvedValueOnce(-1);
+        mockGetHistoryEventGroupPosition.mockResolvedValueOnce(5);
+
+        const { useHistoryEventNavigation, useHistoryEventNavigationConsumer } = await importFresh();
+        const pagination = createPagination(10);
+
+        scope.run(() => {
+          useHistoryEventNavigationConsumer(pagination);
+          const { requestNavigation } = useHistoryEventNavigation();
+
+          requestNavigation({
+            fallbacks: [{
+              highlightedAssetMovement: 100,
+              targetGroupIdentifier: 'group-fallback',
+            }],
+            highlightedPotentialMatch: 200,
+            targetGroupIdentifier: 'group-primary',
+          });
+        });
+
+        await flushPromises();
+
+        // Should have tried both groups
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledTimes(2);
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-primary', undefined);
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-fallback', undefined);
+
+        // Should navigate to the fallback
+        expect(mockRouterPush).toHaveBeenCalledWith({
+          force: true,
+          path: '/history/events',
+          query: {
+            highlightedAssetMovement: '100',
+            limit: '10',
+            page: '1',
+          },
+        });
+      });
+
+      it('should clear highlights when position is -1 and no fallbacks remain', async () => {
+        setupMockRoute('/history/events', {
+          highlightedAssetMovement: '100',
+        });
+        mockGetHistoryEventGroupPosition.mockResolvedValue(-1);
+
+        const { useHistoryEventNavigation, useHistoryEventNavigationConsumer } = await importFresh();
+        const pagination = createPagination(10);
+
+        scope.run(() => {
+          useHistoryEventNavigationConsumer(pagination);
+          const { requestNavigation } = useHistoryEventNavigation();
+
+          requestNavigation({
+            highlightedAssetMovement: 100,
+            targetGroupIdentifier: 'group-not-found',
+          });
+        });
+
+        await flushPromises();
+
+        // Should clear highlights from route
+        expect(mockRouterReplace).toHaveBeenCalled();
+      });
+
+      it('should not notify on error when preserveFilters is true', async () => {
+        mockGetHistoryEventGroupPosition.mockRejectedValue(new Error('API failure'));
+
+        const { useHistoryEventNavigation, useHistoryEventNavigationConsumer } = await importFresh();
+        const pagination = createPagination(10);
+
+        const composable = scope.run(() => {
+          useHistoryEventNavigationConsumer(pagination);
+          return useHistoryEventNavigation();
+        })!;
+
+        composable.requestNavigation({
+          highlightedAssetMovement: 100,
+          preserveFilters: true,
+          targetGroupIdentifier: 'group-filtered',
+        });
+        await flushPromises();
+
+        // Should NOT notify when preserveFilters is true
+        expect(mockNotify).not.toHaveBeenCalled();
+        expect(get(composable.isNavigating)).toBe(false);
+      });
+
+      it('should preserve route query when preserveFilters is true', async () => {
+        setupMockRoute('/history/events', {
+          eventTypes: 'deposit',
+          limit: '25',
+          page: '2',
+        });
+        mockGetHistoryEventGroupPosition.mockResolvedValue(30);
+
+        const { useHistoryEventNavigation, useHistoryEventNavigationConsumer } = await importFresh();
+        const pagination = createPagination(25);
+        const loading = ref<boolean>(false);
+
+        scope.run(() => {
+          useHistoryEventNavigationConsumer(pagination, undefined, loading);
+          const { requestNavigation } = useHistoryEventNavigation();
+
+          requestNavigation({
+            highlightedAssetMovement: 100,
+            preserveFilters: true,
+            targetGroupIdentifier: 'group-filtered',
+          });
+        });
+
+        // Simulate pagination system loading cycle
+        set(loading, true);
+        await nextTick();
+        set(loading, false);
+        await flushPromises();
+
+        // Should merge page + highlights into existing route while preserving filter params
+        expect(mockRouterPush).toHaveBeenCalledWith({
+          force: true,
+          path: '/history/events',
+          query: expect.objectContaining({
+            eventTypes: 'deposit',
+            highlightedAssetMovement: '100',
+            limit: '25',
+            page: '2',
+          }),
+        });
+      });
     });
 
     describe('route-based navigation', () => {
@@ -417,7 +706,7 @@ describe('use-history-event-navigation', () => {
 
         await flushPromises();
 
-        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-route');
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-route', undefined);
         expect(mockRouterPush).toHaveBeenCalledWith({
           force: true,
           path: '/history/events',
@@ -488,7 +777,7 @@ describe('use-history-event-navigation', () => {
 
         await flushPromises();
 
-        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-new');
+        expect(mockGetHistoryEventGroupPosition).toHaveBeenCalledWith('group-new', undefined);
       });
     });
   });
