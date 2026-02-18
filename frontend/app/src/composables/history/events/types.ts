@@ -1,5 +1,7 @@
 import type { ContextColorsType } from '@rotki/ui-library';
 
+export { useCustomizedEventDuplicates } from './use-customized-event-duplicates';
+
 export const DuplicateHandlingStatus = {
   AUTO_FIX: 'auto-fix',
   MANUAL_REVIEW: 'manual-review',

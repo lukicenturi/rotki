@@ -14,7 +14,7 @@ import { startPromise } from '@shared/utils';
 import { useHistoryEventMappings } from '@/composables/history/events/mapping';
 import { type RepullingTransactionResult, useHistoryTransactions } from '@/composables/history/events/tx';
 import { useHistoryTransactionDecoding } from '@/composables/history/events/tx/decoding';
-import { HISTORY_EVENT_ACTIONS, type HistoryEventAction } from '@/composables/history/events/types';
+import { HISTORY_EVENT_ACTIONS, type HistoryEventAction, useCustomizedEventDuplicates } from '@/composables/history/events/types';
 import { useHistoryEventsAutoFetch } from '@/modules/history/events/use-history-events-auto-fetch';
 import { Routes } from '@/router/routes';
 import { useConfirmStore } from '@/store/confirm';
@@ -63,7 +63,7 @@ export function useHistoryEventsActions(options: UseHistoryEventsActionsOptions)
   const {
     currentAction,
     entryTypes,
-    fetchData,
+    fetchData: fetchEventsData,
     groups,
     onlyChains,
     shouldFetchEventsRegularly,
@@ -72,6 +72,15 @@ export function useHistoryEventsActions(options: UseHistoryEventsActionsOptions)
 
   const { t } = useI18n({ useScope: 'global' });
   const router = useRouter();
+  const route = useRoute();
+  const { fetchCustomizedEventDuplicates } = useCustomizedEventDuplicates();
+
+  async function fetchData(): Promise<void> {
+    await fetchEventsData();
+    if (get(route).query.groupIdentifiers)
+      await fetchCustomizedEventDuplicates();
+  }
+
   const { show } = useConfirmStore();
   const { notify } = useNotificationsStore();
   const {
