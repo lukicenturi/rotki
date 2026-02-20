@@ -10,14 +10,12 @@ import { useCurrencies } from '@/types/currencies';
 import '@test/i18n';
 
 // Mock functions
-const mockCacheEuroCollectionAssets = vi.fn();
 const mockFetchExchangeRates = vi.fn();
 const mockFetchPrices = vi.fn();
 
 // Mock the price task manager at the top level
 vi.mock('@/modules/prices/use-price-task-manager', (): any => ({
   usePriceTaskManager: () => ({
-    cacheEuroCollectionAssets: mockCacheEuroCollectionAssets,
     fetchExchangeRates: mockFetchExchangeRates,
     fetchPrices: mockFetchPrices,
   }),
@@ -31,7 +29,6 @@ describe('usePriceRefresh', () => {
     setActivePinia(createPinia());
 
     // Reset mocks before each test
-    mockCacheEuroCollectionAssets.mockClear().mockResolvedValue({});
     mockFetchExchangeRates.mockClear().mockResolvedValue({});
     mockFetchPrices.mockClear().mockResolvedValue({});
   });

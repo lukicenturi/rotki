@@ -20,7 +20,7 @@ const { identifier, isCollectionParent = false } = defineProps<{
 }>();
 
 const { assetPriceInfo } = useAggregatedBalances();
-const { assetPriceInCurrentCurrency } = usePriceUtils();
+const { assetPrice } = usePriceUtils();
 
 const { assetName } = useAssetInfoRetrieval();
 const { refreshPrice } = usePriceRefresh();
@@ -28,8 +28,8 @@ const { isLoading } = useStatusStore();
 
 const refreshingPrices = isLoading(Section.PRICES);
 
-const info = computed<AssetPriceInfo>(() => get(assetPriceInfo(() => identifier, () => isCollectionParent)));
-const price = assetPriceInCurrentCurrency(() => identifier);
+const info = computed<AssetPriceInfo>(() => get(assetPriceInfo(identifier, isCollectionParent)));
+const price = assetPrice(() => identifier);
 
 const { isManualAssetPrice } = usePriceUtils();
 const isManualPrice = isManualAssetPrice(() => identifier);
@@ -47,7 +47,7 @@ function setPriceForm() {
   const toAsset = get(currencySymbol);
   set(customPrice, {
     fromAsset: identifier,
-    price: get(price).toFixed(),
+    price: get(price)?.toFixed() ?? '0',
     toAsset,
   });
   set(openPriceDialog, true);

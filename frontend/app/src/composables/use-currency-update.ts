@@ -9,7 +9,6 @@ export function useCurrencyUpdate(): UseCurrencyUpdateReturn {
   const { refreshPrices } = usePriceRefresh();
 
   async function onCurrencyUpdate(): Promise<void> {
-    // TODO: This is temporary fix for double conversion issue. Future solutions should try to eliminate this part.
     startPromise(refreshPrices(true));
 
     // Clear hide small balances state, if the currency is changed
