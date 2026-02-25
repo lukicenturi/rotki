@@ -127,12 +127,21 @@ const displaySymbol = computed<string>(() => {
     >
       <template
         v-if="showAssetOracle"
-        #tooltip
+        #tooltip="{ tooltip: fullValue }"
       >
         <OracleBadge
           v-if="assetOracle"
           :oracle="assetOracle"
         />
+        <div v-if="fullValue">
+          {{ fullValue }}
+        </div>
+      </template>
+      <template
+        v-else
+        #tooltip
+      >
+        <slot name="tooltip" />
       </template>
     </AmountDisplayBase>
   </DefineAmountDisplay>

@@ -100,12 +100,15 @@ const { scrambledValue } = useScrambledValue({ value: displayValue });
     >
       <template
         v-if="showAssetOracle"
-        #tooltip
+        #tooltip="{ tooltip: fullValue }"
       >
         <OracleBadge
           v-if="assetOracle"
           :oracle="assetOracle"
         />
+        <div v-if="fullValue">
+          {{ fullValue }}
+        </div>
       </template>
     </AmountDisplayBase>
   </div>
